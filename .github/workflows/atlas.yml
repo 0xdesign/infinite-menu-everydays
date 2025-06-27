@@ -1,0 +1,48 @@
+name: Build Texture Atlas
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'scripts/buildAtlas.ts'
+      - '.github/workflows/atlas.yml'
+  workflow_dispatch:
+
+jobs:
+  build-atlas:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Build texture atlas
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+        run: npx tsx scripts/buildAtlas.ts
+      
+      - name: Check for changes
+        id: check_changes
+        run: |
+          git diff --quiet public/atlas* || echo "changed=true" >> $GITHUB_OUTPUT
+      
+      - name: Commit and push changes
+        if: steps.check_changes.outputs.changed == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add public/atlas*
+          git commit -m "Update texture atlas [skip ci]"
+          git push

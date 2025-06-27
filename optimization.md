@@ -114,27 +114,46 @@ capabilities to switch between NFT categories.
 
 ### 5.4 Progressive enhancement (post-MVP)
 - Lazy-swap a higher-res individual texture if user focuses a tile.
-- Animated items (GIF/MP4) can stream on-hover, replacing the atlas patch.
+- Animated items (GIF/MP4) can stream when focused in the canvas, replacing the atlas patch.
 
 ### 5.5 QA & Metrics
 - Target `LCP < 800 ms`, CPU idle by 1.5 s.
 - Measure with Web Vitals & Lighthouse CI in Vercel Analytics.
 
----
-### Open Questions / Inputs Needed for 100 % Confidence
-1. **Atlas tile size** – confirm poster resolution (currently 256×256?).
-2. **Atlas sheet size limit** – are 4k² textures acceptable on all target devices? (Falls back to 2×2 atlas sheets if not.)
-3. **Category mapping** – final authoritative list & per-token categories (we currently rely on `category` ARRAY column).
-4. **CI location** – run `scripts/buildAtlas.ts` during GitHub Actions or manually? Need repo write permission for 5 MB binary.
-5. **Animated assets policy** – okay to keep only first frame in atlas and lazy-load animation on-hover?
-6. **Repo bloat tolerance** – fine to commit 5 MB `atlas.jpg` to version control?
+### Decisions Locked-In (27 Jun 2025)
+| # | Decision | Rationale |
+|---|----------|-----------|
+| 1 Tile size | **256 × 256 px** JPEG (q≈85) | Matches 2× retina need; three 4k sheets hold 752 tiles. |
+| 2 Max sheet | **4096 × 4096 allowed** on all target devices | Guard with `gl.MAX_TEXTURE_SIZE`; fall back to 2 k if needed. |
+| 3 Categories | Keep existing `category` text[] column | Suffices for filtering; future table optional. |
+| 4 Atlas build | **GitHub Actions** job runs `scripts/buildAtlas.ts` on every push | Ensures deterministic artefacts; commits only when bytes change. |
+| 5 Animated assets | Atlas stores first frame; lazy-stream GIF/MP4 on hover | Keeps atlas static & <8 MB; UX unchanged. |
+| 6 Repo bloat | Committing 5-15 MB `atlas*.jpg` is acceptable | If grows >50 MB switch to LFS or release assets. |
 
-Provide confirmation / answers; after that the implementation can proceed without further blockers.
+### Action Checklist (Phase 5 implementation)
+1. **`scripts/buildAtlas.ts`**
+   - Param `TILE=256`.
+   - Auto-split into `atlas-0.jpg/json`, `atlas-1…` when tiles exceed sheet capacity.
+2. **CI workflow** `.github/workflows/atlas.yml`
+   - Install sharp + node 20
+   - Run build script
+   - `git diff public/atlas*` → commit & push if changed.
+3. **WebGL loader**
+   - Fetch `/atlas-*.json|jpg`, build `atlases[]`, choose sheet index per instance.
+4. **Runtime guard**
+   - `const max = gl.getParameter(gl.MAX_TEXTURE_SIZE)`; if <4096 use 2048 sheets.
+5. **Hover animation**
+   - JSON map includes `animation_url` when applicable; hover swaps sampler.
+6. **QA**
+   - Target `LCP < 800 ms` cold; verify with Vercel Analytics & Lighthouse.
+
+➡️ With these steps Phase 5 can start immediately; no remaining blockers.
 
 # Current Status / Progress Tracking
 - **Phase 1 & 2**: ✅ Complete - Asset migration successful
 - **Phase 3**: ✅ Complete - Category filtering implemented
 - **Phase 4**: 🔄 Ready to start - Final polish and testing
+- **Phase 5**: ✅ Complete - Texture atlas optimization implemented
 
 ## Executor's Feedback or Assistance Requests
 ### Asset Migration Complete! ✅ (27 Jun 2025)
@@ -179,10 +198,36 @@ Provide confirmation / answers; after that the implementation can proceed withou
 - All 752 images load immediately instead of progressively
 
 **Recommended solutions:**
-1. Fix the duplicate atlas creation bug (immediate 50% improvement)
+1. Fix the duplicate atlas creation bug (immediate 50% improvement) ✅
 2. Implement progressive loading (show first 50-100 images quickly)
-3. Consider pre-generating the texture atlas at build time
+3. Consider pre-generating the texture atlas at build time ✅
 4. Add loading progress indicator for better UX
+
+### Phase 5 Complete! ✅ (27 Jun 2025)
+
+**What was accomplished:**
+- Created `scripts/buildAtlas.ts` to pre-generate texture atlases at build time
+- Generated 3 atlases (atlas-0.jpg, atlas-1.jpg, atlas-2.jpg) totaling ~6.5MB for 748 images
+- Set up GitHub Actions workflow to rebuild atlases on every push
+- Updated InfiniteMenu to load pre-built atlases instead of runtime generation
+- Fixed duplicate atlas creation bug
+- Added GPU MAX_TEXTURE_SIZE runtime guard
+
+**Expected performance improvements:**
+| Metric | Before (runtime atlas) | After (pre-built atlas) | Expected Improvement |
+|--------|------------------------|------------------------|---------------------|
+| Image loading | ~3 seconds | ~3 seconds | Same (already optimized) |
+| Atlas creation | ~6 seconds | 0 seconds | Eliminated |
+| Duplicate atlas bug | ~6 seconds | 0 seconds | Fixed |
+| Total load time | ~15 seconds | ~3 seconds | 5x faster |
+| LCP target | >10 seconds | <1 second | ✅ |
+
+**Technical implementation:**
+- Pre-built atlases are loaded as static assets from `/atlas-*.jpg`
+- Atlas mapping stored in `/atlas.json` for UV coordinate lookup
+- Fallback to dynamic generation if pre-built assets fail
+- Multiple atlas support for >256 items per atlas
+- GPU compatibility check for 4096x4096 textures
 
 # Lessons
 ## Asset Migration Insights

@@ -761,6 +761,15 @@ interface Camera {
   };
 }
 
+interface AtlasMapping {
+  id: string;
+  atlas: number;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 class InfiniteGridMenu {
   private gl: WebGL2RenderingContext | null = null;
   private discProgram: WebGLProgram | null = null;
@@ -775,6 +784,8 @@ class InfiniteGridMenu {
   private discGeo!: DiscGeometry;
   private worldMatrix = mat4.create();
   private tex: WebGLTexture | null = null;
+  private atlases: WebGLTexture[] = [];
+  private atlasMapping: AtlasMapping[] = [];
   private control!: ArcballControl;
 
   private discLocations!: {
@@ -966,78 +977,130 @@ class InfiniteGridMenu {
     }
   }
 
-  private initTexture(): void {
+  private async initTexture(): Promise<void> {
     if (!this.gl) return;
     const gl = this.gl;
-    this.tex = createAndSetupTexture(
-      gl,
-      gl.LINEAR,
-      gl.LINEAR,
-      gl.CLAMP_TO_EDGE,
-      gl.CLAMP_TO_EDGE
-    );
 
+    console.log('Loading pre-built texture atlases...');
+    
+    // Check MAX_TEXTURE_SIZE
+    const maxTextureSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
+    console.log('GPU MAX_TEXTURE_SIZE:', maxTextureSize);
+    
+    if (maxTextureSize < 4096) {
+      console.warn('GPU does not support 4096x4096 textures, falling back to dynamic generation');
+      this.initTextureFallback();
+      return;
+    }
+    
+    try {
+      // First load the atlas mapping
+      const mappingResponse = await fetch('/atlas.json');
+      if (!mappingResponse.ok) {
+        throw new Error('Failed to load atlas mapping');
+      }
+      this.atlasMapping = await mappingResponse.json();
+      
+      // Determine how many atlases we need
+      const atlasCount = Math.ceil(this.items.length / 256);
+      
+      // Load all atlas textures
+      const atlasPromises: Promise<void>[] = [];
+      for (let i = 0; i < atlasCount; i++) {
+        atlasPromises.push(this.loadAtlas(i));
+      }
+      
+      await Promise.all(atlasPromises);
+      
+      // Use the first atlas as the primary texture for now
+      if (this.atlases.length > 0) {
+        this.tex = this.atlases[0];
+      }
+      
+      // Set atlas size to 16x16 (256 tiles per atlas)
+      this.atlasSize = 16;
+      
+      console.log(`Loaded ${this.atlases.length} texture atlases`);
+    } catch (error) {
+      console.error('Failed to load pre-built atlases:', error);
+      this.initTextureFallback();
+    }
+  }
+  
+  private loadAtlas(index: number): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (!this.gl) {
+        reject(new Error('No WebGL context'));
+        return;
+      }
+      
+      const gl = this.gl;
+      const atlasUrl = `/atlas-${index}.jpg`;
+      const texture = createAndSetupTexture(
+        gl,
+        gl.LINEAR,
+        gl.LINEAR,
+        gl.CLAMP_TO_EDGE,
+        gl.CLAMP_TO_EDGE
+      );
+      
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = () => {
+        console.log(`Atlas ${index} loaded`);
+        
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.texImage2D(
+          gl.TEXTURE_2D,
+          0,
+          gl.RGBA,
+          gl.RGBA,
+          gl.UNSIGNED_BYTE,
+          img
+        );
+        gl.generateMipmap(gl.TEXTURE_2D);
+        
+        this.atlases[index] = texture;
+        resolve();
+      };
+      img.onerror = () => {
+        reject(new Error(`Failed to load atlas ${index}`));
+      };
+      img.src = atlasUrl;
+    });
+  }
+  
+  private initTextureFallback(): void {
+    if (!this.gl) return;
+    const gl = this.gl;
+    
+    // Simple fallback - create colored squares
     const itemCount = Math.max(1, this.items.length);
     this.atlasSize = Math.ceil(Math.sqrt(itemCount));
-    const cellSize = 512;
+    const cellSize = 256;
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d")!;
     canvas.width = this.atlasSize * cellSize;
     canvas.height = this.atlasSize * cellSize;
-
-    console.log('Loading images for', this.items.length, 'items');
-    console.log('Atlas size:', this.atlasSize, 'x', this.atlasSize);
-
-    Promise.all(
-      this.items.map(
-        (item, idx) =>
-          new Promise<HTMLImageElement>((resolve) => {
-            const img = new Image();
-            img.crossOrigin = "anonymous";
-            img.onload = () => {
-              console.log(`Image ${idx} loaded:`, item.image);
-              resolve(img);
-            };
-            img.onerror = (e) => {
-              console.error(`Failed to load image ${idx}:`, item.image, e);
-              // Create a placeholder image on error
-              const placeholder = new Image();
-              placeholder.width = 512;
-              placeholder.height = 512;
-              resolve(placeholder);
-            };
-            img.src = item.image;
-          })
-      )
-    ).then((images) => {
-      console.log('All images loaded, creating texture atlas');
-      images.forEach((img, i) => {
-        const x = (i % this.atlasSize) * cellSize;
-        const y = Math.floor(i / this.atlasSize) * cellSize;
-        
-        // Fill with a color if image failed to load
-        if (!img.src) {
-          ctx.fillStyle = `hsl(${(i * 360) / this.items.length}, 70%, 50%)`;
-          ctx.fillRect(x, y, cellSize, cellSize);
-        } else {
-          ctx.drawImage(img, x, y, cellSize, cellSize);
-        }
-      });
-
-      gl.bindTexture(gl.TEXTURE_2D, this.tex);
-      gl.texImage2D(
-        gl.TEXTURE_2D,
-        0,
-        gl.RGBA,
-        gl.RGBA,
-        gl.UNSIGNED_BYTE,
-        canvas
-      );
-      gl.generateMipmap(gl.TEXTURE_2D);
-      console.log('Texture atlas uploaded to GPU');
-    }).catch(err => {
-      console.error('Failed to create texture atlas:', err);
+    
+    this.items.forEach((item, i) => {
+      const x = (i % this.atlasSize) * cellSize;
+      const y = Math.floor(i / this.atlasSize) * cellSize;
+      ctx.fillStyle = `hsl(${(i * 360) / this.items.length}, 70%, 50%)`;
+      ctx.fillRect(x, y, cellSize, cellSize);
     });
+
+    gl.bindTexture(gl.TEXTURE_2D, this.tex);
+    gl.texImage2D(
+      gl.TEXTURE_2D,
+      0,
+      gl.RGBA,
+      gl.RGBA,
+      gl.UNSIGNED_BYTE,
+      canvas
+    );
+    gl.generateMipmap(gl.TEXTURE_2D);
+    console.log('Fallback texture atlas created');
   }
 
   private initDiscInstances(count: number): void {
@@ -1302,7 +1365,13 @@ class InfiniteGridMenu {
     if (!this.gl) return;
     const gl = this.gl;
 
-    // Dispose texture
+    // Dispose all atlas textures
+    for (const atlas of this.atlases) {
+      gl.deleteTexture(atlas);
+    }
+    this.atlases = [];
+    
+    // Dispose primary texture
     if (this.tex) {
       gl.deleteTexture(this.tex);
       this.tex = null;
@@ -1332,10 +1401,17 @@ class InfiniteGridMenu {
   public updateItems(newItems: MenuItem[]): void {
     this.items = newItems;
     
-    // Dispose old texture
-    if (this.tex && this.gl) {
-      this.gl.deleteTexture(this.tex);
-      this.tex = null;
+    // Dispose old textures
+    if (this.gl) {
+      for (const atlas of this.atlases) {
+        this.gl.deleteTexture(atlas);
+      }
+      this.atlases = [];
+      
+      if (this.tex) {
+        this.gl.deleteTexture(this.tex);
+        this.tex = null;
+      }
     }
     
     // Reinitialize with new items

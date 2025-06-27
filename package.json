@@ -15,10 +15,8 @@
     "framer-motion": "^12.19.1",
     "gl-matrix": "^3.4.3",
     "next": "15.3.4",
-    "node-fetch": "^2.7.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "sharp": "^0.34.2"
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
@@ -27,11 +25,15 @@
     "@types/node-fetch": "^2.6.12",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "dotenv": "^16.5.0",
+    "@types/sharp": "^0.31.1",
+    "dotenv": "^16.6.1",
     "eslint": "^9",
     "eslint-config-next": "15.3.4",
+    "node-fetch": "^3.3.2",
+    "sharp": "^0.34.2",
     "tailwindcss": "^4",
     "ts-node": "^10.9.2",
+    "tsx": "^4.20.3",
     "typescript": "^5"
   }
 }
