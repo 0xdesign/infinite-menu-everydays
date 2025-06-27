@@ -1,4 +1,4 @@
-import { FC, useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect } from "react";
 import { mat4, quat, vec2, vec3 } from "gl-matrix";
 
 const discVertShaderSource = `#version 300 es
@@ -51,8 +51,10 @@ const discFragShaderSource = `#version 300 es
 precision highp float;
 
 uniform sampler2D uTex;
+uniform sampler2D uHighTex;
 uniform int uItemCount;
 uniform int uAtlasSize;
+uniform float uHighId;
 
 out vec4 outColor;
 
@@ -81,7 +83,16 @@ void main() {
   st = clamp(st, 0.0, 1.0);
   st = st * cellSize + cellOffset;
 
-  outColor = texture(uTex, st);
+  vec4 atlasColor = texture(uTex, st);
+  
+  // High-res texture overlay
+  float instanceIdFloat = float(vInstanceId);
+  float useHighRes = step(0.5, 1.0 - abs(instanceIdFloat - uHighId)) * step(0.0, uHighId);
+  
+  vec2 hiResSt = vec2(vUvs.x, 1.0 - vUvs.y);
+  vec4 hiResColor = texture(uHighTex, hiResSt);
+  
+  outColor = mix(atlasColor, hiResColor, useHighRes);
   outColor.a *= vAlpha;
 }
 `;
@@ -429,7 +440,10 @@ function createShader(
     return shader;
   }
 
-  console.error(gl.getShaderInfoLog(shader));
+  const error = gl.getShaderInfoLog(shader);
+  console.error('Shader compilation failed:', error);
+  console.error('Shader type:', type === gl.VERTEX_SHADER ? 'VERTEX' : 'FRAGMENT');
+  console.error('Shader source:', source);
   gl.deleteShader(shader);
   return null;
 }
@@ -473,7 +487,8 @@ function createProgram(
     return program;
   }
 
-  console.error(gl.getProgramInfoLog(program));
+  const error = gl.getProgramInfoLog(program);
+  console.error('Program linking failed:', error);
   gl.deleteProgram(program);
   return null;
 }
@@ -737,6 +752,7 @@ class ArcballControl {
 
 interface MenuItem {
   image: string;
+  imageHighRes?: string;
   link: string;
   title: string;
   description: string;
@@ -787,6 +803,12 @@ class InfiniteGridMenu {
   private atlases: WebGLTexture[] = [];
   private atlasMapping: AtlasMapping[] = [];
   private control!: ArcballControl;
+  private animationFrameId: number | null = null;
+  
+  // High-res texture management
+  private hiResTexture: WebGLTexture | null = null;
+  private hiResIndex: number = -1;
+  private hiResLoading: boolean = false;
 
   private discLocations!: {
     aModelPosition: number;
@@ -802,6 +824,8 @@ class InfiniteGridMenu {
     uFrames: WebGLUniformLocation | null;
     uItemCount: WebGLUniformLocation | null;
     uAtlasSize: WebGLUniformLocation | null;
+    uHighTex: WebGLUniformLocation | null;
+    uHighId: WebGLUniformLocation | null;
   };
 
   private viewportSize = vec2.create();
@@ -878,7 +902,7 @@ class InfiniteGridMenu {
     this.animate(this._deltaTime);
     this.render();
 
-    requestAnimationFrame((t) => this.run(t));
+    this.animationFrameId = requestAnimationFrame((t) => this.run(t));
   }
 
   private init(onInit?: InitCallback): void {
@@ -890,6 +914,45 @@ class InfiniteGridMenu {
       throw new Error("No WebGL 2 context!");
     }
     this.gl = gl;
+    
+    // Test basic shader compilation
+    const testVert = `#version 300 es
+    in vec3 position;
+    void main() {
+      gl_Position = vec4(position, 1.0);
+    }`;
+    const testFrag = `#version 300 es
+    precision highp float;
+    out vec4 color;
+    void main() {
+      color = vec4(1.0, 0.0, 0.0, 1.0);
+    }`;
+    
+    const testVertShader = gl.createShader(gl.VERTEX_SHADER);
+    if (testVertShader) {
+      gl.shaderSource(testVertShader, testVert);
+      gl.compileShader(testVertShader);
+      const success = gl.getShaderParameter(testVertShader, gl.COMPILE_STATUS);
+      if (!success) {
+        console.error("Test vertex shader failed:", gl.getShaderInfoLog(testVertShader));
+      } else {
+        console.log("Test vertex shader compiled successfully");
+      }
+      gl.deleteShader(testVertShader);
+    }
+    
+    const testFragShader = gl.createShader(gl.FRAGMENT_SHADER);
+    if (testFragShader) {
+      gl.shaderSource(testFragShader, testFrag);
+      gl.compileShader(testFragShader);
+      const success = gl.getShaderParameter(testFragShader, gl.COMPILE_STATUS);
+      if (!success) {
+        console.error("Test fragment shader failed:", gl.getShaderInfoLog(testFragShader));
+      } else {
+        console.log("Test fragment shader compiled successfully");
+      }
+      gl.deleteShader(testFragShader);
+    }
 
     vec2.set(
       this.viewportSize,
@@ -909,6 +972,10 @@ class InfiniteGridMenu {
         aInstanceMatrix: 3,
       }
     );
+    
+    if (!this.discProgram) {
+      throw new Error("Failed to create shader program - check console for shader compilation errors");
+    }
 
     this.discLocations = {
       aModelPosition: gl.getAttribLocation(this.discProgram!, "aModelPosition"),
@@ -936,6 +1003,8 @@ class InfiniteGridMenu {
       uFrames: gl.getUniformLocation(this.discProgram!, "uFrames"),
       uItemCount: gl.getUniformLocation(this.discProgram!, "uItemCount"),
       uAtlasSize: gl.getUniformLocation(this.discProgram!, "uAtlasSize"),
+      uHighTex: gl.getUniformLocation(this.discProgram!, "uHighTex"),
+      uHighId: gl.getUniformLocation(this.discProgram!, "uHighId"),
     };
 
     this.discGeo = new RoundedSquareGeometry(1, 0.15, 8);
@@ -1102,6 +1171,59 @@ class InfiniteGridMenu {
     gl.generateMipmap(gl.TEXTURE_2D);
     console.log('Fallback texture atlas created');
   }
+  
+  private async loadHighResTexture(index: number): Promise<void> {
+    if (!this.gl || this.hiResIndex === index || this.hiResLoading) return;
+    
+    const item = this.items[index];
+    if (!item?.imageHighRes) return;
+    
+    this.hiResLoading = true;
+    const gl = this.gl;
+    
+    try {
+      // Load the high-res image
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      
+      await new Promise<void>((resolve, reject) => {
+        img.onload = () => resolve();
+        img.onerror = () => reject(new Error('Failed to load high-res image'));
+        img.src = item.imageHighRes!;
+      });
+      
+      // Clean up old texture if exists
+      if (this.hiResTexture) {
+        gl.deleteTexture(this.hiResTexture);
+      }
+      
+      // Create and setup new texture
+      this.hiResTexture = createAndSetupTexture(
+        gl,
+        gl.LINEAR,
+        gl.LINEAR,
+        gl.CLAMP_TO_EDGE,
+        gl.CLAMP_TO_EDGE
+      );
+      
+      gl.bindTexture(gl.TEXTURE_2D, this.hiResTexture);
+      gl.texImage2D(
+        gl.TEXTURE_2D,
+        0,
+        gl.RGBA,
+        gl.RGBA,
+        gl.UNSIGNED_BYTE,
+        img
+      );
+      
+      this.hiResIndex = index;
+      console.log(`Loaded high-res texture for item ${index}`);
+    } catch (error) {
+      console.error('Failed to load high-res texture:', error);
+    } finally {
+      this.hiResLoading = false;
+    }
+  }
 
   private initDiscInstances(count: number): void {
     if (!this.gl || !this.discVAO) return;
@@ -1253,6 +1375,18 @@ class InfiniteGridMenu {
     gl.uniform1i(this.discLocations.uTex, 0);
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this.tex);
+    
+    // Bind high-res texture if available
+    gl.uniform1i(this.discLocations.uHighTex, 1);
+    gl.activeTexture(gl.TEXTURE1);
+    if (this.hiResTexture && this.hiResIndex >= 0) {
+      gl.bindTexture(gl.TEXTURE_2D, this.hiResTexture);
+      gl.uniform1f(this.discLocations.uHighId, this.hiResIndex);
+    } else {
+      // Bind dummy texture to avoid shader errors
+      gl.bindTexture(gl.TEXTURE_2D, this.tex);
+      gl.uniform1f(this.discLocations.uHighId, -1);
+    }
 
     gl.bindVertexArray(this.discVAO);
     gl.drawElementsInstanced(
@@ -1317,6 +1451,10 @@ class InfiniteGridMenu {
       const nearestVertexIndex = this.findNearestVertexIndex();
       const itemIndex = nearestVertexIndex % Math.max(1, this.items.length);
       this.onActiveItemChange(itemIndex);
+      
+      // Load high-res texture for the active item
+      this.loadHighResTexture(itemIndex);
+      
       const snapDirection = vec3.normalize(
         vec3.create(),
         this.getVertexWorldPosition(nearestVertexIndex)
@@ -1362,40 +1500,32 @@ class InfiniteGridMenu {
   }
 
   public dispose(): void {
-    if (!this.gl) return;
+    if (this.animationFrameId) {
+      cancelAnimationFrame(this.animationFrameId);
+    }
     const gl = this.gl;
+    if (!gl) return;
 
-    // Dispose all atlas textures
-    for (const atlas of this.atlases) {
-      gl.deleteTexture(atlas);
-    }
-    this.atlases = [];
-    
-    // Dispose primary texture
-    if (this.tex) {
-      gl.deleteTexture(this.tex);
-      this.tex = null;
-    }
-
-    // Dispose buffers
-    if (this.discInstances?.buffer) {
-      gl.deleteBuffer(this.discInstances.buffer);
-    }
-
-    // Dispose VAO
-    if (this.discVAO) {
-      gl.deleteVertexArray(this.discVAO);
-      this.discVAO = null;
-    }
-
-    // Dispose program
     if (this.discProgram) {
       gl.deleteProgram(this.discProgram);
-      this.discProgram = null;
     }
-
-    // Clear WebGL context
-    gl.getExtension('WEBGL_lose_context')?.loseContext();
+    if (this.discVAO) {
+      gl.deleteVertexArray(this.discVAO);
+    }
+    if (this.discInstances && this.discInstances.buffer) {
+      gl.deleteBuffer(this.discInstances.buffer);
+    }
+    if (this.tex) {
+      gl.deleteTexture(this.tex);
+    }
+    this.atlases.forEach(atlas => {
+      if(atlas) gl.deleteTexture(atlas)
+    });
+    if (this.hiResTexture) {
+      gl.deleteTexture(this.hiResTexture);
+    }
+    
+    this.gl = null;
   }
 
   public updateItems(newItems: MenuItem[]): void {
@@ -1432,24 +1562,34 @@ interface InfiniteMenuProps {
   items?: MenuItem[];
 }
 
-const InfiniteMenu: FC<InfiniteMenuProps> = ({ items = [] }) => {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const sketchRef = useRef<InfiniteGridMenu | null>(null);
-  const [activeItem, setActiveItem] = useState<MenuItem | null>(null);
+const InfiniteMenu = ({ items = [] }: InfiniteMenuProps) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const menuInstanceRef = useRef<InfiniteGridMenu | null>(null);
+  const [activeItem, setActiveItem] = useState(items.length > 0 ? items[0] : null);
   const [isMoving, setIsMoving] = useState<boolean>(false);
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas || items.length === 0) {
+      if (menuInstanceRef.current) {
+        menuInstanceRef.current.dispose();
+        menuInstanceRef.current = null;
+      }
+      return;
+    };
 
     const handleActiveItem = (index: number) => {
-      if (!items.length) return;
       const itemIndex = index % items.length;
       setActiveItem(items[itemIndex]);
     };
+    
+    // Dispose previous instance if it exists
+    if (menuInstanceRef.current) {
+      menuInstanceRef.current.dispose();
+    }
 
     // Create new instance
-    const sketch = new InfiniteGridMenu(
+    const menuInstance = new InfiniteGridMenu(
       canvas,
       items.length ? items : defaultItems,
       handleActiveItem,
@@ -1457,10 +1597,10 @@ const InfiniteMenu: FC<InfiniteMenuProps> = ({ items = [] }) => {
       (sk) => sk.run()
     );
     
-    sketchRef.current = sketch;
+    menuInstanceRef.current = menuInstance;
 
     const handleResize = () => {
-      sketch.resize();
+      menuInstance.resize();
     };
 
     window.addEventListener("resize", handleResize);
@@ -1469,16 +1609,9 @@ const InfiniteMenu: FC<InfiniteMenuProps> = ({ items = [] }) => {
     return () => {
       window.removeEventListener("resize", handleResize);
       // Dispose WebGL resources on cleanup
-      sketch.dispose();
-      sketchRef.current = null;
+      menuInstance.dispose();
+      menuInstanceRef.current = null;
     };
-  }, []); // Empty dependency array - only run once on mount
-
-  // Handle item updates separately
-  useEffect(() => {
-    if (sketchRef.current && items.length > 0) {
-      sketchRef.current.updateItems(items);
-    }
   }, [items]);
 
   const handleButtonClick = () => {

@@ -70,9 +70,11 @@ export async function fetchNFTTokenById(id: number) {
 // Map NFT tokens to InfiniteMenu format
 export function mapNFTToMenuItem(token: NFTToken) {
   const rawImage = token.thumbnail_url || token.image_url || 'https://picsum.photos/300/300?grayscale';
+  const highResImage = token.image_url || token.thumbnail_url || 'https://picsum.photos/300/300?grayscale';
   return {
     id: token.id,
-    image: rawImage, // Direct URL from Supabase Storage
+    image: rawImage, // Direct URL from Supabase Storage (thumbnail)
+    imageHighRes: highResImage, // High-res version
     link: `/token/${token.id}`,
     title: token.title || token.token_id || `Token #${token.id}`,
     description: token.description || 'No description available',
