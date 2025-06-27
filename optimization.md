@@ -91,32 +91,45 @@ capabilities to switch between NFT categories.
 - [ ] **4.3** Gather user feedback.
 
 ## Phase 5 – Texture Atlas Optimization (NEW)
-- **Goal**: First meaningful render < **1 second** on a cold visit while preserving full-quality thumbnails and existing UX.
+- **Goal**: First meaningful render < **1 second** on a cold visit while preserving full-quality thumbnails and current UX.
 
-### 5.1 Stop building the atlas in the browser
-- Delete the runtime `createTextureAtlas()` path.
-- Fix duplicate-initialisation bug as a side-effect (only one WebGL instance).
+### 5.1 Remove runtime atlas builder
+- Delete `createTextureAtlas()` + its duplicate initialisation.
+- Keep only per-instance UV lookup (fed by atlas.json).
 
-### 5.2 Pre-generate a static atlas at build time (CI or `postinstall` script)
-1. Node script `scripts/buildAtlas.ts`
-   - Download every poster from Supabase Storage (748 files).
-   - Pack into a single 4096 × 4096 (or optimal POT) JPEG using `sharp`'s `joinChannel` / `composite` or `texture-packer`.
-   - Emit `public/atlas.jpg` and `public/atlas.json` (array of UV coords per id).
-   - Upload the same files to Supabase Storage CDN for production deployments (optional).
-2. Commit `atlas.jpg` so Vercel can cache it at the edge.
+### 5.2 Pre-generate a static atlas at build/CI
+1. `scripts/buildAtlas.ts`
+   - Stream every poster (`https://…/nft-media/{id}/poster.jpg`).
+   - Pack into one POT sheet (default **4096 × 4096** RGBA; adapt if > 8 MB).
+   - Output: `public/atlas.jpg` (≈5 MB) + `public/atlas.json` (id → {x,y,w,h}).
+   - Push the artefacts to repo so Vercel serves them from edge cache.
+2. Optional: upload the same files back to Supabase Storage for local dev parity.
 
-### 5.3 Load one image instead of 752
-- On page load, fetch `atlas.jpg` (≈5 MB, ~100-200 ms via CDN).
-- Fetch `atlas.json` and map each menu item to its UV rect.
-- Initialise `InfiniteGridMenu` with existing geometry—skip per-image promises.
+### 5.3 One-time GPU upload, zero rebuilds
+- On page load:
+  1. `fetch('/atlas.jpg')`, `fetch('/atlas.json')`.
+  2. Create WebGL texture from the single JPG.
+  3. Build ONE instance buffer for **all 752 discs**.
+- Category change: update `uActiveCategory` uniform or shrink `instanceCount`; no texture work.
 
-### 5.4 Progressive enhancement (optional, post-MVP)
-- Lazy-load full-res individual posters when a tile is focused (popover / zoom).
-- Swap sub-texture with dedicated texture for sharper zoom if desired.
+### 5.4 Progressive enhancement (post-MVP)
+- Lazy-swap a higher-res individual texture if user focuses a tile.
+- Animated items (GIF/MP4) can stream on-hover, replacing the atlas patch.
 
 ### 5.5 QA & Metrics
-- Target: `LCP < 800 ms`, Texture-upload < 50 ms (atlas only).
-- Lighthouse, Web Vitals in Vercel Analytics.
+- Target `LCP < 800 ms`, CPU idle by 1.5 s.
+- Measure with Web Vitals & Lighthouse CI in Vercel Analytics.
+
+---
+### Open Questions / Inputs Needed for 100 % Confidence
+1. **Atlas tile size** – confirm poster resolution (currently 256×256?).
+2. **Atlas sheet size limit** – are 4k² textures acceptable on all target devices? (Falls back to 2×2 atlas sheets if not.)
+3. **Category mapping** – final authoritative list & per-token categories (we currently rely on `category` ARRAY column).
+4. **CI location** – run `scripts/buildAtlas.ts` during GitHub Actions or manually? Need repo write permission for 5 MB binary.
+5. **Animated assets policy** – okay to keep only first frame in atlas and lazy-load animation on-hover?
+6. **Repo bloat tolerance** – fine to commit 5 MB `atlas.jpg` to version control?
+
+Provide confirmation / answers; after that the implementation can proceed without further blockers.
 
 # Current Status / Progress Tracking
 - **Phase 1 & 2**: ✅ Complete - Asset migration successful
