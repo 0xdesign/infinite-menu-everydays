@@ -1560,58 +1560,68 @@ const defaultItems: MenuItem[] = [
 
 interface InfiniteMenuProps {
   items?: MenuItem[];
+  onActiveIndexChange?: (index: number) => void;
 }
 
-const InfiniteMenu = ({ items = [] }: InfiniteMenuProps) => {
+const InfiniteMenu = ({ items = [], onActiveIndexChange }: InfiniteMenuProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const menuInstanceRef = useRef<InfiniteGridMenu | null>(null);
+  const itemsRef = useRef(items);
   const [activeItem, setActiveItem] = useState(items.length > 0 ? items[0] : null);
   const [isMoving, setIsMoving] = useState<boolean>(false);
+  
+  // Keep itemsRef current
+  itemsRef.current = items;
 
+  // Initialize menu instance only once
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas || items.length === 0) {
-      if (menuInstanceRef.current) {
-        menuInstanceRef.current.dispose();
-        menuInstanceRef.current = null;
-      }
-      return;
-    };
+    if (!canvas) return;
 
     const handleActiveItem = (index: number) => {
-      const itemIndex = index % items.length;
-      setActiveItem(items[itemIndex]);
+      const currentItems = itemsRef.current;
+      if (currentItems.length > 0) {
+        const itemIndex = index % currentItems.length;
+        setActiveItem(currentItems[itemIndex]);
+        onActiveIndexChange?.(itemIndex);
+      }
     };
-    
-    // Dispose previous instance if it exists
-    if (menuInstanceRef.current) {
-      menuInstanceRef.current.dispose();
+
+    // Create instance only if it doesn't exist
+    if (!menuInstanceRef.current) {
+      const menuInstance = new InfiniteGridMenu(
+        canvas,
+        itemsRef.current.length ? itemsRef.current : defaultItems,
+        handleActiveItem,
+        setIsMoving,
+        (sk) => sk.run()
+      );
+      
+      menuInstanceRef.current = menuInstance;
+
+      const handleResize = () => {
+        menuInstance.resize();
+      };
+
+      window.addEventListener("resize", handleResize);
+      handleResize();
+
+      return () => {
+        window.removeEventListener("resize", handleResize);
+        // Dispose WebGL resources on cleanup
+        menuInstance.dispose();
+        menuInstanceRef.current = null;
+      };
     }
+  }, [onActiveIndexChange]); // Add onActiveIndexChange to dependencies
 
-    // Create new instance
-    const menuInstance = new InfiniteGridMenu(
-      canvas,
-      items.length ? items : defaultItems,
-      handleActiveItem,
-      setIsMoving,
-      (sk) => sk.run()
-    );
-    
-    menuInstanceRef.current = menuInstance;
-
-    const handleResize = () => {
-      menuInstance.resize();
-    };
-
-    window.addEventListener("resize", handleResize);
-    handleResize();
-
-    return () => {
-      window.removeEventListener("resize", handleResize);
-      // Dispose WebGL resources on cleanup
-      menuInstance.dispose();
-      menuInstanceRef.current = null;
-    };
+  // Update items when they change
+  useEffect(() => {
+    if (menuInstanceRef.current && items.length > 0) {
+      menuInstanceRef.current.updateItems(items);
+      // Update active item to first item of new set
+      setActiveItem(items[0]);
+    }
   }, [items]);
 
   const handleButtonClick = () => {

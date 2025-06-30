@@ -103,6 +103,42 @@ export async function fetchInfiniteMenuData(category?: string | null) {
   return data.map(mapNFTToMenuItem);
 }
 
+// Fetch paginated infinite menu data
+export async function fetchInfiniteMenuDataPaginated(
+  offset: number,
+  limit: number,
+  category?: string | null,
+  searchTerm?: string | null
+) {
+  let query = supabase
+    .from('nft_tokens')
+    .select('*', { count: 'exact' })
+    .order('id', { ascending: true })
+    .range(offset, offset + limit - 1);
+
+  // Apply category filter if provided
+  if (category) {
+    query = query.contains('category', [category]);
+  }
+
+  // Apply search filter if provided
+  if (searchTerm) {
+    query = query.or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`);
+  }
+
+  const { data, error, count } = await query;
+
+  if (error) {
+    console.error('Error fetching paginated NFT tokens:', error);
+    return { items: [], total: 0 };
+  }
+
+  return {
+    items: (data || []).map(mapNFTToMenuItem),
+    total: count || 0
+  };
+}
+
 // Fetch all available categories
 export async function fetchCategories(): Promise<string[]> {
   const { data, error } = await supabase
