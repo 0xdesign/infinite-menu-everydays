@@ -1,6 +1,20 @@
 import { useRef, useState, useEffect } from "react";
 import { mat4, quat, vec2, vec3 } from "gl-matrix";
 
+// Performance API type extensions
+interface PerformanceMemory {
+  usedJSHeapSize: number;
+  jsHeapSizeLimit: number;
+}
+
+interface ExtendedPerformance extends Performance {
+  memory?: PerformanceMemory;
+}
+
+interface ExtendedWindow extends Window {
+  gc?: () => void;
+}
+
 const discVertShaderSource = `#version 300 es
 
 uniform mat4 uWorldMatrix;
@@ -52,9 +66,12 @@ precision highp float;
 
 uniform sampler2D uTex;
 uniform sampler2D uHighTex;
+uniform sampler2D uTexNext;
+uniform float uTextureBlend;
 uniform int uItemCount;
 uniform int uAtlasSize;
 uniform float uHighId;
+uniform int uRotationOffset;
 
 out vec4 outColor;
 
@@ -63,7 +80,7 @@ in float vAlpha;
 flat in int vInstanceId;
 
 void main() {
-  int itemIndex = vInstanceId % uItemCount;
+  int itemIndex = (vInstanceId + uRotationOffset) % uItemCount;
   int cellsPerRow = uAtlasSize;
   int cellX = itemIndex % cellsPerRow;
   int cellY = itemIndex / cellsPerRow;
@@ -83,7 +100,9 @@ void main() {
   st = clamp(st, 0.0, 1.0);
   st = st * cellSize + cellOffset;
 
-  vec4 atlasColor = texture(uTex, st);
+  vec4 currentColor = texture(uTex, st);
+  vec4 nextColor = texture(uTexNext, st);
+  vec4 atlasColor = mix(currentColor, nextColor, uTextureBlend);
   
   // High-res texture overlay
   float instanceIdFloat = float(vInstanceId);
@@ -751,6 +770,7 @@ class ArcballControl {
 }
 
 interface MenuItem {
+  id?: number;
   image: string;
   imageHighRes?: string;
   link: string;
@@ -786,6 +806,58 @@ interface AtlasMapping {
   height: number;
 }
 
+// Simple texture cache for reusing atlases
+class TextureCache {
+  private cache = new Map<string, WebGLTexture>();
+  private maxSize = 10;
+  
+  constructor(private gl: WebGL2RenderingContext) {}
+  
+  get(key: string): WebGLTexture | null {
+    const texture = this.cache.get(key);
+    if (texture) {
+      // Move to end (most recently used)
+      this.cache.delete(key);
+      this.cache.set(key, texture);
+    }
+    return texture || null;
+  }
+  
+  set(key: string, texture: WebGLTexture): void {
+    // Remove if already exists
+    if (this.cache.has(key)) {
+      this.cache.delete(key);
+    }
+    
+    // Simple FIFO eviction
+    if (this.cache.size >= this.maxSize) {
+      const firstKey = this.cache.keys().next().value;
+      if (firstKey !== undefined) {
+        const oldTexture = this.cache.get(firstKey);
+        if (oldTexture) {
+          this.gl.deleteTexture(oldTexture);
+        }
+        this.cache.delete(firstKey);
+      }
+    }
+    
+    this.cache.set(key, texture);
+  }
+  
+  clear(): void {
+    for (const texture of this.cache.values()) {
+      this.gl.deleteTexture(texture);
+    }
+    this.cache.clear();
+  }
+  
+  generateKey(items: MenuItem[], offset: number = 0): string {
+    // Simple key based on item IDs and offset
+    const ids = items.slice(0, 10).map(item => item.id || '').join('-');
+    return `${offset}-${items.length}-${ids}`;
+  }
+}
+
 class InfiniteGridMenu {
   private gl: WebGL2RenderingContext | null = null;
   private discProgram: WebGLProgram | null = null;
@@ -805,6 +877,18 @@ class InfiniteGridMenu {
   private control!: ArcballControl;
   private animationFrameId: number | null = null;
   
+  // Texture transition state
+  private texNext: WebGLTexture | null = null;
+  private atlasesNext: WebGLTexture[] = [];
+  private textureBlendValue: number = 0;
+  private textureTransitioning: boolean = false;
+  private transitionStartTime: number = 0;
+  private transitionDuration: number = 500; // ms
+  
+  // Thumbnail loading state
+  private thumbnailsLoaded: boolean = false;
+  private loadingHighRes: boolean = false;
+  
   // High-res texture management
   private hiResTexture: WebGLTexture | null = null;
   private hiResIndex: number = -1;
@@ -821,11 +905,14 @@ class InfiniteGridMenu {
     uScaleFactor: WebGLUniformLocation | null;
     uRotationAxisVelocity: WebGLUniformLocation | null;
     uTex: WebGLUniformLocation | null;
+    uTexNext: WebGLUniformLocation | null;
+    uTextureBlend: WebGLUniformLocation | null;
     uFrames: WebGLUniformLocation | null;
     uItemCount: WebGLUniformLocation | null;
     uAtlasSize: WebGLUniformLocation | null;
     uHighTex: WebGLUniformLocation | null;
     uHighId: WebGLUniformLocation | null;
+    uRotationOffset: WebGLUniformLocation | null;
   };
 
   private viewportSize = vec2.create();
@@ -850,6 +937,15 @@ class InfiniteGridMenu {
 
   private TARGET_FRAME_DURATION = 1000 / 60;
   private SPHERE_RADIUS = 2;
+  
+  // Temporal cycling state
+  private useTemporalCycling: boolean = false;
+  private rotationOffset: number = 0;
+  private cumulativeRotation: number = 0;
+  private VERTEX_COUNT: number = 42;
+  
+  // Texture cache
+  private textureCache: TextureCache | null = null;
 
   public camera: Camera = {
     matrix: mat4.create(),
@@ -898,9 +994,22 @@ class InfiniteGridMenu {
     this._time = time;
     this._deltaFrames = this._deltaTime / this.TARGET_FRAME_DURATION;
     this._frames += this._deltaFrames;
+    
+    // Update texture transition
+    if (this.textureTransitioning) {
+      const elapsed = time - this.transitionStartTime;
+      const progress = Math.min(1, elapsed / this.transitionDuration);
+      this.textureBlendValue = this.easeInOutCubic(progress);
+      
+      if (progress >= 1) {
+        this.completeTextureTransition();
+      }
+    }
 
+    this.resize();
     this.animate(this._deltaTime);
     this.render();
+    this.onControlUpdate(this._deltaTime);
 
     this.animationFrameId = requestAnimationFrame((t) => this.run(t));
   }
@@ -914,6 +1023,9 @@ class InfiniteGridMenu {
       throw new Error("No WebGL 2 context!");
     }
     this.gl = gl;
+    
+    // Initialize texture cache
+    this.textureCache = new TextureCache(gl);
     
     // Test basic shader compilation
     const testVert = `#version 300 es
@@ -1000,11 +1112,14 @@ class InfiniteGridMenu {
         "uRotationAxisVelocity"
       ),
       uTex: gl.getUniformLocation(this.discProgram!, "uTex"),
+      uTexNext: gl.getUniformLocation(this.discProgram!, "uTexNext"),
+      uTextureBlend: gl.getUniformLocation(this.discProgram!, "uTextureBlend"),
       uFrames: gl.getUniformLocation(this.discProgram!, "uFrames"),
       uItemCount: gl.getUniformLocation(this.discProgram!, "uItemCount"),
       uAtlasSize: gl.getUniformLocation(this.discProgram!, "uAtlasSize"),
       uHighTex: gl.getUniformLocation(this.discProgram!, "uHighTex"),
       uHighId: gl.getUniformLocation(this.discProgram!, "uHighId"),
+      uRotationOffset: gl.getUniformLocation(this.discProgram!, "uRotationOffset"),
     };
 
     this.discGeo = new RoundedSquareGeometry(1, 0.15, 8);
@@ -1030,6 +1145,7 @@ class InfiniteGridMenu {
     this.icoGeo.subdivide(1).spherize(this.SPHERE_RADIUS);
     this.instancePositions = this.icoGeo.vertices.map((v) => v.position);
     this.DISC_INSTANCE_COUNT = this.icoGeo.vertices.length;
+    this.VERTEX_COUNT = this.DISC_INSTANCE_COUNT; // Update to actual vertex count
     this.initDiscInstances(this.DISC_INSTANCE_COUNT);
     this.initTexture();
     this.control = new ArcballControl(this.canvas, (deltaTime) =>
@@ -1277,6 +1393,21 @@ class InfiniteGridMenu {
   private animate(deltaTime: number): void {
     if (!this.gl) return;
     this.control.update(deltaTime, this.TARGET_FRAME_DURATION);
+    
+    // Track rotation for temporal cycling
+    if (this.useTemporalCycling && this.control.rotationVelocity !== 0) {
+      // Track cumulative rotation
+      const rotationDelta = this.control.rotationVelocity * deltaTime * 0.01;
+      this.cumulativeRotation += rotationDelta;
+      
+      // Update offset based on rotation (smooth continuous motion)
+      const itemsPerFullRotation = this.VERTEX_COUNT;
+      const rotationsCompleted = this.cumulativeRotation / (Math.PI * 2);
+      const newOffset = Math.floor(rotationsCompleted * itemsPerFullRotation) % this.items.length;
+      
+      // Ensure offset is always positive
+      this.rotationOffset = newOffset >= 0 ? newOffset : this.items.length + newOffset;
+    }
 
     const positions = this.instancePositions.map((p) =>
       vec3.transformQuat(vec3.create(), p, this.control.orientation)
@@ -1368,6 +1499,7 @@ class InfiniteGridMenu {
 
     gl.uniform1i(this.discLocations.uItemCount, this.items.length);
     gl.uniform1i(this.discLocations.uAtlasSize, this.atlasSize);
+    gl.uniform1i(this.discLocations.uRotationOffset, this.rotationOffset);
 
     gl.uniform1f(this.discLocations.uFrames, this._frames);
     gl.uniform1f(this.discLocations.uScaleFactor, this.scaleFactor);
@@ -1375,6 +1507,14 @@ class InfiniteGridMenu {
     gl.uniform1i(this.discLocations.uTex, 0);
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this.tex);
+    
+    // Bind next texture for transition
+    gl.uniform1i(this.discLocations.uTexNext, 2);
+    gl.activeTexture(gl.TEXTURE2);
+    gl.bindTexture(gl.TEXTURE_2D, this.texNext || this.tex);
+    
+    // Set blend factor
+    gl.uniform1f(this.discLocations.uTextureBlend, this.textureBlendValue);
     
     // Bind high-res texture if available
     gl.uniform1i(this.discLocations.uHighTex, 1);
@@ -1449,7 +1589,18 @@ class InfiniteGridMenu {
 
     if (!this.control.isPointerDown) {
       const nearestVertexIndex = this.findNearestVertexIndex();
-      const itemIndex = nearestVertexIndex % Math.max(1, this.items.length);
+      let itemIndex: number;
+      
+      if (this.useTemporalCycling) {
+        // Apply rotation offset for large datasets
+        itemIndex = (nearestVertexIndex + this.rotationOffset) % this.items.length;
+        // Ensure positive index
+        if (itemIndex < 0) itemIndex += this.items.length;
+      } else {
+        // Static mapping for small datasets
+        itemIndex = nearestVertexIndex % Math.max(1, this.items.length);
+      }
+      
       this.onActiveItemChange(itemIndex);
       
       // Load high-res texture for the active item
@@ -1461,7 +1612,8 @@ class InfiniteGridMenu {
       );
       this.control.snapTargetDirection = snapDirection;
     } else {
-      cameraTargetZ += this.control.rotationVelocity * 80 + 2.5;
+      // Fixed comfortable distance during drag
+      cameraTargetZ = 4.5;
       damping = 7 / timeScale;
     }
 
@@ -1525,27 +1677,472 @@ class InfiniteGridMenu {
       gl.deleteTexture(this.hiResTexture);
     }
     
+    // Clear texture cache
+    if (this.textureCache) {
+      this.textureCache.clear();
+      this.textureCache = null;
+    }
+    
     this.gl = null;
   }
 
   public updateItems(newItems: MenuItem[]): void {
+    if (!this.gl || this.textureTransitioning) return;
+    
     this.items = newItems;
     
-    // Dispose old textures
-    if (this.gl) {
-      for (const atlas of this.atlases) {
-        this.gl.deleteTexture(atlas);
-      }
-      this.atlases = [];
+    // Determine cycling mode based on item count
+    const wasUsingTemporalCycling = this.useTemporalCycling;
+    this.useTemporalCycling = newItems.length > this.VERTEX_COUNT;
+    
+    // Reset rotation state when switching modes or when items change significantly
+    if (wasUsingTemporalCycling !== this.useTemporalCycling) {
+      this.rotationOffset = 0;
+      this.cumulativeRotation = 0;
+    }
+    
+    // Reset thumbnail loading state for new items
+    this.thumbnailsLoaded = false;
+    this.loadingHighRes = false;
+    
+    // Start texture transition
+    this.textureTransitioning = true;
+    this.transitionStartTime = performance.now();
+    this.textureBlendValue = 0;
+    
+    // Keep current textures as-is during transition
+    // Load new textures in the background
+    this.loadNewTextures().then(() => {
+      // New textures are ready, transition will happen automatically
+    }).catch((error) => {
+      console.error('Failed to load new textures:', error);
+      this.textureTransitioning = false;
+    });
+  }
+  
+  private async loadNewTextures(): Promise<void> {
+    if (!this.gl || !this.textureCache) return;
+    const gl = this.gl;
+    
+    try {
+      // Generate cache key for current items
+      const cacheKey = this.textureCache.generateKey(this.items, this.rotationOffset);
       
-      if (this.tex) {
-        this.gl.deleteTexture(this.tex);
-        this.tex = null;
+      // Check cache first
+      const cachedTexture = this.textureCache.get(cacheKey);
+      if (cachedTexture) {
+        console.log('Using cached texture for:', cacheKey);
+        this.atlasesNext = [cachedTexture];
+        this.texNext = cachedTexture;
+        this.atlasSize = Math.ceil(Math.sqrt(this.items.length));
+        this.thumbnailsLoaded = true;
+        return;
+      }
+      
+      // Step 1: Load thumbnails for instant display
+      if (!this.thumbnailsLoaded) {
+        const thumbnailTexture = await this.createThumbnailAtlas();
+        if (thumbnailTexture) {
+          this.atlasesNext = [thumbnailTexture];
+          this.texNext = thumbnailTexture;
+          this.thumbnailsLoaded = true;
+          
+          // Complete the transition quickly to show thumbnails
+          setTimeout(() => {
+            if (this.textureTransitioning) {
+              this.textureBlendValue = 1;
+              this.completeTextureTransition();
+            }
+          }, 100);
+        }
+      }
+      
+      // Step 2: Load high-res textures in background
+      if (!this.loadingHighRes) {
+        this.loadingHighRes = true;
+        
+        // Continue loading high-res in background
+        setTimeout(async () => {
+          try {
+            // Create new atlases array
+            const newAtlases: WebGLTexture[] = [];
+            
+            // Try to load pre-built atlases first
+            const maxTextureSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
+            if (maxTextureSize >= 4096) {
+              try {
+                const mappingResponse = await fetch('/atlas.json');
+                if (mappingResponse.ok) {
+                  this.atlasMapping = await mappingResponse.json();
+                  const atlasCount = Math.ceil(this.items.length / 256);
+                  
+                  for (let i = 0; i < atlasCount; i++) {
+                    const texture = await this.loadAtlasTexture(i);
+                    newAtlases.push(texture);
+                  }
+                  
+                  // Start a new transition to high-res
+                  if (this.gl && newAtlases.length > 0) {
+                    this.textureTransitioning = true;
+                    this.transitionStartTime = performance.now();
+                    this.textureBlendValue = 0;
+                    this.atlasesNext = newAtlases;
+                    this.texNext = newAtlases[0];
+                    this.atlasSize = 16;
+                    
+                    // Cache the primary texture
+                    if (this.textureCache) {
+                      this.textureCache.set(cacheKey, newAtlases[0]);
+                    }
+                  }
+                  
+                  this.loadingHighRes = false;
+                  return;
+                }
+              } catch {
+                console.warn('Failed to load pre-built atlases, using fallback');
+              }
+            }
+            
+            // Fallback to generated texture
+            this.createFallbackTexture();
+            
+            // Cache the fallback texture
+            if (this.texNext && this.textureCache) {
+              this.textureCache.set(cacheKey, this.texNext);
+            }
+            this.loadingHighRes = false;
+          } catch (error) {
+            console.error('Error loading high-res textures:', error);
+            this.loadingHighRes = false;
+          }
+        }, 500); // Small delay to let thumbnails display first
+      }
+    } catch (error) {
+      throw error;
+    }
+  }
+  
+  private loadAtlasTexture(index: number): Promise<WebGLTexture> {
+    return new Promise((resolve, reject) => {
+      if (!this.gl) {
+        reject(new Error('No WebGL context'));
+        return;
+      }
+      
+      const gl = this.gl;
+      const atlasUrl = `/atlas-${index}.jpg`;
+      const texture = createAndSetupTexture(
+        gl,
+        gl.LINEAR,
+        gl.LINEAR,
+        gl.CLAMP_TO_EDGE,
+        gl.CLAMP_TO_EDGE
+      );
+      
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = () => {
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.texImage2D(
+          gl.TEXTURE_2D,
+          0,
+          gl.RGBA,
+          gl.RGBA,
+          gl.UNSIGNED_BYTE,
+          img
+        );
+        gl.generateMipmap(gl.TEXTURE_2D);
+        resolve(texture);
+      };
+      img.onerror = () => {
+        reject(new Error(`Failed to load atlas ${index}`));
+      };
+      img.src = atlasUrl;
+    });
+  }
+  
+  private async createThumbnailAtlas(): Promise<WebGLTexture | null> {
+    if (!this.gl) return null;
+    const gl = this.gl;
+    
+    const itemCount = Math.max(1, this.items.length);
+    this.atlasSize = Math.ceil(Math.sqrt(itemCount));
+    const cellSize = 64; // Smaller size for thumbnails
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d")!;
+    canvas.width = this.atlasSize * cellSize;
+    canvas.height = this.atlasSize * cellSize;
+    
+    // Fill with placeholder color first
+    this.items.forEach((item, i) => {
+      const x = (i % this.atlasSize) * cellSize;
+      const y = Math.floor(i / this.atlasSize) * cellSize;
+      ctx.fillStyle = `hsl(${(i * 360) / this.items.length}, 70%, 50%)`;
+      ctx.fillRect(x, y, cellSize, cellSize);
+    });
+    
+    // Create texture immediately with placeholders
+    const texture = createAndSetupTexture(
+      gl,
+      gl.LINEAR,
+      gl.LINEAR,
+      gl.CLAMP_TO_EDGE,
+      gl.CLAMP_TO_EDGE
+    );
+    
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texImage2D(
+      gl.TEXTURE_2D,
+      0,
+      gl.RGBA,
+      gl.RGBA,
+      gl.UNSIGNED_BYTE,
+      canvas
+    );
+    gl.generateMipmap(gl.TEXTURE_2D);
+    
+    // Prioritize loading visible items first
+    const visibleIndices = this.getVisibleItemIndices();
+    const prioritizedIndices = [
+      ...visibleIndices,
+      ...Array.from({ length: this.items.length }, (_, i) => i).filter(i => !visibleIndices.includes(i))
+    ];
+    
+    // Load actual thumbnails asynchronously with priority
+    const loadPromises = prioritizedIndices.map(async (i) => {
+      const item = this.items[i];
+      if (item?.image) {
+        try {
+          const img = new Image();
+          img.crossOrigin = "anonymous";
+          
+          await new Promise<void>((resolve, reject) => {
+            img.onload = () => {
+              const x = (i % this.atlasSize) * cellSize;
+              const y = Math.floor(i / this.atlasSize) * cellSize;
+              ctx.drawImage(img, x, y, cellSize, cellSize);
+              resolve();
+            };
+            img.onerror = () => reject(new Error(`Failed to load thumbnail ${i}`));
+            // Use lower resolution image if available
+            img.src = item.image;
+          });
+        } catch (error) {
+          console.warn(`Failed to load thumbnail for item ${i}:`, error);
+        }
+      }
+    });
+    
+    // Load visible items first, then others in batches
+    const visiblePromises = loadPromises.slice(0, visibleIndices.length);
+    const otherPromises = loadPromises.slice(visibleIndices.length);
+    
+    // Load visible items immediately
+    if (visiblePromises.length > 0) {
+      await Promise.all(visiblePromises);
+      // Update texture with visible thumbnails
+      if (this.gl) {
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.texSubImage2D(
+          gl.TEXTURE_2D,
+          0,
+          0,
+          0,
+          gl.RGBA,
+          gl.UNSIGNED_BYTE,
+          canvas
+        );
       }
     }
     
-    // Reinitialize with new items
-    this.initTexture();
+    // Load remaining thumbnails in batches
+    const batchSize = 10;
+    for (let i = 0; i < otherPromises.length; i += batchSize) {
+      await Promise.all(otherPromises.slice(i, i + batchSize));
+      
+      // Update texture with new thumbnails
+      if (this.gl) {
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.texSubImage2D(
+          gl.TEXTURE_2D,
+          0,
+          0,
+          0,
+          gl.RGBA,
+          gl.UNSIGNED_BYTE,
+          canvas
+        );
+      }
+    }
+    
+    return texture;
+  }
+  
+  private createFallbackTexture(): void {
+    if (!this.gl) return;
+    const gl = this.gl;
+    
+    const itemCount = Math.max(1, this.items.length);
+    this.atlasSize = Math.ceil(Math.sqrt(itemCount));
+    const cellSize = 256;
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d")!;
+    canvas.width = this.atlasSize * cellSize;
+    canvas.height = this.atlasSize * cellSize;
+    
+    this.items.forEach((item, i) => {
+      const x = (i % this.atlasSize) * cellSize;
+      const y = Math.floor(i / this.atlasSize) * cellSize;
+      ctx.fillStyle = `hsl(${(i * 360) / this.items.length}, 70%, 50%)`;
+      ctx.fillRect(x, y, cellSize, cellSize);
+    });
+    
+    const texture = createAndSetupTexture(
+      gl,
+      gl.LINEAR,
+      gl.LINEAR,
+      gl.CLAMP_TO_EDGE,
+      gl.CLAMP_TO_EDGE
+    );
+    
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texImage2D(
+      gl.TEXTURE_2D,
+      0,
+      gl.RGBA,
+      gl.RGBA,
+      gl.UNSIGNED_BYTE,
+      canvas
+    );
+    gl.generateMipmap(gl.TEXTURE_2D);
+    
+    this.atlasesNext = [texture];
+    this.texNext = texture;
+  }
+  
+  private completeTextureTransition(): void {
+    if (!this.gl) return;
+    
+    // Clean up old textures
+    for (const atlas of this.atlases) {
+      this.gl.deleteTexture(atlas);
+    }
+    
+    // Swap textures
+    this.atlases = this.atlasesNext;
+    this.tex = this.texNext;
+    this.atlasesNext = [];
+    this.texNext = null;
+    
+    // Reset transition state
+    this.textureTransitioning = false;
+    this.textureBlendValue = 0;
+    
+    // Check memory usage and clean up if needed
+    this.checkMemoryUsage();
+  }
+  
+  private checkMemoryUsage(): void {
+    // Only check if performance.memory is available (Chrome)
+    const extPerf = performance as ExtendedPerformance;
+    if (extPerf.memory) {
+      const memory = extPerf.memory;
+      const usedMB = memory.usedJSHeapSize / 1024 / 1024;
+      const limitMB = memory.jsHeapSizeLimit / 1024 / 1024;
+      
+      // If using more than 70% of heap, trigger cleanup
+      if (usedMB / limitMB > 0.7) {
+        console.warn(`High memory usage: ${usedMB.toFixed(2)}MB / ${limitMB.toFixed(2)}MB`);
+        this.performMemoryCleanup();
+      }
+    }
+  }
+  
+  private performMemoryCleanup(): void {
+    // Clear texture cache beyond essential textures
+    if (this.textureCache) {
+      // Keep only the most recent 5 textures
+      const cacheSize = this.textureCache['cache'].size;
+      if (cacheSize > 5) {
+        console.log('Clearing texture cache for memory optimization');
+        // Clear and rebuild with just current texture
+        const currentKey = this.textureCache.generateKey(this.items, this.rotationOffset);
+        const currentTexture = this.tex;
+        this.textureCache.clear();
+        if (currentTexture) {
+          this.textureCache.set(currentKey, currentTexture);
+        }
+      }
+    }
+    
+    // Force garbage collection if available (non-standard)
+    const extWindow = window as ExtendedWindow;
+    if (extWindow.gc) {
+      extWindow.gc();
+    }
+  }
+  
+  private easeInOutCubic(t: number): number {
+    return t < 0.5 
+      ? 4 * t * t * t 
+      : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  }
+
+  private getVisibleItemIndices(): number[] {
+    // Get vertices that are visible based on camera view
+    const visibleIndices: number[] = [];
+    const viewMatrix = this.camera.matrices.view;
+    const projMatrix = this.camera.matrices.projection;
+    const mvpMatrix = mat4.create();
+    
+    // Iterate through all vertex positions
+    for (let i = 0; i < this.instancePositions.length; i++) {
+      const pos = this.instancePositions[i];
+      const worldPos = vec3.create();
+      
+      // Transform vertex position to world space
+      vec3.transformMat4(worldPos, pos, this.worldMatrix);
+      
+      // Transform to view space
+      const viewPos = vec3.create();
+      vec3.transformMat4(viewPos, worldPos, viewMatrix);
+      
+      // Simple frustum culling - check if in front of camera
+      if (viewPos[2] < 0) { // In front of camera (negative Z in view space)
+        // Check if within field of view
+        mat4.multiply(mvpMatrix, projMatrix, viewMatrix);
+        const clipPos = vec3.create();
+        vec3.transformMat4(clipPos, worldPos, mvpMatrix);
+        
+        // Normalize to NDC
+        const w = clipPos[2];
+        if (w > 0) {
+          const ndcX = clipPos[0] / w;
+          const ndcY = clipPos[1] / w;
+          
+          // Check if within viewport (-1 to 1 range with some margin)
+          const margin = 0.2;
+          if (Math.abs(ndcX) <= 1 + margin && Math.abs(ndcY) <= 1 + margin) {
+            // Map vertex index to item index considering rotation offset
+            const itemIndex = this.useTemporalCycling 
+              ? (i + this.rotationOffset) % this.items.length
+              : i % this.items.length;
+            
+            if (!visibleIndices.includes(itemIndex)) {
+              visibleIndices.push(itemIndex);
+            }
+          }
+        }
+      }
+    }
+    
+    // If no items are visible (shouldn't happen), return first few items
+    if (visibleIndices.length === 0) {
+      return Array.from({ length: Math.min(10, this.items.length) }, (_, i) => i);
+    }
+    
+    return visibleIndices;
   }
 }
 
