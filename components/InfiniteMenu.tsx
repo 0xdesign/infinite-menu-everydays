@@ -65,19 +65,49 @@ const discFragShaderSource = `#version 300 es
 precision highp float;
 
 uniform sampler2D uTex;
-uniform sampler2D uHighTex;
 uniform sampler2D uTexNext;
 uniform float uTextureBlend;
 uniform int uItemCount;
 uniform int uAtlasSize;
-uniform float uHighId;
 uniform int uRotationOffset;
+
+// High-res texture support - using multiple texture units
+uniform int uHighResCount;
+uniform int uHighResIndices[12]; // Support up to 12 high-res textures (16 total - 3 used = 13, but use 12 for safety)
+uniform sampler2D uHighResTex0;
+uniform sampler2D uHighResTex1;
+uniform sampler2D uHighResTex2;
+uniform sampler2D uHighResTex3;
+uniform sampler2D uHighResTex4;
+uniform sampler2D uHighResTex5;
+uniform sampler2D uHighResTex6;
+uniform sampler2D uHighResTex7;
+uniform sampler2D uHighResTex8;
+uniform sampler2D uHighResTex9;
+uniform sampler2D uHighResTex10;
+uniform sampler2D uHighResTex11;
 
 out vec4 outColor;
 
 in vec2 vUvs;
 in float vAlpha;
 flat in int vInstanceId;
+
+vec4 getHighResTexture(int index, vec2 uv) {
+  if (index == 0) return texture(uHighResTex0, uv);
+  else if (index == 1) return texture(uHighResTex1, uv);
+  else if (index == 2) return texture(uHighResTex2, uv);
+  else if (index == 3) return texture(uHighResTex3, uv);
+  else if (index == 4) return texture(uHighResTex4, uv);
+  else if (index == 5) return texture(uHighResTex5, uv);
+  else if (index == 6) return texture(uHighResTex6, uv);
+  else if (index == 7) return texture(uHighResTex7, uv);
+  else if (index == 8) return texture(uHighResTex8, uv);
+  else if (index == 9) return texture(uHighResTex9, uv);
+  else if (index == 10) return texture(uHighResTex10, uv);
+  else if (index == 11) return texture(uHighResTex11, uv);
+  return vec4(0.0);
+}
 
 void main() {
   int itemIndex = (vInstanceId + uRotationOffset) % uItemCount;
@@ -104,14 +134,17 @@ void main() {
   vec4 nextColor = texture(uTexNext, st);
   vec4 atlasColor = mix(currentColor, nextColor, uTextureBlend);
   
-  // High-res texture overlay
-  float instanceIdFloat = float(vInstanceId);
-  float useHighRes = step(0.5, 1.0 - abs(instanceIdFloat - uHighId)) * step(0.0, uHighId);
+  // Check if this item has a high-res texture
+  vec4 finalColor = atlasColor;
+  for (int i = 0; i < uHighResCount; i++) {
+    if (uHighResIndices[i] == itemIndex) {
+      vec2 hiResSt = vec2(vUvs.x, 1.0 - vUvs.y);
+      finalColor = getHighResTexture(i, hiResSt);
+      break;
+    }
+  }
   
-  vec2 hiResSt = vec2(vUvs.x, 1.0 - vUvs.y);
-  vec4 hiResColor = texture(uHighTex, hiResSt);
-  
-  outColor = mix(atlasColor, hiResColor, useHighRes);
+  outColor = finalColor;
   outColor.a *= vAlpha;
 }
 `;
@@ -858,6 +891,84 @@ class TextureCache {
   }
 }
 
+// High-resolution texture cache for individual items
+class HighResTextureCache {
+  private cache = new Map<number, WebGLTexture>();
+  private loadingSet = new Set<number>();
+  private lastAccessTime = new Map<number, number>();
+  private maxSize = 20; // Store up to 20 high-res textures (only display 12 at once)
+  
+  constructor(private gl: WebGL2RenderingContext) {}
+  
+  has(itemIndex: number): boolean {
+    return this.cache.has(itemIndex);
+  }
+  
+  isLoading(itemIndex: number): boolean {
+    return this.loadingSet.has(itemIndex);
+  }
+  
+  get(itemIndex: number): WebGLTexture | null {
+    const texture = this.cache.get(itemIndex);
+    if (texture) {
+      // Update access time
+      this.lastAccessTime.set(itemIndex, performance.now());
+    }
+    return texture || null;
+  }
+  
+  set(itemIndex: number, texture: WebGLTexture): void {
+    // Remove from loading set
+    this.loadingSet.delete(itemIndex);
+    
+    // If cache is full, evict least recently used
+    if (this.cache.size >= this.maxSize && !this.cache.has(itemIndex)) {
+      this.evictLRU();
+    }
+    
+    this.cache.set(itemIndex, texture);
+    this.lastAccessTime.set(itemIndex, performance.now());
+  }
+  
+  setLoading(itemIndex: number): void {
+    this.loadingSet.add(itemIndex);
+  }
+  
+  private evictLRU(): void {
+    let oldestTime = Infinity;
+    let oldestKey = -1;
+    
+    for (const [key, time] of this.lastAccessTime.entries()) {
+      if (time < oldestTime && this.cache.has(key)) {
+        oldestTime = time;
+        oldestKey = key;
+      }
+    }
+    
+    if (oldestKey !== -1) {
+      const texture = this.cache.get(oldestKey);
+      if (texture) {
+        this.gl.deleteTexture(texture);
+      }
+      this.cache.delete(oldestKey);
+      this.lastAccessTime.delete(oldestKey);
+    }
+  }
+  
+  clear(): void {
+    for (const texture of this.cache.values()) {
+      this.gl.deleteTexture(texture);
+    }
+    this.cache.clear();
+    this.lastAccessTime.clear();
+    this.loadingSet.clear();
+  }
+  
+  getLoadedIndices(): number[] {
+    return Array.from(this.cache.keys());
+  }
+}
+
 class InfiniteGridMenu {
   private gl: WebGL2RenderingContext | null = null;
   private discProgram: WebGLProgram | null = null;
@@ -890,9 +1001,10 @@ class InfiniteGridMenu {
   private loadingHighRes: boolean = false;
   
   // High-res texture management
-  private hiResTexture: WebGLTexture | null = null;
-  private hiResIndex: number = -1;
-  private hiResLoading: boolean = false;
+  private highResCache: HighResTextureCache | null = null;
+  private highResTextureArray: WebGLTexture | null = null;
+  private highResIndicesBuffer: WebGLBuffer | null = null;
+  private highResLoadQueue: number[] = [];
 
   private discLocations!: {
     aModelPosition: number;
@@ -910,9 +1022,10 @@ class InfiniteGridMenu {
     uFrames: WebGLUniformLocation | null;
     uItemCount: WebGLUniformLocation | null;
     uAtlasSize: WebGLUniformLocation | null;
-    uHighTex: WebGLUniformLocation | null;
-    uHighId: WebGLUniformLocation | null;
     uRotationOffset: WebGLUniformLocation | null;
+    uHighResCount: WebGLUniformLocation | null;
+    uHighResIndices: WebGLUniformLocation | null;
+    uHighResTextures: (WebGLUniformLocation | null)[];
   };
 
   private viewportSize = vec2.create();
@@ -989,6 +1102,8 @@ class InfiniteGridMenu {
     this.updateProjectionMatrix();
   }
 
+  private lastHighResLoadTime = 0;
+  
   public run(time = 0): void {
     this._deltaTime = Math.min(32, time - this._time);
     this._time = time;
@@ -1004,6 +1119,12 @@ class InfiniteGridMenu {
       if (progress >= 1) {
         this.completeTextureTransition();
       }
+    }
+    
+    // Periodically load high-res textures for visible items
+    if (time - this.lastHighResLoadTime > 500) { // Every 500ms
+      this.lastHighResLoadTime = time;
+      this.loadHighResTexturesForVisibleItems();
     }
 
     this.resize();
@@ -1024,46 +1145,16 @@ class InfiniteGridMenu {
     }
     this.gl = gl;
     
-    // Initialize texture cache
+    // Initialize texture caches
     this.textureCache = new TextureCache(gl);
+    this.highResCache = new HighResTextureCache(gl);
     
-    // Test basic shader compilation
-    const testVert = `#version 300 es
-    in vec3 position;
-    void main() {
-      gl_Position = vec4(position, 1.0);
-    }`;
-    const testFrag = `#version 300 es
-    precision highp float;
-    out vec4 color;
-    void main() {
-      color = vec4(1.0, 0.0, 0.0, 1.0);
-    }`;
+    // Check texture unit limits
+    const maxTextureUnits = gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS);
+    console.log(`WebGL2 MAX_TEXTURE_IMAGE_UNITS: ${maxTextureUnits}`);
     
-    const testVertShader = gl.createShader(gl.VERTEX_SHADER);
-    if (testVertShader) {
-      gl.shaderSource(testVertShader, testVert);
-      gl.compileShader(testVertShader);
-      const success = gl.getShaderParameter(testVertShader, gl.COMPILE_STATUS);
-      if (!success) {
-        console.error("Test vertex shader failed:", gl.getShaderInfoLog(testVertShader));
-      } else {
-        console.log("Test vertex shader compiled successfully");
-      }
-      gl.deleteShader(testVertShader);
-    }
-    
-    const testFragShader = gl.createShader(gl.FRAGMENT_SHADER);
-    if (testFragShader) {
-      gl.shaderSource(testFragShader, testFrag);
-      gl.compileShader(testFragShader);
-      const success = gl.getShaderParameter(testFragShader, gl.COMPILE_STATUS);
-      if (!success) {
-        console.error("Test fragment shader failed:", gl.getShaderInfoLog(testFragShader));
-      } else {
-        console.log("Test fragment shader compiled successfully");
-      }
-      gl.deleteShader(testFragShader);
+    if (maxTextureUnits < 16) {
+      console.warn(`Limited texture units available: ${maxTextureUnits}. High-res texture support may be limited.`);
     }
 
     vec2.set(
@@ -1117,10 +1208,18 @@ class InfiniteGridMenu {
       uFrames: gl.getUniformLocation(this.discProgram!, "uFrames"),
       uItemCount: gl.getUniformLocation(this.discProgram!, "uItemCount"),
       uAtlasSize: gl.getUniformLocation(this.discProgram!, "uAtlasSize"),
-      uHighTex: gl.getUniformLocation(this.discProgram!, "uHighTex"),
-      uHighId: gl.getUniformLocation(this.discProgram!, "uHighId"),
       uRotationOffset: gl.getUniformLocation(this.discProgram!, "uRotationOffset"),
+      uHighResCount: gl.getUniformLocation(this.discProgram!, "uHighResCount"),
+      uHighResIndices: gl.getUniformLocation(this.discProgram!, "uHighResIndices"),
+      uHighResTextures: [],
     };
+    
+    // Get all high-res texture uniform locations
+    for (let i = 0; i < 12; i++) {
+      this.discLocations.uHighResTextures.push(
+        gl.getUniformLocation(this.discProgram!, `uHighResTex${i}`)
+      );
+    }
 
     this.discGeo = new RoundedSquareGeometry(1, 0.15, 8);
     this.discBuffers = this.discGeo.data;
@@ -1268,7 +1367,7 @@ class InfiniteGridMenu {
     canvas.width = this.atlasSize * cellSize;
     canvas.height = this.atlasSize * cellSize;
     
-    this.items.forEach((item, i) => {
+    this.items.forEach((_, i) => {
       const x = (i % this.atlasSize) * cellSize;
       const y = Math.floor(i / this.atlasSize) * cellSize;
       ctx.fillStyle = `hsl(${(i * 360) / this.items.length}, 70%, 50%)`;
@@ -1289,12 +1388,17 @@ class InfiniteGridMenu {
   }
   
   private async loadHighResTexture(index: number): Promise<void> {
-    if (!this.gl || this.hiResIndex === index || this.hiResLoading) return;
+    if (!this.gl || !this.highResCache) return;
     
     const item = this.items[index];
     if (!item?.imageHighRes) return;
     
-    this.hiResLoading = true;
+    // Check if already loaded or loading
+    if (this.highResCache.has(index) || this.highResCache.isLoading(index)) {
+      return;
+    }
+    
+    this.highResCache.setLoading(index);
     const gl = this.gl;
     
     try {
@@ -1308,13 +1412,8 @@ class InfiniteGridMenu {
         img.src = item.imageHighRes!;
       });
       
-      // Clean up old texture if exists
-      if (this.hiResTexture) {
-        gl.deleteTexture(this.hiResTexture);
-      }
-      
       // Create and setup new texture
-      this.hiResTexture = createAndSetupTexture(
+      const texture = createAndSetupTexture(
         gl,
         gl.LINEAR,
         gl.LINEAR,
@@ -1322,7 +1421,7 @@ class InfiniteGridMenu {
         gl.CLAMP_TO_EDGE
       );
       
-      gl.bindTexture(gl.TEXTURE_2D, this.hiResTexture);
+      gl.bindTexture(gl.TEXTURE_2D, texture);
       gl.texImage2D(
         gl.TEXTURE_2D,
         0,
@@ -1332,13 +1431,52 @@ class InfiniteGridMenu {
         img
       );
       
-      this.hiResIndex = index;
+      // Add to cache
+      this.highResCache.set(index, texture);
       console.log(`Loaded high-res texture for item ${index}`);
     } catch (error) {
-      console.error('Failed to load high-res texture:', error);
-    } finally {
-      this.hiResLoading = false;
+      console.error(`Failed to load high-res texture for item ${index}:`, error);
     }
+  }
+  
+  private async loadHighResTexturesForVisibleItems(): Promise<void> {
+    if (!this.highResCache) return;
+    
+    // Get visible item indices
+    const visibleIndices = this.getVisibleItemIndices();
+    
+    // Sort by distance from active item for priority
+    const activeIndex = this.findNearestVertexIndex();
+    const sortedIndices = visibleIndices.sort((a, b) => {
+      const distA = Math.abs(a - activeIndex);
+      const distB = Math.abs(b - activeIndex);
+      return distA - distB;
+    });
+    
+    // Load high-res textures for visible items
+    const loadPromises: Promise<void>[] = [];
+    const maxConcurrent = 4; // Limit concurrent loads
+    
+    for (let i = 0; i < Math.min(sortedIndices.length, maxConcurrent); i++) {
+      const itemIndex = sortedIndices[i];
+      if (itemIndex < this.items.length) {
+        loadPromises.push(this.loadHighResTexture(itemIndex));
+      }
+    }
+    
+    // Load remaining items in background
+    if (sortedIndices.length > maxConcurrent) {
+      setTimeout(() => {
+        for (let i = maxConcurrent; i < sortedIndices.length; i++) {
+          const itemIndex = sortedIndices[i];
+          if (itemIndex < this.items.length) {
+            this.loadHighResTexture(itemIndex);
+          }
+        }
+      }, 100);
+    }
+    
+    await Promise.all(loadPromises);
   }
 
   private initDiscInstances(count: number): void {
@@ -1516,16 +1654,35 @@ class InfiniteGridMenu {
     // Set blend factor
     gl.uniform1f(this.discLocations.uTextureBlend, this.textureBlendValue);
     
-    // Bind high-res texture if available
-    gl.uniform1i(this.discLocations.uHighTex, 1);
-    gl.activeTexture(gl.TEXTURE1);
-    if (this.hiResTexture && this.hiResIndex >= 0) {
-      gl.bindTexture(gl.TEXTURE_2D, this.hiResTexture);
-      gl.uniform1f(this.discLocations.uHighId, this.hiResIndex);
+    // Bind high-res textures if available
+    if (this.highResCache) {
+      const loadedIndices = this.highResCache.getLoadedIndices();
+      const maxTextures = Math.min(loadedIndices.length, 12); // Max 12 high-res texture units
+      
+      // Pass the count of high-res textures
+      gl.uniform1i(this.discLocations.uHighResCount, maxTextures);
+      
+      // Pass the indices array
+      if (maxTextures > 0) {
+        const indicesArray = new Int32Array(12);
+        for (let i = 0; i < maxTextures; i++) {
+          indicesArray[i] = loadedIndices[i];
+        }
+        gl.uniform1iv(this.discLocations.uHighResIndices, indicesArray);
+        
+        // Bind each high-res texture to its texture unit
+        for (let i = 0; i < maxTextures; i++) {
+          const texture = this.highResCache.get(loadedIndices[i]);
+          if (texture) {
+            gl.activeTexture(gl.TEXTURE3 + i); // Start from TEXTURE3
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+            gl.uniform1i(this.discLocations.uHighResTextures[i], 3 + i);
+          }
+        }
+      }
     } else {
-      // Bind dummy texture to avoid shader errors
-      gl.bindTexture(gl.TEXTURE_2D, this.tex);
-      gl.uniform1f(this.discLocations.uHighId, -1);
+      // No high-res textures
+      gl.uniform1i(this.discLocations.uHighResCount, 0);
     }
 
     gl.bindVertexArray(this.discVAO);
@@ -1576,7 +1733,7 @@ class InfiniteGridMenu {
   private onControlUpdate(deltaTime: number): void {
     const timeScale = deltaTime / this.TARGET_FRAME_DURATION + 0.0001;
     let damping = 5 / timeScale;
-    let cameraTargetZ = 3;
+    let cameraTargetZ = 2.5;
 
     const isMoving =
       this.control.isPointerDown ||
@@ -1603,8 +1760,8 @@ class InfiniteGridMenu {
       
       this.onActiveItemChange(itemIndex);
       
-      // Load high-res texture for the active item
-      this.loadHighResTexture(itemIndex);
+      // Load high-res textures for visible items
+      this.loadHighResTexturesForVisibleItems();
       
       const snapDirection = vec3.normalize(
         vec3.create(),
@@ -1673,14 +1830,16 @@ class InfiniteGridMenu {
     this.atlases.forEach(atlas => {
       if(atlas) gl.deleteTexture(atlas)
     });
-    if (this.hiResTexture) {
-      gl.deleteTexture(this.hiResTexture);
-    }
     
-    // Clear texture cache
+    // Clear texture caches
     if (this.textureCache) {
       this.textureCache.clear();
       this.textureCache = null;
+    }
+    
+    if (this.highResCache) {
+      this.highResCache.clear();
+      this.highResCache = null;
     }
     
     this.gl = null;
@@ -1690,6 +1849,11 @@ class InfiniteGridMenu {
     if (!this.gl || this.textureTransitioning) return;
     
     this.items = newItems;
+    
+    // Clear high-res cache when items change
+    if (this.highResCache) {
+      this.highResCache.clear();
+    }
     
     // Determine cycling mode based on item count
     const wasUsingTemporalCycling = this.useTemporalCycling;
@@ -1714,6 +1878,10 @@ class InfiniteGridMenu {
     // Load new textures in the background
     this.loadNewTextures().then(() => {
       // New textures are ready, transition will happen automatically
+      // Start loading high-res textures for visible items
+      setTimeout(() => {
+        this.loadHighResTexturesForVisibleItems();
+      }, 500);
     }).catch((error) => {
       console.error('Failed to load new textures:', error);
       this.textureTransitioning = false;
@@ -1875,7 +2043,7 @@ class InfiniteGridMenu {
     canvas.height = this.atlasSize * cellSize;
     
     // Fill with placeholder color first
-    this.items.forEach((item, i) => {
+    this.items.forEach((_, i) => {
       const x = (i % this.atlasSize) * cellSize;
       const y = Math.floor(i / this.atlasSize) * cellSize;
       ctx.fillStyle = `hsl(${(i * 360) / this.items.length}, 70%, 50%)`;
@@ -1991,7 +2159,7 @@ class InfiniteGridMenu {
     canvas.width = this.atlasSize * cellSize;
     canvas.height = this.atlasSize * cellSize;
     
-    this.items.forEach((item, i) => {
+    this.items.forEach((_, i) => {
       const x = (i % this.atlasSize) * cellSize;
       const y = Math.floor(i / this.atlasSize) * cellSize;
       ctx.fillStyle = `hsl(${(i * 360) / this.items.length}, 70%, 50%)`;

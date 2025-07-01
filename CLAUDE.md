@@ -59,6 +59,25 @@ npm run typecheck
    - Supports pagination for large datasets (200+ items)
    - Maintains rotation state across filter/search changes
    - Uses Canvas API with WebGL2 context
+   - Includes multi-texture high-resolution image support
+
+3. **InfiniteMenuRefactored Component** (`components/InfiniteMenuRefactored.tsx`)
+   - Production-ready refactored version with modular architecture
+   - Separate WebGL and Canvas2D renderers for broader compatibility
+   - ResourceManager for proper GPU resource tracking
+   - Error boundaries and context loss recovery
+   - Keyboard navigation and accessibility features
+
+### Architecture Components (Refactored Version)
+
+- `/lib/infinitemenu/` - Modular architecture for InfiniteMenu
+  - `/types` - TypeScript interfaces and types
+  - `/managers` - ResourceManager, TextureManager, ProgressiveTextureLoader
+  - `/renderers` - WebGLRenderer, Canvas2DRenderer
+  - `/controls` - ArcballControl with keyboard support
+  - `/utils` - WebGL utilities, frustum culling
+  - `/geometry` - IcosahedronGeometry, DiscGeometry
+  - `/shaders` - Vertex and fragment shaders
 
 ## Testing Requirements
 
@@ -108,6 +127,7 @@ The project follows an incremental development approach:
 - Task 12 ✓: Instant thumbnail display with progressive quality enhancement
 - Task 13 ✓: Memory management with automatic cleanup at 70% heap usage
 - Task 14 ✓: Priority loading for visible items using frustum culling
+- Task 15 ✓: Multi-item high-resolution texture support (up to 12 simultaneous high-res images)
 
 ## Pagination Architecture
 
@@ -169,6 +189,31 @@ The InfiniteMenu intelligently adapts based on dataset size:
    - Removed aggressive zoom behavior
    - Consistent viewing experience
 
+## High-Resolution Texture System
+
+The InfiniteMenu supports displaying multiple high-resolution images simultaneously:
+
+1. **Multi-Texture Support**
+   - Up to 12 high-res images displayed at once (GPU texture unit limit)
+   - Progressive loading prioritizes visible items
+   - Automatic loading as users rotate the sphere
+
+2. **HighResTextureCache Implementation**
+   - LRU cache stores up to 20 high-res textures
+   - Tracks loading state to prevent duplicate requests
+   - Smart eviction based on last access time
+
+3. **Shader Architecture**
+   - Fragment shader supports 12 individual texture samplers
+   - Dynamic texture binding based on visible items
+   - Seamless fallback to atlas textures
+
+4. **Loading Strategy**
+   - Loads high-res for visible items every 500ms
+   - Prioritizes items near the active/selected item
+   - Concurrent loading limited to 4 textures at once
+   - Background loading continues for remaining visible items
+
 ## Performance Optimizations
 
 The InfiniteMenu includes several performance optimizations:
@@ -193,6 +238,26 @@ The InfiniteMenu includes several performance optimizations:
    - Progressive enhancement with actual images
    - Batched loading to prevent UI blocking
 
+## Technical Limitations
+
+1. **GPU Texture Units**
+   - WebGL2 typically provides 16 texture units (TEXTURE0-TEXTURE15)
+   - Current implementation uses:
+     - TEXTURE0: Main atlas texture
+     - TEXTURE2: Transition texture for crossfade
+     - TEXTURE3-TEXTURE14: 12 high-res texture slots
+   - This limits simultaneous high-res images to 12
+
+2. **Memory Constraints**
+   - High-res texture cache limited to 20 textures
+   - Automatic cleanup at 70% heap usage
+   - LRU eviction for texture cache management
+
+3. **Browser Compatibility**
+   - Requires WebGL2 support
+   - Canvas2D fallback available in refactored version
+   - Performance.memory API only available in Chrome
+
 ## Important Notes
 
 - The user is a non-technical product designer - explain technical concepts clearly
@@ -200,3 +265,4 @@ The InfiniteMenu includes several performance optimizations:
 - The `gl-matrix` library needs to be installed for the InfiniteMenu component
 - Always use environment variables for sensitive data (Supabase keys)
 - Focus on addressing root causes, not symptoms when debugging
+- When items have `imageHighRes` property, those images will load progressively as visible
