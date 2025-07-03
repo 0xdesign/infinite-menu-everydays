@@ -110,7 +110,7 @@ vec4 getHighResTexture(int index, vec2 uv) {
 }
 
 void main() {
-  int itemIndex = (vInstanceId + uRotationOffset) % uItemCount;
+  int itemIndex = (vInstanceId - uRotationOffset + uItemCount) % uItemCount;
   int cellsPerRow = uAtlasSize;
   int cellX = itemIndex % cellsPerRow;
   int cellY = itemIndex / cellsPerRow;
@@ -1047,6 +1047,7 @@ class InfiniteGridMenu {
   private _frames = 0;
 
   private movementActive = false;
+  private activeItemIndex = 0;
 
   private TARGET_FRAME_DURATION = 1000 / 60;
   private SPHERE_RADIUS = 2;
@@ -1102,7 +1103,6 @@ class InfiniteGridMenu {
     this.updateProjectionMatrix();
   }
 
-  private lastHighResLoadTime = 0;
   
   public run(time = 0): void {
     this._deltaTime = Math.min(32, time - this._time);
@@ -1121,11 +1121,7 @@ class InfiniteGridMenu {
       }
     }
     
-    // Periodically load high-res textures for visible items
-    if (time - this.lastHighResLoadTime > 500) { // Every 500ms
-      this.lastHighResLoadTime = time;
-      this.loadHighResTexturesForVisibleItems();
-    }
+    // High-res loading is now handled in onControlUpdate when rotation stops
 
     this.resize();
     this.animate(this._deltaTime);
@@ -1291,7 +1287,10 @@ class InfiniteGridMenu {
       // Load all atlas textures
       const atlasPromises: Promise<void>[] = [];
       for (let i = 0; i < atlasCount; i++) {
-        atlasPromises.push(this.loadAtlas(i));
+        atlasPromises.push(this.loadAtlas(i).catch(err => {
+          console.warn(`Failed to load atlas ${i}:`, err);
+          // Continue with other atlases
+        }));
       }
       
       await Promise.all(atlasPromises);
@@ -1314,7 +1313,8 @@ class InfiniteGridMenu {
   private loadAtlas(index: number): Promise<void> {
     return new Promise((resolve, reject) => {
       if (!this.gl) {
-        reject(new Error('No WebGL context'));
+        console.warn(`GL context not ready for atlas ${index}, skipping`);
+        resolve(); // Return successfully instead of rejecting
         return;
       }
       
@@ -1344,6 +1344,10 @@ class InfiniteGridMenu {
         );
         gl.generateMipmap(gl.TEXTURE_2D);
         
+        // Ensure atlases array is initialized
+        if (!this.atlases) {
+          this.atlases = [];
+        }
         this.atlases[index] = texture;
         resolve();
       };
@@ -1439,6 +1443,21 @@ class InfiniteGridMenu {
     }
   }
   
+  private async loadHighResForActiveItem(): Promise<void> {
+    if (!this.highResCache || this.activeItemIndex < 0 || this.activeItemIndex >= this.items.length) return;
+    
+    // Load high-res for the active item
+    await this.loadHighResTexture(this.activeItemIndex);
+    
+    // Preload adjacent items for smooth transitions
+    const prevIndex = (this.activeItemIndex - 1 + this.items.length) % this.items.length;
+    const nextIndex = (this.activeItemIndex + 1) % this.items.length;
+    
+    // Load adjacent items in background (don't await)
+    this.loadHighResTexture(prevIndex);
+    this.loadHighResTexture(nextIndex);
+  }
+  
   private async loadHighResTexturesForVisibleItems(): Promise<void> {
     if (!this.highResCache) return;
     
@@ -1446,10 +1465,9 @@ class InfiniteGridMenu {
     const visibleIndices = this.getVisibleItemIndices();
     
     // Sort by distance from active item for priority
-    const activeIndex = this.findNearestVertexIndex();
     const sortedIndices = visibleIndices.sort((a, b) => {
-      const distA = Math.abs(a - activeIndex);
-      const distB = Math.abs(b - activeIndex);
+      const distA = Math.abs(a - this.activeItemIndex);
+      const distB = Math.abs(b - this.activeItemIndex);
       return distA - distB;
     });
     
@@ -1742,6 +1760,11 @@ class InfiniteGridMenu {
     if (isMoving !== this.movementActive) {
       this.movementActive = isMoving;
       this.onMovementChange(isMoving);
+      
+      // When we stop moving, load high-res for the active item
+      if (!isMoving) {
+        this.loadHighResForActiveItem();
+      }
     }
 
     if (!this.control.isPointerDown) {
@@ -1750,7 +1773,7 @@ class InfiniteGridMenu {
       
       if (this.useTemporalCycling) {
         // Apply rotation offset for large datasets
-        itemIndex = (nearestVertexIndex + this.rotationOffset) % this.items.length;
+        itemIndex = (nearestVertexIndex - this.rotationOffset + this.items.length) % this.items.length;
         // Ensure positive index
         if (itemIndex < 0) itemIndex += this.items.length;
       } else {
@@ -1758,10 +1781,14 @@ class InfiniteGridMenu {
         itemIndex = nearestVertexIndex % Math.max(1, this.items.length);
       }
       
+      const prevActiveIndex = this.activeItemIndex;
+      this.activeItemIndex = itemIndex;
       this.onActiveItemChange(itemIndex);
       
-      // Load high-res textures for visible items
-      this.loadHighResTexturesForVisibleItems();
+      // If active item changed, load high-res for new item
+      if (prevActiveIndex !== itemIndex) {
+        this.loadHighResForActiveItem();
+      }
       
       const snapDirection = vec3.normalize(
         vec3.create(),
@@ -1878,10 +1905,7 @@ class InfiniteGridMenu {
     // Load new textures in the background
     this.loadNewTextures().then(() => {
       // New textures are ready, transition will happen automatically
-      // Start loading high-res textures for visible items
-      setTimeout(() => {
-        this.loadHighResTexturesForVisibleItems();
-      }, 500);
+      // High-res loading will happen when rotation stops (in onControlUpdate)
     }).catch((error) => {
       console.error('Failed to load new textures:', error);
       this.textureTransitioning = false;
@@ -1994,7 +2018,7 @@ class InfiniteGridMenu {
   private loadAtlasTexture(index: number): Promise<WebGLTexture> {
     return new Promise((resolve, reject) => {
       if (!this.gl) {
-        reject(new Error('No WebGL context'));
+        reject(new Error('No WebGL context for atlas texture'));
         return;
       }
       
@@ -2294,7 +2318,7 @@ class InfiniteGridMenu {
           if (Math.abs(ndcX) <= 1 + margin && Math.abs(ndcY) <= 1 + margin) {
             // Map vertex index to item index considering rotation offset
             const itemIndex = this.useTemporalCycling 
-              ? (i + this.rotationOffset) % this.items.length
+              ? (i - this.rotationOffset + this.items.length) % this.items.length
               : i % this.items.length;
             
             if (!visibleIndices.includes(itemIndex)) {

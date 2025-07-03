@@ -128,6 +128,8 @@ The project follows an incremental development approach:
 - Task 13 ✓: Memory management with automatic cleanup at 70% heap usage
 - Task 14 ✓: Priority loading for visible items using frustum culling
 - Task 15 ✓: Multi-item high-resolution texture support (up to 12 simultaneous high-res images)
+- Task 16 ✓: Fixed high-res texture priority sorting to use correct item indices
+- Task 17 ✓: Simplified high-res loading to focus on centered item only
 
 ## Pagination Architecture
 
@@ -208,11 +210,21 @@ The InfiniteMenu supports displaying multiple high-resolution images simultaneou
    - Dynamic texture binding based on visible items
    - Seamless fallback to atlas textures
 
-4. **Loading Strategy**
-   - Loads high-res for visible items every 500ms
-   - Prioritizes items near the active/selected item
-   - Concurrent loading limited to 4 textures at once
-   - Background loading continues for remaining visible items
+4. **Loading Strategy (Updated in Task 17)**
+   - **Simplified approach**: Loads high-res only for the centered item when rotation stops
+   - **No more complex visibility calculations** - much more reliable
+   - **Preloads adjacent items** (previous and next) for smooth transitions
+   - **Triggers loading**:
+     - When user stops rotating (release drag)
+     - When active item changes during snapping
+   - **Benefits**:
+     - Guaranteed high-res for focused item
+     - No calculation errors with temporal cycling
+     - More efficient resource usage
+
+5. **Recent Fixes**
+   - **Task 16**: Fixed priority sorting bug with vertex vs item indices
+   - **Task 17**: Replaced complex visibility-based loading with simple centered-item loading
 
 ## Performance Optimizations
 
@@ -258,6 +270,13 @@ The InfiniteMenu includes several performance optimizations:
    - Canvas2D fallback available in refactored version
    - Performance.memory API only available in Chrome
 
+## Known Issues & Solutions
+
+1. **High-res textures not loading for some items** (FIXED)
+   - **Original cause**: Complex visibility calculations with temporal cycling
+   - **Solution in Task 17**: Replaced with simple centered-item loading
+   - **Previous fix in Task 16**: Fixed vertex/item index mismatch
+
 ## Important Notes
 
 - The user is a non-technical product designer - explain technical concepts clearly
@@ -266,3 +285,4 @@ The InfiniteMenu includes several performance optimizations:
 - Always use environment variables for sensitive data (Supabase keys)
 - Focus on addressing root causes, not symptoms when debugging
 - When items have `imageHighRes` property, those images will load progressively as visible
+- High-res textures load every 250ms for visible items, prioritizing those near the selected item
