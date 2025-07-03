@@ -1,0 +1,130 @@
+### Product Requirements Document
+
+**Project Codename:** *InfiniteMenu v2*
+**Owner:** <you>  **Stakeholders:** Design / Frontend Engineering / Growth
+**Last Updated:** 2025‑07‑03
+
+---
+
+#### 1 · Problem Statement
+
+The gallery now holds **≈ 750 items** but the current WebGL “wheel” only instantiates **42 discs** (icosahedron subdivide‑1) and only \~16 are front‑facing at once. A returning visitor repeatedly sees the first 16 items and must spin for minutes to discover the rest. Discovery, freshness and engagement drop sharply.
+
+---
+
+#### 2 · Goals & Non‑Goals
+
+| #   | Goal (must‑have)                                    | Metric / Target                                               |
+| --- | --------------------------------------------------- | ------------------------------------------------------------- |
+| G1  | 100 % of items are reachable without page reload    | Wheel can cycle through ≥ items.length                        |
+| G2  | First screen shows a *different* mix on each visit  | ≥ 90 % sessions start with ≥ 8 new thumbnails vs. prior visit |
+| G3  | Maintain 60 FPS on mid‑tier mobile                  | ≤ 16 ms render budget, ≤ 30 MB GPU RAM                        |
+| G4  | Support power navigation (jump / search / filter)   | ≤ 2 clicks to reach any specific item                         |
+| NG1 | Do **not** redesign the wheel into a flat grid      |                                                               |
+| NG2 | VR/AR presentation is out of scope for this release |                                                               |
+
+---
+
+#### 3 · Personas
+
+* **The Skimmer** – casual visitor, scrolls a few seconds, expects novelty.
+* **The Collector** – knows what she’s looking for; wants instant search & category filters.
+* **The Returner** – comes back weekly; wants to pick up where he left off without déjà‑vu.
+
+---
+
+#### 4 · User Stories
+
+| ID   | As a…     | I want…                                        | So that…                       |
+| ---- | --------- | ---------------------------------------------- | ------------------------------ |
+| US‑1 | Skimmer   | the first spin to reveal fresh items           | browsing feels new             |
+| US‑2 | Returner  | to never repeat the same 16 thumbnails on load | I stay engaged                 |
+| US‑3 | Collector | to jump 40–50 items at a time                  | I don’t spin forever           |
+| US‑4 | Collector | to type‑ahead search a title                   | I reach an item instantly      |
+| US‑5 | Skimmer   | to see a subtle progress indicator             | I know I’m discovering new art |
+
+---
+
+#### 5 · Functional Requirements
+
+| Ref | Requirement                                                                                                                                                                                                    |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| F1  | **Virtual window recycling** – keep 42 GPU instances; when a disc’s *z* passes behind the sphere, rebind it to the next unseen item & update its texture coordinates before it re‑enters the front hemisphere. |
+| F2  | **Randomised start offset** – on component mount pick `START_OFFSET = rand(0…items.length‑1)`; persisted for session to ensure each visit opens on a different batch.                                          |
+| F3  | **Jump Controls** – semi‑transparent « Prev Batch / Next Batch » buttons advance logical cursor by `INSTANCE_COUNT` (42) items. Hidden until hover/tap.                                                        |
+| F4  | **Type‑ahead ⌘K drawer** – filters the logical data array then animates wheel until chosen ID is front‑facing.                                                                                                 |
+| F5  | **Progress Ring** – tiny HUD shows “n / items.length viewed”. Increments when an item ID is first bound to any disc.                                                                                           |
+| F6  | **Category filter chips** (mobile‑horz scroll bar) – already designed in v1; must work with recycling logic.                                                                                                   |
+
+---
+
+#### 6 · Non‑Functional Requirements
+
+* **Performance** – keep disc instance count ≤ 100; texture atlases pre‑baked at 4096², loaded on demand; fallback to dynamic atlas if GPU `MAX_TEXTURE_SIZE < 4096`.
+* **Accessibility** – visible focus styles on jump buttons, ARIA `role="button"` for canvas, announce active item title.
+* **Responsiveness** – layout fluid from 320 px to 4 K, pinch‑to‑zoom shows extra concentric shells.
+* **Analytics** – emit `item_viewed`, `batch_jump`, `search_used` events with item IDs.
+* **Tech Debt Guardrail** – public API of `<InfiniteMenu />` remains: `items[]`, optional callbacks. No new peer dependencies.
+
+---
+
+#### 7 · Success Metrics
+
+| KPI                           | Baseline | Target                      |
+| ----------------------------- | -------- | --------------------------- |
+| Median items viewed / session | 20       | **≥ 200**                   |
+| Repeat‑visitor bounce rate    | 63 %     | **≤ 40 %**                  |
+| Avg. time‑to‑first‑render     | 1.8 s    | **≤ 2.0 s** (no regression) |
+| Frame drops on iPhone 12      | 8 %      | **≤ 5 %**                   |
+
+---
+
+#### 8 · Technical Approach (engineering notes)
+
+1. **Data cursor**
+
+   ```ts
+   let nextGlobalId = START_OFFSET;
+   function reuseSlot(i){
+     logicalIds[i] = nextGlobalId % items.length;
+     nextGlobalId++;
+     updateTexForInstance(i, logicalIds[i]);
+   }
+   ```
+2. **Behind‑the‑sphere detector** – compare instance world z < –radius × 0.2 then call `reuseSlot`.
+3. **Texture pipeline** – reuse existing atlas loader; add `highResTexture` overlay logic only for front‑facing disc (already scaffolded in v1).
+4. **API changes** – none on props; new internal hooks `useInfiniteWindow`, `useJumpControls`.
+5. **QA matrix** – Chrome, Safari iOS 17, Firefox; 30 fps stress test with 1 550 items on M2 MacBook.
+
+---
+
+#### 9 · Milestones & Timeline
+
+| Wk | Deliverable                            | Owner       |
+| -- | -------------------------------------- | ----------- |
+| 0  | PRD sign‑off                           | PM          |
+| 1  | Recycling engine (F1 + F2) behind flag | FE          |
+| 2  | Jump controls & analytics (F3, F6)     | FE + Design |
+| 3  | Search drawer & progress ring (F4, F5) | FE          |
+| 4  | Perf & a11y hardening, cross‑device QA | FE          |
+| 5  | Public rollout & metrics review        | PM + Growth |
+
+---
+
+#### 10 · Open Questions
+
+1. Do we preload *all* atlases or stream after N spins?
+2. Should “jump” controls be visible by default on desktop?
+3. Do we cache `START_OFFSET` per‑visitor for 24 h or per‑session?
+
+---
+
+#### 11 · Out of Scope
+
+* Alternative geometries (e.g., dodecahedron, Möbius strip)
+* VR/AR presentation
+* Blockchain minting workflow changes
+
+---
+
+> **Next Step:** Stakeholders review and approve this PRD so engineering can start the sprint.
