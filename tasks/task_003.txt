@@ -1,0 +1,11 @@
+# Task ID: 3
+# Title: Implement Randomized Start Offset
+# Status: pending
+# Dependencies: 1
+# Priority: high
+# Description: Add functionality to randomize the starting position of the wheel on each visit to ensure users see different items.
+# Details:
+Implement the START_OFFSET logic that randomly selects a starting point in the items array (rand(0...items.length-1)). Store this offset in session storage to maintain consistency during a session. Initialize the wheel with this offset on component mount.
+
+# Test Strategy:
+Test that different sessions generate different start offsets. Verify that refreshing the page within the same session maintains the same offset.

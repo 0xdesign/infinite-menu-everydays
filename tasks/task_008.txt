@@ -1,0 +1,11 @@
+# Task ID: 8
+# Title: Implement Category Filter Chips
+# Status: pending
+# Dependencies: 1, 2, 3, 4
+# Priority: medium
+# Description: Integrate the existing category filter design with the new recycling logic.
+# Details:
+Adapt the existing category filter chips to work with the new recycling logic. Implement a horizontally scrollable bar for mobile. When a category is selected, filter the logical data array and update the wheel to show only items from that category while maintaining the recycling behavior.
+
+# Test Strategy:
+Test that category filtering works correctly with the recycling logic. Verify that horizontal scrolling works on mobile. Test edge cases like selecting a category with few items.

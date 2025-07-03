@@ -1,0 +1,11 @@
+# Task ID: 16
+# Title: Implement Session Storage Strategy
+# Status: pending
+# Dependencies: 3, 7
+# Priority: low
+# Description: Develop a strategy for persisting user state across sessions.
+# Details:
+Address open question #3 about caching START_OFFSET. Implement both per-session and 24h visitor caching options for START_OFFSET. Also store viewed items progress to maintain the progress ring accuracy. Use localStorage for 24h persistence and sessionStorage for session-only persistence.
+
+# Test Strategy:
+Test that state is correctly persisted and retrieved. Verify that the 24h expiration works correctly. Test behavior when storage is full or disabled.

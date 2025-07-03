@@ -1,0 +1,11 @@
+# Task ID: 5
+# Title: Implement Jump Controls
+# Status: pending
+# Dependencies: 1, 2, 3
+# Priority: medium
+# Description: Add semi-transparent 'Prev Batch / Next Batch' buttons that advance the logical cursor by INSTANCE_COUNT (42) items.
+# Details:
+Create a `useJumpControls` hook that manages the jump functionality. Implement semi-transparent buttons that appear on hover/tap. When clicked, advance the logical cursor by 42 items (INSTANCE_COUNT) and update all instances accordingly. Ensure smooth animation when jumping between batches.
+
+# Test Strategy:
+Test that buttons appear correctly on hover/tap. Verify that jumping advances by exactly 42 items. Test edge cases like jumping near the end of the item list.

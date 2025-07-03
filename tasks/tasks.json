@@ -1,0 +1,312 @@
+{
+  "tasks": [
+    {
+      "id": 1,
+      "title": "Setup Virtual Window Recycling Architecture",
+      "description": "Create the core architecture for virtual window recycling that maintains 42 GPU instances and recycles them as they pass behind the sphere.",
+      "status": "pending",
+      "dependencies": [],
+      "priority": "high",
+      "details": "Implement the data cursor logic as outlined in the technical approach. Create a `useInfiniteWindow` hook that manages the logical IDs array and the recycling mechanism. Implement the `reuseSlot` function that updates the logical ID when an instance passes behind the sphere. Ensure the WebGL instances are properly updated with new texture coordinates.",
+      "testStrategy": "Create unit tests for the recycling logic. Verify that instances are correctly recycled and bound to new items. Test with a mock dataset of 750+ items to ensure all items can be reached."
+    },
+    {
+      "id": 2,
+      "title": "Implement Behind-the-Sphere Detection",
+      "description": "Create a detection mechanism that identifies when a disc passes behind the sphere to trigger the recycling logic.",
+      "status": "pending",
+      "dependencies": [
+        1
+      ],
+      "priority": "high",
+      "details": "Implement the detector that compares instance world z < -radius × 0.2 to determine when a disc is behind the sphere. When detected, call the `reuseSlot` function to update the instance with the next unseen item. This should be integrated into the render loop to continuously check positions.",
+      "testStrategy": "Create visual tests that highlight when discs are detected as 'behind'. Verify the detection threshold works correctly at different camera angles and zoom levels."
+    },
+    {
+      "id": 3,
+      "title": "Implement Randomized Start Offset",
+      "description": "Add functionality to randomize the starting position of the wheel on each visit to ensure users see different items.",
+      "status": "pending",
+      "dependencies": [
+        1
+      ],
+      "priority": "high",
+      "details": "Implement the START_OFFSET logic that randomly selects a starting point in the items array (rand(0...items.length-1)). Store this offset in session storage to maintain consistency during a session. Initialize the wheel with this offset on component mount.",
+      "testStrategy": "Test that different sessions generate different start offsets. Verify that refreshing the page within the same session maintains the same offset."
+    },
+    {
+      "id": 4,
+      "title": "Create Texture Management System",
+      "description": "Enhance the texture pipeline to support efficient loading and binding of textures for the recycled instances.",
+      "status": "pending",
+      "dependencies": [
+        1,
+        2
+      ],
+      "priority": "high",
+      "details": "Reuse the existing atlas loader and extend it to work with the recycling logic. Implement the updateTexForInstance function that updates texture coordinates when an instance is recycled. Add highResTexture overlay logic for front-facing discs as mentioned in the technical approach. Ensure texture atlases are pre-baked at 4096² and loaded on demand.",
+      "testStrategy": "Test texture loading performance with various atlas sizes. Verify that texture coordinates are correctly updated when instances are recycled. Test the fallback to dynamic atlas when GPU MAX_TEXTURE_SIZE < 4096."
+    },
+    {
+      "id": 5,
+      "title": "Implement Jump Controls",
+      "description": "Add semi-transparent 'Prev Batch / Next Batch' buttons that advance the logical cursor by INSTANCE_COUNT (42) items.",
+      "status": "pending",
+      "dependencies": [
+        1,
+        2,
+        3
+      ],
+      "priority": "medium",
+      "details": "Create a `useJumpControls` hook that manages the jump functionality. Implement semi-transparent buttons that appear on hover/tap. When clicked, advance the logical cursor by 42 items (INSTANCE_COUNT) and update all instances accordingly. Ensure smooth animation when jumping between batches.",
+      "testStrategy": "Test that buttons appear correctly on hover/tap. Verify that jumping advances by exactly 42 items. Test edge cases like jumping near the end of the item list."
+    },
+    {
+      "id": 6,
+      "title": "Implement Type-ahead Search Drawer",
+      "description": "Create a command palette style search drawer (⌘K) that allows users to quickly find and navigate to specific items.",
+      "status": "pending",
+      "dependencies": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "priority": "medium",
+      "details": "Implement a type-ahead search drawer that can be activated with ⌘K. The drawer should filter the logical data array based on user input and show matching items. When an item is selected, animate the wheel until the chosen item is front-facing. Include keyboard navigation within search results.",
+      "testStrategy": "Test search functionality with various query patterns. Verify that selecting an item correctly positions it front-facing. Test keyboard accessibility and ensure the drawer works on all target devices."
+    },
+    {
+      "id": 7,
+      "title": "Create Progress Ring Indicator",
+      "description": "Add a small HUD element showing progress through the item collection (n / items.length viewed).",
+      "status": "pending",
+      "dependencies": [
+        1,
+        2
+      ],
+      "priority": "medium",
+      "details": "Implement a small, unobtrusive progress ring that shows how many unique items have been viewed out of the total. The counter should increment when an item ID is first bound to any disc. Store viewed items in session storage to maintain accuracy across page refreshes.",
+      "testStrategy": "Verify that the progress ring accurately reflects the number of unique items viewed. Test that the counter increments correctly when new items are shown. Ensure the UI is responsive and works on all target screen sizes."
+    },
+    {
+      "id": 8,
+      "title": "Implement Category Filter Chips",
+      "description": "Integrate the existing category filter design with the new recycling logic.",
+      "status": "pending",
+      "dependencies": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "priority": "medium",
+      "details": "Adapt the existing category filter chips to work with the new recycling logic. Implement a horizontally scrollable bar for mobile. When a category is selected, filter the logical data array and update the wheel to show only items from that category while maintaining the recycling behavior.",
+      "testStrategy": "Test that category filtering works correctly with the recycling logic. Verify that horizontal scrolling works on mobile. Test edge cases like selecting a category with few items."
+    },
+    {
+      "id": 9,
+      "title": "Optimize Performance for Mobile Devices",
+      "description": "Ensure the application maintains 60 FPS on mid-tier mobile devices with efficient resource usage.",
+      "status": "pending",
+      "dependencies": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "priority": "high",
+      "details": "Profile and optimize the rendering pipeline to maintain 60 FPS on mid-tier mobile devices. Keep disc instance count ≤ 100 as specified. Implement texture loading optimizations to stay within the 30 MB GPU RAM budget. Use requestAnimationFrame efficiently and minimize garbage collection during animation.",
+      "testStrategy": "Conduct performance testing on target devices (including iPhone 12). Measure frame rate, memory usage, and texture loading times. Verify that frame drops are ≤ 5% on iPhone 12."
+    },
+    {
+      "id": 10,
+      "title": "Implement Texture Atlas Loading Strategy",
+      "description": "Develop a strategy for loading texture atlases efficiently to balance performance and memory usage.",
+      "status": "pending",
+      "dependencies": [
+        4
+      ],
+      "priority": "medium",
+      "details": "Implement a strategy for loading texture atlases. Consider both preloading all atlases and streaming after N spins (addressing open question #1). Implement texture atlases pre-baked at 4096² as specified, with fallback to dynamic atlas if GPU MAX_TEXTURE_SIZE < 4096. Optimize texture memory usage to stay within the 30 MB GPU RAM budget.",
+      "testStrategy": "Test atlas loading performance on various devices. Measure memory usage and loading times. Test the fallback mechanism on devices with limited texture size support."
+    },
+    {
+      "id": 11,
+      "title": "Enhance Accessibility Features",
+      "description": "Improve accessibility by adding proper ARIA roles, focus styles, and screen reader support.",
+      "status": "pending",
+      "dependencies": [
+        5,
+        6,
+        7,
+        8
+      ],
+      "priority": "medium",
+      "details": "Add visible focus styles on jump buttons. Set ARIA role=\"button\" for canvas elements. Implement screen reader announcements for active item titles. Ensure keyboard navigation works for all interactive elements. Make sure the search drawer is fully accessible with keyboard navigation.",
+      "testStrategy": "Test with screen readers on multiple browsers. Verify keyboard navigation works for all interactive elements. Conduct an accessibility audit using automated tools and manual testing."
+    },
+    {
+      "id": 12,
+      "title": "Implement Responsive Layout Adaptations",
+      "description": "Ensure the application is responsive across all device sizes from 320px to 4K.",
+      "status": "pending",
+      "dependencies": [
+        5,
+        6,
+        7,
+        8
+      ],
+      "priority": "medium",
+      "details": "Implement a fluid layout that works from 320px to 4K displays. Add support for pinch-to-zoom to show extra concentric shells on mobile devices. Ensure all UI elements (jump controls, search drawer, progress ring, filter chips) adapt appropriately to different screen sizes.",
+      "testStrategy": "Test on various screen sizes and devices. Verify that pinch-to-zoom works correctly on mobile. Ensure all UI elements are usable and properly positioned across the full range of supported screen sizes."
+    },
+    {
+      "id": 13,
+      "title": "Add Analytics Integration",
+      "description": "Implement analytics events to track user interactions with the infinite menu.",
+      "status": "pending",
+      "dependencies": [
+        5,
+        6,
+        8
+      ],
+      "priority": "low",
+      "details": "Implement analytics events as specified: item_viewed, batch_jump, search_used. Include relevant metadata such as item IDs with each event. Ensure analytics are non-blocking and don't impact performance. Use the existing analytics infrastructure without adding new dependencies.",
+      "testStrategy": "Verify that events are correctly emitted with the right payload. Test that analytics don't impact performance. Use a mock analytics service for testing."
+    },
+    {
+      "id": 14,
+      "title": "Implement Feature Flag System",
+      "description": "Create a feature flag system to gradually roll out new functionality.",
+      "status": "pending",
+      "dependencies": [
+        1
+      ],
+      "priority": "medium",
+      "details": "Implement a simple feature flag system that allows the recycling engine and other features to be enabled/disabled via configuration. This supports the milestone plan of having the recycling engine behind a flag in week 1. Ensure the system doesn't add new peer dependencies.",
+      "testStrategy": "Test that features can be enabled/disabled via flags. Verify that the application works correctly in all flag combinations. Ensure the flag system doesn't impact performance."
+    },
+    {
+      "id": 15,
+      "title": "Create Jump Controls Visibility Logic",
+      "description": "Implement logic to control when jump controls are visible based on device and user interaction.",
+      "status": "pending",
+      "dependencies": [
+        5
+      ],
+      "priority": "low",
+      "details": "Address open question #2 about jump controls visibility. Implement configurable visibility logic that can be set to 'always visible' or 'visible on hover' for desktop. For mobile, show on first tap and hide after a timeout. Make this configurable via a simple settings option.",
+      "testStrategy": "Test visibility behavior on desktop and mobile. Verify that controls appear and disappear as expected based on user interaction. Test with different configuration options."
+    },
+    {
+      "id": 16,
+      "title": "Implement Session Storage Strategy",
+      "description": "Develop a strategy for persisting user state across sessions.",
+      "status": "pending",
+      "dependencies": [
+        3,
+        7
+      ],
+      "priority": "low",
+      "details": "Address open question #3 about caching START_OFFSET. Implement both per-session and 24h visitor caching options for START_OFFSET. Also store viewed items progress to maintain the progress ring accuracy. Use localStorage for 24h persistence and sessionStorage for session-only persistence.",
+      "testStrategy": "Test that state is correctly persisted and retrieved. Verify that the 24h expiration works correctly. Test behavior when storage is full or disabled."
+    },
+    {
+      "id": 17,
+      "title": "Create Comprehensive Test Suite",
+      "description": "Develop a comprehensive test suite covering all aspects of the infinite menu.",
+      "status": "pending",
+      "dependencies": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "priority": "medium",
+      "details": "Create unit tests for core logic components. Implement integration tests for the complete infinite menu. Create visual regression tests to ensure UI consistency. Develop performance tests to verify FPS and memory usage targets. Include accessibility tests to ensure compliance with requirements.",
+      "testStrategy": "Run tests on CI/CD pipeline. Ensure test coverage of at least 80% for core components. Include both automated and manual test scenarios in the test plan."
+    },
+    {
+      "id": 18,
+      "title": "Implement Cross-Browser Compatibility",
+      "description": "Ensure the application works correctly across all target browsers.",
+      "status": "pending",
+      "dependencies": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "priority": "medium",
+      "details": "Test and fix any compatibility issues across Chrome, Safari iOS 17, and Firefox as specified in the QA matrix. Implement necessary polyfills or fallbacks for WebGL features that might not be consistently supported. Ensure texture loading and recycling logic works consistently across browsers.",
+      "testStrategy": "Test on all target browsers. Create a browser compatibility test matrix. Verify that all features work correctly on each browser. Test on real devices where possible."
+    },
+    {
+      "id": 19,
+      "title": "Create Stress Test Scenarios",
+      "description": "Develop stress test scenarios to verify performance with large item collections.",
+      "status": "pending",
+      "dependencies": [
+        1,
+        2,
+        3,
+        4,
+        9
+      ],
+      "priority": "low",
+      "details": "Implement the 30 fps stress test with 1,550 items on M2 MacBook as specified in the QA matrix. Create additional stress tests for mobile devices. Measure and optimize performance under heavy load. Identify and fix any memory leaks or performance bottlenecks.",
+      "testStrategy": "Run stress tests on target devices. Measure FPS, memory usage, and texture loading times under load. Compare results against performance targets. Document any performance degradation patterns."
+    },
+    {
+      "id": 20,
+      "title": "Prepare Documentation and Rollout Plan",
+      "description": "Create comprehensive documentation and a rollout plan for the new infinite menu.",
+      "status": "pending",
+      "dependencies": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "priority": "low",
+      "details": "Document the implementation details, architecture, and usage guidelines. Create a rollout plan that aligns with the milestones in the PRD. Include monitoring plans for the success metrics. Prepare user-facing documentation for any new features. Document any configuration options and their default values.",
+      "testStrategy": "Review documentation for completeness and accuracy. Verify that the rollout plan addresses all stakeholder concerns. Ensure monitoring is in place for all success metrics."
+    }
+  ],
+  "metadata": {
+    "projectName": "InfiniteMenu v2 Implementation",
+    "totalTasks": 20,
+    "sourceFile": "InfiniteMenu_v2_PRD.txt",
+    "generatedAt": "2023-11-15"
+  }
+}

@@ -1,0 +1,11 @@
+# Task ID: 7
+# Title: Create Progress Ring Indicator
+# Status: pending
+# Dependencies: 1, 2
+# Priority: medium
+# Description: Add a small HUD element showing progress through the item collection (n / items.length viewed).
+# Details:
+Implement a small, unobtrusive progress ring that shows how many unique items have been viewed out of the total. The counter should increment when an item ID is first bound to any disc. Store viewed items in session storage to maintain accuracy across page refreshes.
+
+# Test Strategy:
+Verify that the progress ring accurately reflects the number of unique items viewed. Test that the counter increments correctly when new items are shown. Ensure the UI is responsive and works on all target screen sizes.

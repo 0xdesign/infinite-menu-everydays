@@ -1,0 +1,11 @@
+# Task ID: 2
+# Title: Implement Behind-the-Sphere Detection
+# Status: pending
+# Dependencies: 1
+# Priority: high
+# Description: Create a detection mechanism that identifies when a disc passes behind the sphere to trigger the recycling logic.
+# Details:
+Implement the detector that compares instance world z < -radius × 0.2 to determine when a disc is behind the sphere. When detected, call the `reuseSlot` function to update the instance with the next unseen item. This should be integrated into the render loop to continuously check positions.
+
+# Test Strategy:
+Create visual tests that highlight when discs are detected as 'behind'. Verify the detection threshold works correctly at different camera angles and zoom levels.

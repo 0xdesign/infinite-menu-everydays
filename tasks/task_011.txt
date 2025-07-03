@@ -1,0 +1,11 @@
+# Task ID: 11
+# Title: Enhance Accessibility Features
+# Status: pending
+# Dependencies: 5, 6, 7, 8
+# Priority: medium
+# Description: Improve accessibility by adding proper ARIA roles, focus styles, and screen reader support.
+# Details:
+Add visible focus styles on jump buttons. Set ARIA role="button" for canvas elements. Implement screen reader announcements for active item titles. Ensure keyboard navigation works for all interactive elements. Make sure the search drawer is fully accessible with keyboard navigation.
+
+# Test Strategy:
+Test with screen readers on multiple browsers. Verify keyboard navigation works for all interactive elements. Conduct an accessibility audit using automated tools and manual testing.

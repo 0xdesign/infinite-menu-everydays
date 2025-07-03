@@ -1,0 +1,11 @@
+# Task ID: 4
+# Title: Create Texture Management System
+# Status: pending
+# Dependencies: 1, 2
+# Priority: high
+# Description: Enhance the texture pipeline to support efficient loading and binding of textures for the recycled instances.
+# Details:
+Reuse the existing atlas loader and extend it to work with the recycling logic. Implement the updateTexForInstance function that updates texture coordinates when an instance is recycled. Add highResTexture overlay logic for front-facing discs as mentioned in the technical approach. Ensure texture atlases are pre-baked at 4096² and loaded on demand.
+
+# Test Strategy:
+Test texture loading performance with various atlas sizes. Verify that texture coordinates are correctly updated when instances are recycled. Test the fallback to dynamic atlas when GPU MAX_TEXTURE_SIZE < 4096.

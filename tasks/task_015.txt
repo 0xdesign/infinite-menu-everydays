@@ -1,0 +1,11 @@
+# Task ID: 15
+# Title: Create Jump Controls Visibility Logic
+# Status: pending
+# Dependencies: 5
+# Priority: low
+# Description: Implement logic to control when jump controls are visible based on device and user interaction.
+# Details:
+Address open question #2 about jump controls visibility. Implement configurable visibility logic that can be set to 'always visible' or 'visible on hover' for desktop. For mobile, show on first tap and hide after a timeout. Make this configurable via a simple settings option.
+
+# Test Strategy:
+Test visibility behavior on desktop and mobile. Verify that controls appear and disappear as expected based on user interaction. Test with different configuration options.
