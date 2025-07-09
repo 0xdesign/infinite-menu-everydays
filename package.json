@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.50.2",
+    "@supabase/supabase-js": "^2.50.4",
     "@types/gl-matrix": "^2.4.5",
     "file-type": "^18.7.0",
     "framer-motion": "^12.19.1",
