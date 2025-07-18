@@ -1,5 +1,7 @@
 import { useRef, useState, useEffect } from "react";
 import { mat4, quat, vec2, vec3 } from "gl-matrix";
+import { JumpControls } from "./JumpControls";
+import { ProgressRing } from "./ProgressRing";
 
 const discVertShaderSource = `#version 300 es
 
@@ -55,6 +57,7 @@ uniform sampler2D uHighTex;
 uniform int uItemCount;
 uniform int uAtlasSize;
 uniform float uHighId;
+uniform int uLogicalIds[100]; // Array to store logical IDs for each instance
 
 out vec4 outColor;
 
@@ -63,7 +66,8 @@ in float vAlpha;
 flat in int vInstanceId;
 
 void main() {
-  int itemIndex = vInstanceId % uItemCount;
+  // Use logical ID mapping instead of direct instance ID
+  int itemIndex = vInstanceId < 100 ? uLogicalIds[vInstanceId] : vInstanceId % uItemCount;
   int cellsPerRow = uAtlasSize;
   int cellX = itemIndex % cellsPerRow;
   int cellY = itemIndex / cellsPerRow;
@@ -589,6 +593,10 @@ class ArcballControl {
 
   public snapDirection = vec3.fromValues(0, 0, -1);
   public snapTargetDirection: vec3 | null = null;
+  
+  // Add idle timer to prevent immediate snapping
+  private idleTimer = 0;
+  private readonly IDLE_DELAY = 500; // ms before snapping starts
 
   private pointerPos = vec2.create();
   private previousPointerPos = vec2.create();
@@ -606,12 +614,15 @@ class ArcballControl {
       vec2.set(this.pointerPos, e.clientX, e.clientY);
       vec2.copy(this.previousPointerPos, this.pointerPos);
       this.isPointerDown = true;
+      this.idleTimer = 0; // Reset idle timer on interaction
     });
     canvas.addEventListener("pointerup", () => {
       this.isPointerDown = false;
+      this.idleTimer = 0; // Start idle timer
     });
     canvas.addEventListener("pointerleave", () => {
       this.isPointerDown = false;
+      this.idleTimer = 0; // Start idle timer
     });
     canvas.addEventListener("pointermove", (e: PointerEvent) => {
       if (this.isPointerDown) {
@@ -665,8 +676,12 @@ class ArcballControl {
         this.IDENTITY_QUAT,
         INTENSITY
       );
+      
+      // Update idle timer
+      this.idleTimer += deltaTime;
 
-      if (this.snapTargetDirection) {
+      // Only apply snapping if we've been idle for long enough
+      if (this.snapTargetDirection && this.idleTimer > this.IDLE_DELAY) {
         const SNAPPING_INTENSITY = 0.2;
         const a = this.snapTargetDirection;
         const b = this.snapDirection;
@@ -809,6 +824,7 @@ class InfiniteGridMenu {
   private hiResTexture: WebGLTexture | null = null;
   private hiResIndex: number = -1;
   private hiResLoading: boolean = false;
+  private previousActiveIndex: number = -1;
 
   private discLocations!: {
     aModelPosition: number;
@@ -826,6 +842,7 @@ class InfiniteGridMenu {
     uAtlasSize: WebGLUniformLocation | null;
     uHighTex: WebGLUniformLocation | null;
     uHighId: WebGLUniformLocation | null;
+    uLogicalIds: WebGLUniformLocation | null;
   };
 
   private viewportSize = vec2.create();
@@ -850,6 +867,13 @@ class InfiniteGridMenu {
 
   private TARGET_FRAME_DURATION = 1000 / 60;
   private SPHERE_RADIUS = 2;
+  
+  // Virtual window recycling state
+  private recyclingState: {
+    logicalIds: number[];
+    nextGlobalId: number;
+    viewedItems: Set<number>;
+  } | null = null;
 
   public camera: Camera = {
     matrix: mat4.create(),
@@ -1005,6 +1029,7 @@ class InfiniteGridMenu {
       uAtlasSize: gl.getUniformLocation(this.discProgram!, "uAtlasSize"),
       uHighTex: gl.getUniformLocation(this.discProgram!, "uHighTex"),
       uHighId: gl.getUniformLocation(this.discProgram!, "uHighId"),
+      uLogicalIds: gl.getUniformLocation(this.discProgram!, "uLogicalIds"),
     };
 
     this.discGeo = new RoundedSquareGeometry(1, 0.15, 8);
@@ -1032,6 +1057,7 @@ class InfiniteGridMenu {
     this.DISC_INSTANCE_COUNT = this.icoGeo.vertices.length;
     this.initDiscInstances(this.DISC_INSTANCE_COUNT);
     this.initTexture();
+    this.initRecycling();
     this.control = new ArcballControl(this.canvas, (deltaTime) =>
       this.onControlUpdate(deltaTime)
     );
@@ -1170,6 +1196,72 @@ class InfiniteGridMenu {
     );
     gl.generateMipmap(gl.TEXTURE_2D);
     console.log('Fallback texture atlas created');
+  }
+  
+  private initRecycling(): void {
+    // Get or generate start offset
+    let startOffset = 0;
+    const stored = sessionStorage.getItem('infiniteMenu_startOffset');
+    if (stored) {
+      const parsed = parseInt(stored, 10);
+      if (!isNaN(parsed) && parsed >= 0 && parsed < this.items.length) {
+        startOffset = parsed;
+      }
+    } else {
+      startOffset = Math.floor(Math.random() * this.items.length);
+      sessionStorage.setItem('infiniteMenu_startOffset', startOffset.toString());
+    }
+    
+    // Initialize logical IDs
+    const logicalIds = new Array(this.DISC_INSTANCE_COUNT);
+    for (let i = 0; i < this.DISC_INSTANCE_COUNT; i++) {
+      logicalIds[i] = (startOffset + i) % this.items.length;
+    }
+    
+    // Initialize viewed items
+    const viewedItems = new Set<number>();
+    logicalIds.forEach(id => viewedItems.add(id));
+    
+    // Load previously viewed items from session storage
+    const viewedStored = sessionStorage.getItem('infiniteMenu_viewedItems');
+    if (viewedStored) {
+      try {
+        const viewedArray = JSON.parse(viewedStored);
+        viewedArray.forEach((id: number) => viewedItems.add(id));
+      } catch (e) {
+        console.error('Failed to load viewed items:', e);
+      }
+    }
+    
+    this.recyclingState = {
+      logicalIds,
+      nextGlobalId: startOffset + this.DISC_INSTANCE_COUNT,
+      viewedItems
+    };
+  }
+  
+  private reuseSlot(instanceIndex: number): void {
+    if (!this.recyclingState) return;
+    
+    const newLogicalId = this.recyclingState.nextGlobalId % this.items.length;
+    this.recyclingState.logicalIds[instanceIndex] = newLogicalId;
+    this.recyclingState.nextGlobalId++;
+    this.recyclingState.viewedItems.add(newLogicalId);
+    
+    // Save viewed items
+    const viewedArray = Array.from(this.recyclingState.viewedItems);
+    sessionStorage.setItem('infiniteMenu_viewedItems', JSON.stringify(viewedArray));
+  }
+  
+  private checkAndRecycleInstances(positions: vec3[]): void {
+    if (!this.recyclingState) return;
+    
+    positions.forEach((pos, index) => {
+      // Check if instance is behind the sphere
+      if (pos[2] < -this.SPHERE_RADIUS * 0.2) {
+        this.reuseSlot(index);
+      }
+    });
   }
   
   private async loadHighResTexture(index: number): Promise<void> {
@@ -1314,6 +1406,9 @@ class InfiniteGridMenu {
 
       mat4.copy(this.discInstances.matrices[ndx], matrix);
     });
+    
+    // Check for instances that need recycling
+    this.checkAndRecycleInstances(positions);
 
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.discInstances.buffer);
     this.gl.bufferSubData(
@@ -1371,6 +1466,11 @@ class InfiniteGridMenu {
 
     gl.uniform1f(this.discLocations.uFrames, this._frames);
     gl.uniform1f(this.discLocations.uScaleFactor, this.scaleFactor);
+    
+    // Pass logical IDs to shader
+    if (this.recyclingState && this.discLocations.uLogicalIds) {
+      gl.uniform1iv(this.discLocations.uLogicalIds, this.recyclingState.logicalIds);
+    }
 
     gl.uniform1i(this.discLocations.uTex, 0);
     gl.activeTexture(gl.TEXTURE0);
@@ -1449,20 +1549,34 @@ class InfiniteGridMenu {
 
     if (!this.control.isPointerDown) {
       const nearestVertexIndex = this.findNearestVertexIndex();
-      const itemIndex = nearestVertexIndex % Math.max(1, this.items.length);
-      this.onActiveItemChange(itemIndex);
+      // Use logical ID if recycling is enabled
+      const itemIndex = this.recyclingState 
+        ? this.recyclingState.logicalIds[nearestVertexIndex] || 0
+        : nearestVertexIndex % Math.max(1, this.items.length);
       
-      // Load high-res texture for the active item
-      this.loadHighResTexture(itemIndex);
+      // Only update active item and load texture if it changed
+      if (itemIndex !== this.previousActiveIndex) {
+        this.onActiveItemChange(itemIndex);
+        this.previousActiveIndex = itemIndex;
+        
+        // Only load high-res texture when item actually changes
+        this.loadHighResTexture(itemIndex);
+      }
       
-      const snapDirection = vec3.normalize(
-        vec3.create(),
-        this.getVertexWorldPosition(nearestVertexIndex)
-      );
-      this.control.snapTargetDirection = snapDirection;
+      // Only set snap target if we've been idle for a bit and rotation has slowed down
+      if (this.control.idleTimer > 200 && Math.abs(this.smoothRotationVelocity) < 0.05) {
+        const snapDirection = vec3.normalize(
+          vec3.create(),
+          this.getVertexWorldPosition(nearestVertexIndex)
+        );
+        this.control.snapTargetDirection = snapDirection;
+      } else {
+        this.control.snapTargetDirection = null; // Clear snap target during motion
+      }
     } else {
       cameraTargetZ += this.control.rotationVelocity * 80 + 2.5;
       damping = 7 / timeScale;
+      this.control.snapTargetDirection = null; // Clear snap target during interaction
     }
 
     this.camera.position[2] +=
@@ -1547,6 +1661,38 @@ class InfiniteGridMenu {
     // Reinitialize with new items
     this.initTexture();
   }
+  
+  public jump(direction: 'forward' | 'backward'): void {
+    if (!this.recyclingState) return;
+    
+    const jumpAmount = direction === 'forward' ? this.DISC_INSTANCE_COUNT : -this.DISC_INSTANCE_COUNT;
+    const newStartId = (this.recyclingState.logicalIds[0] + jumpAmount + this.items.length) % this.items.length;
+    
+    // Update all logical IDs
+    for (let i = 0; i < this.DISC_INSTANCE_COUNT; i++) {
+      const id = (newStartId + i) % this.items.length;
+      this.recyclingState.logicalIds[i] = id;
+      this.recyclingState.viewedItems.add(id);
+    }
+    
+    this.recyclingState.nextGlobalId = newStartId + this.DISC_INSTANCE_COUNT;
+    
+    // Save viewed items
+    const viewedArray = Array.from(this.recyclingState.viewedItems);
+    sessionStorage.setItem('infiniteMenu_viewedItems', JSON.stringify(viewedArray));
+  }
+  
+  public getProgress(): { viewed: number; total: number; percentage: number } {
+    if (!this.recyclingState) {
+      return { viewed: 0, total: this.items.length, percentage: 0 };
+    }
+    
+    return {
+      viewed: this.recyclingState.viewedItems.size,
+      total: this.items.length,
+      percentage: (this.recyclingState.viewedItems.size / this.items.length) * 100
+    };
+  }
 }
 
 const defaultItems: MenuItem[] = [
@@ -1567,6 +1713,7 @@ const InfiniteMenu = ({ items = [] }: InfiniteMenuProps) => {
   const menuInstanceRef = useRef<InfiniteGridMenu | null>(null);
   const [activeItem, setActiveItem] = useState(items.length > 0 ? items[0] : null);
   const [isMoving, setIsMoving] = useState<boolean>(false);
+  const [progress, setProgress] = useState({ viewed: 0, total: items.length });
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -1581,6 +1728,12 @@ const InfiniteMenu = ({ items = [] }: InfiniteMenuProps) => {
     const handleActiveItem = (index: number) => {
       const itemIndex = index % items.length;
       setActiveItem(items[itemIndex]);
+      
+      // Update progress periodically
+      if (menuInstanceRef.current) {
+        const progressData = menuInstanceRef.current.getProgress();
+        setProgress({ viewed: progressData.viewed, total: progressData.total });
+      }
     };
     
     // Dispose previous instance if it exists
@@ -1622,6 +1775,12 @@ const InfiniteMenu = ({ items = [] }: InfiniteMenuProps) => {
       console.log("Internal route:", activeItem.link);
     }
   };
+  
+  const handleJump = (direction: 'forward' | 'backward') => {
+    if (menuInstanceRef.current) {
+      menuInstanceRef.current.jump(direction);
+    }
+  };
 
   return (
     <div className="relative w-full h-full">
@@ -1629,6 +1788,16 @@ const InfiniteMenu = ({ items = [] }: InfiniteMenuProps) => {
         id="infinite-grid-menu-canvas"
         ref={canvasRef}
         className="cursor-grab w-full h-full overflow-hidden relative outline-none active:cursor-grabbing"
+      />
+      
+      <JumpControls 
+        onJump={handleJump}
+        isMoving={isMoving}
+      />
+      
+      <ProgressRing 
+        viewed={progress.viewed}
+        total={progress.total}
       />
 
       {activeItem && (

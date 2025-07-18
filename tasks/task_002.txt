@@ -1,6 +1,6 @@
 # Task ID: 2
 # Title: Implement Behind-the-Sphere Detection
-# Status: pending
+# Status: completed
 # Dependencies: 1
 # Priority: high
 # Description: Create a detection mechanism that identifies when a disc passes behind the sphere to trigger the recycling logic.

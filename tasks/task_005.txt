@@ -1,6 +1,6 @@
 # Task ID: 5
 # Title: Implement Jump Controls
-# Status: pending
+# Status: completed
 # Dependencies: 1, 2, 3
 # Priority: medium
 # Description: Add semi-transparent 'Prev Batch / Next Batch' buttons that advance the logical cursor by INSTANCE_COUNT (42) items.
