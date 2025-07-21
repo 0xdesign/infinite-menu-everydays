@@ -852,6 +852,10 @@ class InfiniteGridMenu {
 
   private TARGET_FRAME_DURATION = 1000 / 60;
   private SPHERE_RADIUS = 2;
+  
+  // Constants for maintaining consistent item visual size
+  private readonly ORIGINAL_RADIUS = 2.0; // Original sphere radius for 42 items
+  private readonly IDEAL_SNAP_DISTANCE = 3.0; // Original camera distance for 42 items
 
   public camera: Camera = {
     matrix: mat4.create(),
@@ -1447,7 +1451,7 @@ class InfiniteGridMenu {
   private onControlUpdate(deltaTime: number): void {
     const timeScale = deltaTime / this.TARGET_FRAME_DURATION + 0.0001;
     let damping = 5 / timeScale;
-    let cameraTargetZ = this.SPHERE_RADIUS + 1.0; // Base position scales with sphere
+    let cameraTargetZ: number;
 
     const isMoving =
       this.control.isPointerDown ||
@@ -1472,9 +1476,14 @@ class InfiniteGridMenu {
         this.getVertexWorldPosition(nearestVertexIndex)
       );
       this.control.snapTargetDirection = snapDirection;
+      
+      // When snapped: maintain constant visual size of items
+      const originalCameraToItem = this.IDEAL_SNAP_DISTANCE - this.ORIGINAL_RADIUS;
+      cameraTargetZ = this.SPHERE_RADIUS + originalCameraToItem;
     } else {
-      // Scale zoom with sphere radius
+      // When dragging: scale zoom with sphere radius
       const radiusMultiplier = this.SPHERE_RADIUS / 2.0; // Relative to original radius
+      cameraTargetZ = this.SPHERE_RADIUS + 1.0; // Start from proportional position
       cameraTargetZ += (this.control.rotationVelocity * 80 + 2.5) * radiusMultiplier;
       damping = 7 / timeScale;
     }
