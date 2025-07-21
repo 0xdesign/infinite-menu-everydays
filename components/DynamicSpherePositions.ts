@@ -17,7 +17,8 @@ export class DynamicSpherePositions {
     const itemDiameter = this.ITEM_SCALE * 2;
     
     // Approximate surface area needed per item (with padding)
-    const areaPerItem = itemDiameter * itemDiameter * 2.5; // 2.5x for comfortable spacing
+    // Reduced padding factor to keep sphere more compact
+    const areaPerItem = itemDiameter * itemDiameter * 1.8; // 1.8x for tighter but clear spacing
     
     // Total surface area needed
     const totalAreaNeeded = areaPerItem * itemCount;

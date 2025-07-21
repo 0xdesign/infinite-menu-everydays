@@ -95,3 +95,43 @@ The project follows an incremental development approach:
 - The `gl-matrix` library needs to be installed for the InfiniteMenu component
 - Always use environment variables for sensitive data (Supabase keys)
 - Focus on addressing root causes, not symptoms when debugging
+
+## Dynamic Sphere Implementation Learnings
+
+### Key Learning: Camera Positioning for Item Isolation
+
+When implementing the dynamic sphere with varying item counts, the critical challenge is achieving proper item isolation when focused. The original implementation with 42 fixed items achieves this naturally, but scaling to 750+ items requires a different approach.
+
+**Failed Approach**: Using percentage-based camera distance (e.g., 1.5x sphere radius) doesn't work because:
+- With more items, each item occupies a smaller angular portion of the sphere
+- A fixed percentage means the camera sees more items as the sphere grows
+- Shader-based visibility tricks (alpha cutoffs, vignetting) can't fix a geometric problem
+
+**Correct Insight**: The camera distance must be calculated based on the **angular size of an item**, not the sphere radius. The goal is to position the camera so its field of view encompasses exactly one item.
+
+### Proposed Solution: Angular-Based Camera Positioning
+
+1. **Calculate Angular Spacing**:
+   ```typescript
+   const angularSpacing = 2 * Math.PI / Math.sqrt(itemCount);
+   ```
+
+2. **Determine Required Camera Distance**:
+   - Given: Item scale (0.25), desired FOV should match angular spacing
+   - Calculate: Distance where one item fills the viewport
+   ```typescript
+   const itemAngularSize = 2 * Math.atan(itemScale / sphereRadius);
+   const requiredFOV = itemAngularSize * 1.2; // 20% padding
+   const cameraDistance = (itemScale / Math.tan(requiredFOV / 2)) + sphereRadius;
+   ```
+
+3. **Maintain Visual Consistency**:
+   - Calculate what fraction of the viewport the item should occupy (based on original 42-item setup)
+   - Apply this same fraction regardless of sphere size
+
+4. **Simple Implementation**:
+   - No shader modifications needed
+   - No complex visibility states
+   - Just proper geometric positioning
+
+This approach maintains the elegance of the original design while scaling correctly to any number of items.
