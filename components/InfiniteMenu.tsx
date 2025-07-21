@@ -1436,7 +1436,8 @@ class InfiniteGridMenu {
     if (!this.gl) return;
     const canvasEl = this.gl.canvas as HTMLCanvasElement;
     this.camera.aspect = canvasEl.clientWidth / canvasEl.clientHeight;
-    const height = this.SPHERE_RADIUS * 0.35;
+    // Use fixed height from original sphere to maintain consistent FOV
+    const height = 2.0 * 0.35; // Always use original sphere's height
     const distance = this.camera.position[2];
     if (this.camera.aspect > 1) {
       this.camera.fov = 2 * Math.atan(height / distance);
