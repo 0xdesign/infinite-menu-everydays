@@ -9,25 +9,10 @@ export class DynamicSpherePositions {
    * Calculate optimal sphere radius based on item count to prevent overlap
    */
   calculateOptimalRadius(itemCount: number): number {
-    // For small counts, use original radius
-    if (itemCount <= 42) return this.BASE_RADIUS;
-    
-    // Calculate minimum angular distance needed between items
-    // Item diameter in world space
-    const itemDiameter = this.ITEM_SCALE * 2;
-    
-    // Approximate surface area needed per item (with padding)
-    // Reduced padding factor to keep sphere more compact
-    const areaPerItem = itemDiameter * itemDiameter * 1.8; // 1.8x for tighter but clear spacing
-    
-    // Total surface area needed
-    const totalAreaNeeded = areaPerItem * itemCount;
-    
-    // Sphere surface area = 4πr²
-    // Solve for r: r = sqrt(totalAreaNeeded / 4π)
-    const radius = Math.sqrt(totalAreaNeeded / (4 * Math.PI));
-    
-    return Math.max(this.BASE_RADIUS, radius);
+    // Proportional scaling: if 42 items need radius 2.0, then N items need proportionally more
+    // This maintains the same angular spacing as the original design
+    const scaleFactor = Math.sqrt(itemCount / 42);
+    return this.BASE_RADIUS * scaleFactor;
   }
   
   /**

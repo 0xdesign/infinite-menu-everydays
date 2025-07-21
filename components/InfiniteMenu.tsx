@@ -854,8 +854,15 @@ class InfiniteGridMenu {
   private SPHERE_RADIUS = 2;
   
   // Constants for maintaining consistent item visual size
-  private readonly ORIGINAL_RADIUS = 2.0; // Original sphere radius for 42 items
-  private readonly IDEAL_SNAP_DISTANCE = 3.0; // Original camera distance for 42 items
+  private readonly ITEM_SCALE = 0.25; // Fixed scale for all items
+  private readonly ITEM_DIAMETER = 0.5; // 2 * ITEM_SCALE
+  
+  // Original setup reference (42 items, radius 2.0, camera at 3.0)
+  // Calculate the visual angle: how big the item appears in the original setup
+  // tan(angle/2) = (item_radius) / (camera_distance_from_item)
+  // tan(angle/2) = 0.25 / 1.0 = 0.25
+  // angle = 2 * atan(0.25) ≈ 28.07 degrees
+  private readonly ORIGINAL_VISUAL_ANGLE = 2 * Math.atan(0.25); // ~0.49 radians
 
   public camera: Camera = {
     matrix: mat4.create(),
@@ -1048,7 +1055,8 @@ class InfiniteGridMenu {
       this.onControlUpdate(deltaTime)
     );
 
-    // Set initial camera position based on sphere radius
+    // Set initial camera position at constant distance from sphere surface
+    // Original: sphere radius 2.0, camera at 3.0 (1.0 unit from surface)
     vec3.set(this.camera.position, 0, 0, this.SPHERE_RADIUS + 1.0);
     
     this.updateCameraMatrix();
@@ -1477,14 +1485,14 @@ class InfiniteGridMenu {
       );
       this.control.snapTargetDirection = snapDirection;
       
-      // When snapped: maintain constant visual size of items
-      const originalCameraToItem = this.IDEAL_SNAP_DISTANCE - this.ORIGINAL_RADIUS;
-      cameraTargetZ = this.SPHERE_RADIUS + originalCameraToItem;
+      // When snapped: maintain constant distance from sphere surface
+      // Original: sphere radius 2.0, camera at 3.0 (1.0 unit from surface)
+      cameraTargetZ = this.SPHERE_RADIUS + 1.0;
     } else {
-      // When dragging: scale zoom with sphere radius
-      const radiusMultiplier = this.SPHERE_RADIUS / 2.0; // Relative to original radius
-      cameraTargetZ = this.SPHERE_RADIUS + 1.0; // Start from proportional position
-      cameraTargetZ += (this.control.rotationVelocity * 80 + 2.5) * radiusMultiplier;
+      // When dragging: maintain consistent distance feel from surface
+      // Original drag range was ~3.5 to ~86 from center, which is ~1.5 to ~84 from surface
+      const baseDistance = 1.5 + this.control.rotationVelocity * 80 + 2.5;
+      cameraTargetZ = this.SPHERE_RADIUS + baseDistance;
       damping = 7 / timeScale;
     }
 
@@ -1565,7 +1573,7 @@ class InfiniteGridMenu {
       this.instancePositions = this.dynamicPositions.generatePositions(newCount, newRadius);
       this.DISC_INSTANCE_COUNT = newCount;
       
-      // Update camera position
+      // Update camera position at constant distance from sphere surface
       vec3.set(this.camera.position, 0, 0, newRadius + 1.0);
       this.updateCameraMatrix();
       
