@@ -81,8 +81,8 @@ export function mapNFTToMenuItem(token: NFTToken) {
   };
 }
 
-// Fetch infinite menu data with optional category filter
-export async function fetchInfiniteMenuData(category?: string | null) {
+// Fetch infinite menu data with optional category and search filters
+export async function fetchInfiniteMenuData(category?: string | null, searchQuery?: string) {
   let query = supabase
     .from('nft_tokens')
     .select('*')
@@ -91,6 +91,11 @@ export async function fetchInfiniteMenuData(category?: string | null) {
   // Apply category filter if provided
   if (category) {
     query = query.contains('category', [category]);
+  }
+
+  // Apply search filter if provided
+  if (searchQuery && searchQuery.trim()) {
+    query = query.or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
   }
 
   const { data, error } = await query;
