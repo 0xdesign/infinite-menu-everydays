@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 import { mat4, quat, vec2, vec3 } from "gl-matrix";
+import { DynamicSpherePositions } from "./DynamicSpherePositions";
 
 const discVertShaderSource = `#version 300 es
 
@@ -798,6 +799,7 @@ class InfiniteGridMenu {
   };
   private icoGeo!: IcosahedronGeometry;
   private discGeo!: DiscGeometry;
+  private dynamicPositions: DynamicSpherePositions;
   private worldMatrix = mat4.create();
   private tex: WebGLTexture | null = null;
   private atlases: WebGLTexture[] = [];
@@ -850,6 +852,17 @@ class InfiniteGridMenu {
 
   private TARGET_FRAME_DURATION = 1000 / 60;
   private SPHERE_RADIUS = 2;
+  
+  // Constants for maintaining consistent item visual size
+  private readonly ITEM_SCALE = 0.25; // Fixed scale for all items
+  private readonly ITEM_DIAMETER = 0.5; // 2 * ITEM_SCALE
+  
+  // Original setup reference (42 items, radius 2.0, camera at 3.0)
+  // Calculate the visual angle: how big the item appears in the original setup
+  // tan(angle/2) = (item_radius) / (camera_distance_from_item)
+  // tan(angle/2) = 0.25 / 1.0 = 0.25
+  // angle = 2 * atan(0.25) ≈ 28.07 degrees
+  private readonly ORIGINAL_VISUAL_ANGLE = 2 * Math.atan(0.25); // ~0.49 radians
 
   public camera: Camera = {
     matrix: mat4.create(),
@@ -857,7 +870,7 @@ class InfiniteGridMenu {
     far: 40,
     fov: Math.PI / 4,
     aspect: 1,
-    position: vec3.fromValues(0, 0, 3),
+    position: vec3.fromValues(0, 0, 3), // Will be updated based on sphere radius
     up: vec3.fromValues(0, 1, 0),
     matrices: {
       view: mat4.create(),
@@ -876,6 +889,7 @@ class InfiniteGridMenu {
     private onMovementChange: MovementChangeCallback,
     onInit?: InitCallback
   ) {
+    this.dynamicPositions = new DynamicSpherePositions();
     this.init(onInit);
   }
 
@@ -1026,16 +1040,25 @@ class InfiniteGridMenu {
       this.discBuffers.indices
     );
 
+    // Use dynamic positions based on item count
+    const itemCount = this.items.length || 1;
+    this.SPHERE_RADIUS = this.dynamicPositions.calculateOptimalRadius(itemCount);
+    this.instancePositions = this.dynamicPositions.generatePositions(itemCount, this.SPHERE_RADIUS);
+    this.DISC_INSTANCE_COUNT = this.instancePositions.length;
+    
+    // Keep legacy geometry for compatibility
     this.icoGeo = new IcosahedronGeometry();
     this.icoGeo.subdivide(1).spherize(this.SPHERE_RADIUS);
-    this.instancePositions = this.icoGeo.vertices.map((v) => v.position);
-    this.DISC_INSTANCE_COUNT = this.icoGeo.vertices.length;
     this.initDiscInstances(this.DISC_INSTANCE_COUNT);
     this.initTexture();
     this.control = new ArcballControl(this.canvas, (deltaTime) =>
       this.onControlUpdate(deltaTime)
     );
 
+    // Set initial camera position at constant distance from sphere surface
+    // Original: sphere radius 2.0, camera at 3.0 (1.0 unit from surface)
+    vec3.set(this.camera.position, 0, 0, this.SPHERE_RADIUS + 1.0);
+    
     this.updateCameraMatrix();
     this.updateProjectionMatrix();
 
@@ -1413,7 +1436,8 @@ class InfiniteGridMenu {
     if (!this.gl) return;
     const canvasEl = this.gl.canvas as HTMLCanvasElement;
     this.camera.aspect = canvasEl.clientWidth / canvasEl.clientHeight;
-    const height = this.SPHERE_RADIUS * 0.35;
+    // Use fixed height from original sphere to maintain consistent FOV
+    const height = 2.0 * 0.35; // Always use original sphere's height
     const distance = this.camera.position[2];
     if (this.camera.aspect > 1) {
       this.camera.fov = 2 * Math.atan(height / distance);
@@ -1436,7 +1460,7 @@ class InfiniteGridMenu {
   private onControlUpdate(deltaTime: number): void {
     const timeScale = deltaTime / this.TARGET_FRAME_DURATION + 0.0001;
     let damping = 5 / timeScale;
-    let cameraTargetZ = 3;
+    let cameraTargetZ: number;
 
     const isMoving =
       this.control.isPointerDown ||
@@ -1449,19 +1473,30 @@ class InfiniteGridMenu {
 
     if (!this.control.isPointerDown) {
       const nearestVertexIndex = this.findNearestVertexIndex();
-      const itemIndex = nearestVertexIndex % Math.max(1, this.items.length);
-      this.onActiveItemChange(itemIndex);
-      
-      // Load high-res texture for the active item
-      this.loadHighResTexture(itemIndex);
+      // Direct 1-to-1 mapping (no cycling)
+      if (nearestVertexIndex < this.items.length) {
+        this.onActiveItemChange(nearestVertexIndex);
+        // Load high-res texture for the active item
+        this.loadHighResTexture(nearestVertexIndex);
+      }
       
       const snapDirection = vec3.normalize(
         vec3.create(),
         this.getVertexWorldPosition(nearestVertexIndex)
       );
       this.control.snapTargetDirection = snapDirection;
+      
+      // When snapped: maintain constant distance from sphere surface
+      // Original: sphere radius 2.0, camera at 3.0 (1.0 unit from surface)
+      cameraTargetZ = this.SPHERE_RADIUS + 1.0;
     } else {
-      cameraTargetZ += this.control.rotationVelocity * 80 + 2.5;
+      // When dragging: use proportional distance based on sphere radius
+      // Original: radius 2.0, camera starts at 6.0 (3x) and goes up to ~86 (43x)
+      const minMultiplier = 3.0;  // Start at 3x radius for good sphere visibility
+      const maxMultiplier = 43.0; // Maximum zoom out at 43x radius
+      const velocityRange = maxMultiplier - minMultiplier;
+      const velocityMultiplier = this.control.rotationVelocity * velocityRange;
+      cameraTargetZ = this.SPHERE_RADIUS * (minMultiplier + velocityMultiplier);
       damping = 7 / timeScale;
     }
 
@@ -1530,6 +1565,25 @@ class InfiniteGridMenu {
 
   public updateItems(newItems: MenuItem[]): void {
     this.items = newItems;
+    
+    // Update geometry if item count changed
+    const newCount = newItems.length || 1;
+    if (this.dynamicPositions.needsUpdate(this.DISC_INSTANCE_COUNT, newCount)) {
+      // Calculate new sphere radius
+      const newRadius = this.dynamicPositions.calculateOptimalRadius(newCount);
+      this.SPHERE_RADIUS = newRadius;
+      
+      // Generate new positions
+      this.instancePositions = this.dynamicPositions.generatePositions(newCount, newRadius);
+      this.DISC_INSTANCE_COUNT = newCount;
+      
+      // Update camera position at constant distance from sphere surface
+      vec3.set(this.camera.position, 0, 0, newRadius + 1.0);
+      this.updateCameraMatrix();
+      
+      // Reinitialize instance buffer
+      this.initDiscInstances(this.DISC_INSTANCE_COUNT);
+    }
     
     // Dispose old textures
     if (this.gl) {
