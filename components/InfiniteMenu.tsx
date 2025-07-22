@@ -1490,10 +1490,13 @@ class InfiniteGridMenu {
       // Original: sphere radius 2.0, camera at 3.0 (1.0 unit from surface)
       cameraTargetZ = this.SPHERE_RADIUS + 1.0;
     } else {
-      // When dragging: maintain consistent distance feel from surface
-      // Original drag range was ~3.5 to ~86 from center, which is ~1.5 to ~84 from surface
-      const baseDistance = 1.5 + this.control.rotationVelocity * 80 + 2.5;
-      cameraTargetZ = this.SPHERE_RADIUS + baseDistance;
+      // When dragging: use proportional distance based on sphere radius
+      // Original: radius 2.0, camera starts at 6.0 (3x) and goes up to ~86 (43x)
+      const minMultiplier = 3.0;  // Start at 3x radius for good sphere visibility
+      const maxMultiplier = 43.0; // Maximum zoom out at 43x radius
+      const velocityRange = maxMultiplier - minMultiplier;
+      const velocityMultiplier = this.control.rotationVelocity * velocityRange;
+      cameraTargetZ = this.SPHERE_RADIUS * (minMultiplier + velocityMultiplier);
       damping = 7 / timeScale;
     }
 
