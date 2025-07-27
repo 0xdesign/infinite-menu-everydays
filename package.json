@@ -1,40 +1,20 @@
 {
-  "name": "infinite-menu-app",
-  "version": "0.1.0",
-  "private": true,
+  "name": "zora-nft-collection-stats",
+  "version": "1.0.0",
+  "description": "Fetch unique holders and unminted items for NFT collections using Zora API",
+  "main": "index.js",
+  "type": "module",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
+    "start": "node index.js",
+    "graphql-example": "node graphql-example.js",
+    "zdk-example": "node zdk-example.js"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.50.2",
-    "@types/gl-matrix": "^2.4.5",
-    "file-type": "^18.7.0",
-    "framer-motion": "^12.19.1",
-    "gl-matrix": "^3.4.3",
-    "next": "15.3.4",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
-  },
-  "devDependencies": {
-    "@eslint/eslintrc": "^3",
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
-    "@types/node-fetch": "^2.6.12",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "@types/sharp": "^0.31.1",
-    "@types/three": "^0.177.0",
-    "dotenv": "^16.6.1",
-    "eslint": "^9",
-    "eslint-config-next": "15.3.4",
+    "@zoralabs/zdk": "^2.3.0",
     "node-fetch": "^3.3.2",
-    "sharp": "^0.34.2",
-    "tailwindcss": "^4",
-    "ts-node": "^10.9.2",
-    "tsx": "^4.20.3",
-    "typescript": "^5"
-  }
+    "dotenv": "^16.3.1"
+  },
+  "keywords": ["nft", "zora", "ethereum", "blockchain"],
+  "author": "",
+  "license": "MIT"
 }
