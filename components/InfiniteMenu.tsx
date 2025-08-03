@@ -69,37 +69,8 @@ flat in int vInstanceId;
 
 void main() {
   int itemIndex = vInstanceId % uItemCount;
-  
-  // Look up the actual atlas position from the mapping texture
-  int atlasPosition = -1;
-  
-  if (itemIndex < uMaxItems) {
-    // Calculate texture coordinates for this item's mapping
-    float texX = (float(itemIndex) + 0.5) / float(uMaxItems);
-    vec4 mappingData = texture(uAtlasPositionMap, vec2(texX, 0.5));
-    
-    // Check if using byte encoding (r > 1.0 means float texture)
-    if (mappingData.r > 1.0) {
-      // Float texture - direct read
-      atlasPosition = int(mappingData.r);
-    } else {
-      // Byte texture - decode from two bytes
-      int highByte = int(mappingData.r * 255.0);
-      int lowByte = int(mappingData.g * 255.0);
-      if (highByte == 255 && lowByte == 255) {
-        atlasPosition = -1; // Invalid marker
-      } else {
-        atlasPosition = highByte * 256 + lowByte;
-      }
-    }
-  }
-  
-  // If position not found or invalid, fall back to direct mapping
-  if (atlasPosition < 0 || atlasPosition >= 1024) {
-    atlasPosition = itemIndex;
-  }
-  
-  // Now calculate which atlas and position within it
+  // With dynamic atlases, array index maps directly to position
+  int atlasPosition = itemIndex;
   int atlasIndex = atlasPosition / 256; // Which atlas (0, 1, 2)
   int atlasItemIndex = atlasPosition % 256; // Position within that atlas
   
@@ -801,6 +772,7 @@ class ArcballControl {
 }
 
 interface MenuItem {
+  id?: number;
   image: string;
   imageHighRes?: string;
   link: string;
@@ -1114,7 +1086,7 @@ class InfiniteGridMenu {
     // Use setTimeout to ensure WebGL context is fully ready
     setTimeout(() => {
       if (this.gl) {
-        this.initTexture();
+        this.initDynamicAtlases();
       } else {
         console.error('WebGL context not available after timeout');
         this.initTextureFallback();
@@ -1210,7 +1182,6 @@ class InfiniteGridMenu {
       this.buildAtlasPositionMap();
       
       console.log(`Loaded ${this.atlases.length} texture atlases`);
-      this.texturesReady = true;
     } catch (error) {
       console.error('Failed to load pre-built atlases:', error);
       this.initTextureFallback();
@@ -1309,7 +1280,107 @@ class InfiniteGridMenu {
     );
     gl.generateMipmap(gl.TEXTURE_2D);
     console.log(`Fallback texture atlas created: ${this.atlasSize}x${this.atlasSize} grid, showing ${maxItems} of ${itemCount} items`);
-    this.texturesReady = true;
+  }
+  
+  // Build per-filter dynamic atlases in array order so atlasPosition == itemIndex
+  private async initDynamicAtlases(): Promise<void> {
+    if (!this.gl) return;
+    const gl = this.gl;
+
+    // Cleanup any previous atlases/primary texture
+    if (this.tex) {
+      gl.deleteTexture(this.tex);
+      this.tex = null;
+    }
+    if (this.atlases.length) {
+      this.atlases.forEach(t => t && gl.deleteTexture(t));
+      this.atlases = [];
+    }
+
+    const items = this.items;
+    const cellSize = 256; // keeps a good balance of quality/speed; adjust if needed
+    const tilesPerRow = 16; // 16x16 grid => 256 items per atlas
+    this.atlasSize = tilesPerRow;
+
+    const chunkSize = tilesPerRow * tilesPerRow; // 256
+    const chunks: MenuItem[][] = [];
+    for (let i = 0; i < items.length; i += chunkSize) {
+      chunks.push(items.slice(i, i + chunkSize));
+    }
+
+    // Limit to 3 atlases bound by the shader
+    const maxAtlases = 3;
+    const buildCount = Math.min(chunks.length, maxAtlases);
+
+    const atlasPromises: Promise<WebGLTexture>[] = [];
+    for (let a = 0; a < buildCount; a++) {
+      const chunk = chunks[a];
+      atlasPromises.push(new Promise<WebGLTexture>(async (resolve) => {
+        const canvas = document.createElement('canvas');
+        canvas.width = tilesPerRow * cellSize;
+        canvas.height = tilesPerRow * cellSize;
+        const ctx = canvas.getContext('2d')!;
+
+        // Optional background
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Draw thumbnails into the grid in array order
+        await Promise.all(chunk.map((item, idx) => new Promise<void>((res) => {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.onload = () => {
+            try {
+              const x = (idx % tilesPerRow) * cellSize;
+              const y = Math.floor(idx / tilesPerRow) * cellSize;
+
+              // cover-like draw to preserve aspect ratio
+              const iw = img.naturalWidth, ih = img.naturalHeight;
+              const r = Math.max(cellSize / iw, cellSize / ih);
+              const dw = Math.round(iw * r);
+              const dh = Math.round(ih * r);
+              const dx = x + Math.floor((cellSize - dw) / 2);
+              const dy = y + Math.floor((cellSize - dh) / 2);
+              ctx.drawImage(img, dx, dy, dw, dh);
+            } catch {}
+            res();
+          };
+          img.onerror = () => res(); // draw nothing on error
+          img.src = item.image; // use thumbnail-sized URL
+        })));
+
+        const texture = createAndSetupTexture(
+          gl,
+          gl.LINEAR,
+          gl.LINEAR,
+          gl.CLAMP_TO_EDGE,
+          gl.CLAMP_TO_EDGE
+        );
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.texImage2D(
+          gl.TEXTURE_2D,
+          0,
+          gl.RGBA,
+          gl.RGBA,
+          gl.UNSIGNED_BYTE,
+          canvas
+        );
+        gl.generateMipmap(gl.TEXTURE_2D);
+        resolve(texture);
+      }));
+    }
+
+    const builtAtlases = await Promise.all(atlasPromises);
+    this.atlases = builtAtlases;
+    // For compatibility, set tex to first atlas
+    this.tex = this.atlases[0] || null;
+    this.usingFallbackTexture = false;
+
+    // Cap draw count to available atlas capacity to avoid invalid sampling
+    const capacity = this.atlases.length * (tilesPerRow * tilesPerRow);
+    if (capacity > 0) {
+      this.DISC_INSTANCE_COUNT = Math.min(this.DISC_INSTANCE_COUNT, capacity);
+    }
   }
   
   private buildAtlasPositionMap(): void {
@@ -1327,7 +1398,7 @@ class InfiniteGridMenu {
       if (index >= maxItems) return;
       
       // Find this item's entry in the atlas mapping
-      const atlasEntry = this.atlasMapping.find(entry => entry.id === item.id);
+      const atlasEntry = this.atlasMapping.find(entry => entry.id === item.id?.toString());
       
       if (atlasEntry) {
         // Calculate absolute position across all atlases
@@ -1344,7 +1415,7 @@ class InfiniteGridMenu {
           console.log(`Item ${index} (ID ${item.id}): maps to atlas position ${absolutePosition} (atlas ${atlasEntry.atlas}, pos ${positionInAtlas})`);
         }
       } else {
-        console.warn(`No atlas mapping found for item ${index} with ID ${item.id}`);
+        // Item not in atlas - will use modulo fallback in shader
         // Store invalid position
         mappingData[index * 4] = -1;
         mappingData[index * 4 + 1] = 0;
@@ -1614,7 +1685,7 @@ class InfiniteGridMenu {
       this.smoothRotationVelocity * 1.1
     );
 
-    gl.uniform1i(this.discLocations.uItemCount, this.items.length);
+    gl.uniform1i(this.discLocations.uItemCount, this.DISC_INSTANCE_COUNT);
     gl.uniform1i(this.discLocations.uAtlasSize, this.atlasSize);
 
     gl.uniform1f(this.discLocations.uFrames, this._frames);
@@ -1742,19 +1813,13 @@ class InfiniteGridMenu {
       const item = this.items[itemIndex];
       
       // Find what the atlas.json says about this item
-      const atlasEntry = this.atlasMapping?.find(entry => entry.id === item?.id);
+      const atlasEntry = this.atlasMapping?.find(entry => entry.id === item?.id?.toString());
       const expectedAtlasPosition = atlasEntry ? 
         (atlasEntry.y / 256) * 16 + (atlasEntry.x / 256) : 
         'not found';
       
-      console.log(`SNAP DEBUG:
-        - Nearest vertex index: ${nearestVertexIndex}
-        - Item array index: ${itemIndex}
-        - Item database ID: ${item?.id || 'unknown'}
-        - Item title: ${item?.title || 'unknown'}
-        - Shader uses atlas position: ${itemIndex % 256}
-        - Atlas.json says item ${item?.id} is at position: ${expectedAtlasPosition}
-        - MISMATCH: Shader uses array index, atlas uses database ID!`);
+      // Simple diagnostic - only log key info
+      console.log(`🎯 Snap: vertex[${nearestVertexIndex}] → item[${itemIndex}] "${item?.title || 'unknown'}" (${this.items.length} items, ${this.DISC_INSTANCE_COUNT} vertices)`);
       
       this.onActiveItemChange(itemIndex);
       // Load high-res texture for the active item
@@ -1848,25 +1913,36 @@ class InfiniteGridMenu {
 
   public updateItems(newItems: MenuItem[]): void {
     this.items = newItems;
-    
-    // Update geometry if item count changed
-    const newCount = newItems.length || 1;
-    if (this.dynamicPositions.needsUpdate(this.DISC_INSTANCE_COUNT, newCount)) {
-      // Calculate new sphere radius
-      const newRadius = this.dynamicPositions.calculateOptimalRadius(newCount);
-      this.SPHERE_RADIUS = newRadius;
-      
-      // Generate new positions
-      this.instancePositions = this.dynamicPositions.generatePositions(newCount, newRadius);
-      this.DISC_INSTANCE_COUNT = newCount;
-      
-      // Update camera position at constant distance from sphere surface
-      vec3.set(this.camera.position, 0, 0, newRadius + 1.0);
-      this.updateCameraMatrix();
-      
-      // Reinitialize instance buffer
-      this.initDiscInstances(this.DISC_INSTANCE_COUNT);
+    // Reset hi-res state to avoid overlay mismatch after filtering
+    this.hiResIndex = -1;
+    if (this.hiResTexture && this.gl) {
+      this.gl.deleteTexture(this.hiResTexture);
+      this.hiResTexture = null;
     }
+    
+    // Always update vertex count to match item count
+    const newCount = newItems.length || 1;
+    const oldCount = this.DISC_INSTANCE_COUNT;
+    
+    // Calculate new sphere radius based on item count
+    const newRadius = this.dynamicPositions.calculateOptimalRadius(newCount);
+    this.SPHERE_RADIUS = newRadius;
+    
+    // Generate new positions for the exact number of items
+    this.instancePositions = this.dynamicPositions.generatePositions(newCount, newRadius);
+    this.DISC_INSTANCE_COUNT = newCount;
+    
+    // Log only when count changes
+    if (oldCount !== newCount) {
+      console.log(`🔄 Geometry updated: ${oldCount} → ${newCount} instances`);
+    }
+    
+    // Update camera position at constant distance from sphere surface
+    vec3.set(this.camera.position, 0, 0, newRadius + 1.0);
+    this.updateCameraMatrix();
+    
+    // Reinitialize instance buffer
+    this.initDiscInstances(this.DISC_INSTANCE_COUNT);
     
     // Dispose old textures
     if (this.gl) {
@@ -1881,13 +1957,16 @@ class InfiniteGridMenu {
       }
     }
     
-    // Reinitialize with new items
-    this.initTexture();
+    // Reinitialize with new items using dynamic atlases that match current order
+    this.initDynamicAtlases();
     
     // Rebuild mapping if we already have atlas data
-    if (this.atlasMapping.length > 0) {
-      this.buildAtlasPositionMap();
-    }
+    // Mapping not needed for dynamic atlases
+
+    // Optionally eager-load hi-res for current front-most item to avoid initial pop-in
+    const nearest = this.findNearestVertexIndex();
+    const itemIndex = nearest % this.items.length;
+    this.loadHighResTexture(itemIndex);
   }
 }
 
