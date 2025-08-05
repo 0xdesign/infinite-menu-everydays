@@ -1813,10 +1813,7 @@ class InfiniteGridMenu {
       const item = this.items[itemIndex];
       
       // Find what the atlas.json says about this item
-      const atlasEntry = this.atlasMapping?.find(entry => entry.id === item?.id?.toString());
-      const expectedAtlasPosition = atlasEntry ? 
-        (atlasEntry.y / 256) * 16 + (atlasEntry.x / 256) : 
-        'not found';
+      this.atlasMapping?.find(entry => entry.id === item?.id?.toString());
       
       // Simple diagnostic - only log key info
       console.log(`🎯 Snap: vertex[${nearestVertexIndex}] → item[${itemIndex}] "${item?.title || 'unknown'}" (${this.items.length} items, ${this.DISC_INSTANCE_COUNT} vertices)`);

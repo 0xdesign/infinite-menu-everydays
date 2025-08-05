@@ -4,11 +4,12 @@ import { useState, useEffect, useRef } from 'react';
 
 interface CategoryBarProps {
   categories: string[];
-  activeCategory: string | null;
+  activeCategories?: string[];
+  activeCategory?: string | null; // backward compat
   onCategoryChange: (category: string | null) => void;
 }
 
-export default function CategoryBar({ categories, activeCategory, onCategoryChange }: CategoryBarProps) {
+export default function CategoryBar({ categories, activeCategories = [], activeCategory = null, onCategoryChange }: CategoryBarProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(false);
@@ -68,7 +69,7 @@ export default function CategoryBar({ categories, activeCategory, onCategoryChan
           onClick={() => onCategoryChange(null)}
           className={`
             px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 whitespace-nowrap
-            ${activeCategory === null
+            ${(activeCategory === null && activeCategories.length === 0)
               ? 'bg-white text-black'
               : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'
             }
@@ -84,7 +85,7 @@ export default function CategoryBar({ categories, activeCategory, onCategoryChan
             onClick={() => onCategoryChange(category)}
             className={`
               px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 whitespace-nowrap capitalize
-              ${activeCategory === category
+              ${(activeCategory === category) || activeCategories.includes(category)
                 ? 'bg-white text-black'
                 : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'
               }

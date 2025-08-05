@@ -28,7 +28,7 @@ interface MenuItem {
 export default function Home() {
   const [items, setItems] = useState<MenuItem[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
-  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [activeCategories, setActiveCategories] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
 
@@ -38,14 +38,14 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    // Fetch items when category or search changes
+    // Fetch items when categories or search changes
     setIsLoading(true);
     
     // Debounce search
     const timeoutId = setTimeout(() => {
-      fetchInfiniteMenuData(activeCategory, searchQuery)
+      fetchInfiniteMenuData(activeCategories, searchQuery)
         .then((data) => {
-          console.log('Fetched items:', data.length, 'items for category:', activeCategory || 'All', 'search:', searchQuery);
+          console.log('Fetched items:', data.length, 'items for categories:', activeCategories.join(', ') || 'All', 'search:', searchQuery);
           setItems(data);
           setIsLoading(false);
         })
@@ -56,21 +56,29 @@ export default function Home() {
     }, searchQuery ? 300 : 0);
     
     return () => clearTimeout(timeoutId);
-  }, [activeCategory, searchQuery]);
+  }, [activeCategories, searchQuery]);
 
   const handleCategoryChange = (category: string | null) => {
-    setActiveCategory(category);
+    if (category === null) {
+      setActiveCategories([]);
+      return;
+    }
+    setActiveCategories((prev) => {
+      const exists = prev.includes(category);
+      if (exists) return prev.filter((c) => c !== category);
+      return [...prev, category];
+    });
   };
 
   return (
     <main className="relative w-screen h-screen overflow-hidden bg-black">
       {/* Category Bar */}
       <div className="absolute top-0 left-0 right-0 z-20">
-        <CategoryBar 
-          categories={categories}
-          activeCategory={activeCategory}
-          onCategoryChange={handleCategoryChange}
-        />
+          <CategoryBar 
+            categories={categories}
+            activeCategories={activeCategories}
+            onCategoryChange={handleCategoryChange}
+          />
       </div>
 
       {/* Search Bar */}
@@ -82,6 +90,15 @@ export default function Home() {
           placeholder="Search NFTs..."
           className="px-4 py-2 bg-black/50 border border-white/20 rounded-full text-white placeholder-white/50 focus:outline-none focus:border-white/40"
         />
+      </div>
+
+      {/* Results count */}
+      <div className="absolute top-28 left-1/2 transform -translate-x-1/2 z-20">
+        {!isLoading && (
+          <span className="px-3 py-1 rounded-full text-xs font-medium bg-white/10 text-white/80">
+            {items.length} results
+          </span>
+        )}
       </div>
 
 
