@@ -24,6 +24,21 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        {/* Start critical connections and downloads earlier for faster first paint */}
+        <link
+          rel="preconnect"
+          href="https://lykbbceawbrmtursljvk.supabase.co"
+          crossOrigin="anonymous"
+        />
+        <link rel="preload" href="/atlas-0.jpg" as="image" />
+        <link
+          rel="preload"
+          href="/atlas.json"
+          as="fetch"
+          crossOrigin="anonymous"
+        />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

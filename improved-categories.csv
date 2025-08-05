@@ -1,0 +1,1548 @@
+id,token_id,title,description,new_categories,category_count,primary_category
+4,374,373 crash out,phantom added a new button. does anyone know what it does?,,0,tools
+5,373,372 sharehold to earn,maybe someday soon there will be enough policy changes that allow corporations to airdrop tokens to shareholders,rewards,1,rewards
+6,372,371 payment tumbler,"tornado cash is back.
+
+i know you're excited to launder money again. but think bigger...
+
+it makes it possible to make everyday payments onchain without surveillance.
+
+and without zk or bridging to some new privacy network.",payments|privacy,2,payments
+7,371,370 fund wallet alternative,"i know embedded wallets reduce app switching and make for a smoother UX.
+
+but forcing me to fund a wallet is enough friction to make me abandon the app before trying it.
+
+what if you could just sign one txn from your wallet to allow the app to spend on your behalf without the need to deposit funds?",,0,tools
+8,370,369 bagtective,every trading group chat should have an AI that investigates if a ticker being shared is a good buy,agents|messaging|payments|trading,4,payments
+9,369,368 $trump mining,"what if trump uses the 80% of the locked up supply to incentivize americans to do things?
+
++ buy made in america
++ participate in elections
++ make healthier lifestyle choices
++ using clean energy
+ + enroll in education programs
+
+etc",payments,1,payments
+10,368,367 buy with apple cash,everything would be so different if crypto existed at the OS layer,payments,1,payments
+11,367,366 people to follow,,social,1,social
+12,366,365 ai swap,swapping with ai doesn't always have to be in a chat,agents|messaging|trading,3,trading
+13,365,364 question,"it's always ""what can i ask my wallet?"" and never ""what can my wallet ask me?""",,0,tools
+14,364,363 payment instructions,use ai to program conversion logic when making payments with crypto.,agents|payments,2,payments
+15,363,362 model selection,"LLMs are like athletes. 
+
+there isn't necessarily an absolute ""best"". they each have their specializations, strengths and weaknesses.
+
+so when you think about AI in the context of your wallet, you should have a choice based on your intent.",agents,1,agents
+16,362,361 congestion,can tokens replace tolls?,,0,tools
+17,361,360 llm on hover,LLMs that give context on hover ,agents|wallet,2,agents
+18,360,359 ai listing,"listing nfts is hard. ai can fix it.
+
+it can also make things like dynamic listings possible.",agents|trading,2,trading
+19,359,358 hinge rose,what if we replaced hinge roses with open edition art from your collection?,art,1,art
+20,358,357 phanny,set instructions for your wallet and get notified for actions that need your review,agents,1,agents
+21,357,356 instruct,"what if we replaced ""swap"" with ""instruct""?",agents|trading,2,trading
+22,356,355 LLM NFT search,"wait, LLM's can actually fix the broken NFT UX in our wallets.",agents,1,agents
+23,355,354 agent filtering,agents can make for the ultimate portfolio filter.,agents|invest,2,agents
+24,354,353 swarm discovery,"the most important use of agent swarms in the wallet isn’t trading for you, it’s discovering new things to trade for you.",agents|trading,2,trading
+25,353,352 chat bubble swap,"if everyone predicts chat bubbles will be the primary ui, then we should start thinking about to swap in them.",messaging|trading,2,trading
+26,352,351 agent in your portfolio,a place in your portfolio for the funds you've allocated to an agent.,agents|invest,2,agents
+27,351,350 explore agents,an explore page in your wallet for agents,agents|social,2,agents
+28,350,349 wrapped,a thread on my favorite experiences of 2024 https://x.com/0xDesigner/status/1874256743376838900,identity|messaging,2,identity
+29,349,348 quick question,just gonna ask you a quick question on the screen...,,0,tools
+30,348,347 speaker token,token-gated speaker privileges in twitter spaces,gating,1,gating
+31,347,346 broadcasts,a wallet standard that allows contract creators and whales to broadcast messages to other holders using any wallet.,messaging|social|wallet,3,social
+32,346,345 onions app,"it's like acorns but instead of growing your balance it gradually peels it.
+
+deposit bitcoin and automatically sell off regular monthly increments of $1,000.
+
+inspo: https://x.com/dotkrueger/status/1872177672270336428",identity,1,identity
+33,345,344 reward thing,bootstrap fundraising by allocating the trading fees instead of a supply allocation ,rewards|trading,2,trading
+34,344,343 emotional return protocol,"in the future, smart contracts will play a pivotal role in shifting the paradigm of gift giving experience through the emotional return protocol (ERP-6900).
+
+gone are the days of forced smiles and awkward thank you's, as the system silently and gracefully handles bad gifts.
+
+when a gift recipient opens a present, biometric sensors analyze heart rate variability and galvanic skin response to detect discomfort. 
+
+if emotional markers exceed a predetermined threshold, the smart contract automatically initiates a return process, generating a digital return authorization and refunding the purchaser's wallet.",,0,tools
+35,343,342 circle atm,a circle atm to stake your phsyical cash for usdc yield,invest,1,invest
+36,341,340 generate ui,a reminder that everyone can have their own generated frontend if the backend is powered by decentralized protocols.,,0,tools
+37,340,339 token gated compute,what if artificial scarcity was the key to managing compute?,gating|privacy,2,gating
+38,339,338 trial period,the one safenet use case no one's talking about: chargebacks and trials.,,0,tools
+39,338,337 songcoin,get songcoin rewards when your friend listens to the song you shared,rewards,1,rewards
+40,337,336 safenet purchase,buy real world assets with memecoins using safenet,payments,1,payments
+41,336,335 og eth users,get special perks and content when apps recognize your og eth status,identity,1,identity
+42,335,334 email attachment,attach tokens to an email.,,0,tools
+43,334,333 watch island,"wasn't paying attention today and missed a winner.
+
+what if that one coin you were tracking was always visible, regardless of the app you were using?",trading,1,trading
+44,333,332 ask mode,swap widget ask mode,trading,1,trading
+45,332,331 trend token,"if tokens are ownership in an idea, and trends are ideas, you should have financial upside to being early to trends.",gating,1,gating
+46,331,330 reactionary pricing,,,0,tools
+47,330,329 not comic sans,not hot dog but with comic sans,,0,tools
+48,329,328 de-flix,"an unexplored intersection of crypto and ai:
+
+1. tokenize all movie and tv
+2. allow copy owners to generate plot variations
+3. every copy has a unique plot inscribed
+4. each copy is valued based on the owner's changes
+
+the audience becomes the co-creators.",agents,1,agents
+49,328,327 headline coins,"at this point, there's no reason why every news app shouldn't include related coins",,0,tools
+51,327,326 shuhai,"shuhai is a custom in japanese culture where you don't swap your own tokens.
+
+instead, people swap for each other as a sign of respect.",social|trading,2,trading
+52,326,325 fontcoin theme,a ui theme that changes according to fontcoin prices. let the market decide.,trading,1,trading
+53,325,324 font-fi,,,0,tools
+58,324,323 graduate,what if tweets graduated to coins?,,0,tools
+60,323,322 quit button,bitcoin hits $100k,,0,tools
+64,322,321 tinder.fun,tinder but instead of matching you pump each other's bags,,0,tools
+65,321,320 expanded swap,the swap widget should be able to support assets beyond erc-20s.,trading,1,trading
+66,320,319 crypto translate,xrp is so foreign to me,,0,tools
+67,319,318 comicbase,if coinbase made a comic sans theme,,0,tools
+68,318,317 religion,"memes are religions, coins are memberships",,0,tools
+69,317,316 agent auto-populate,"tagging bots should auto-populate with their function.
+
+there are no clear affordances for agents on farcaster and twitter. i know it seems trivial, but it's hard to know what information you need to give the bot for it to be successful. ",agents,1,agents
+71,316,315 moon bag,hide your token balance after you remove your principal investment so you can let it ride without your emotions getting in the way,gating|trading,2,trading
+72,315,314 incoming,,,0,tools
+73,314,313 battle screen,,,0,tools
+74,313,312 review victims,"every wallet should require you to review the names, faces and family members of the people you're dumping on.",gating|social,2,social
+75,312,311 dock,,,0,tools
+76,311,310 share modal,updated share modal with essential customization,,0,tools
+77,310,309 radial swap menu,radial swap menu with predictive suggestions,trading,1,trading
+78,309,308 creator payouts,option to get creator payouts in memes,payments,1,payments
+79,308,307 HUD,every PvP game needs a HUD,,0,tools
+80,307,306 loyalty memes,which brand will be the first to incorporate memecoins into their loyalty program?,identity|rewards,2,identity
+81,306,305 group chat wallet,every alpha group chat should have a shared wallet with no limits or governance,messaging,1,messaging
+82,305,304 tap to tip,tip any token with tap to pay,gating|payments,2,payments
+83,304,"303 ape now, research later","no token pages, just quick buys",gating,1,gating
+84,303,302 price x model,,trading,1,trading
+85,302,301 accept as crypto,"every time i split the bill, my normie friends are always unwilling to send crypto.
+
+what if they could send me fiat that's converted to crypto before it's deposited in my balance?
+
+does moonpay balance finally enable this?",social,1,social
+86,301,300 portfolio theme,rearrange your portfolio based on meta themes,invest,1,invest
+87,300,299 trim,sometimes you just need to take a little off the top of everything,,0,tools
+88,299,298 batch swap slider,swap using a combination of tokens and use a slider to adjust how much you'd like to swap,trading,1,trading
+89,298,297 reservation bid,"if restaurant reservations were onchain, you could have an open market with any currency for any restaurant on any app.",trading,1,trading
+90,297,296 message launcher,launch a coin from a text message,messaging,1,messaging
+91,296,295 cash out,"swipe to cash out.
+
+i made this component using only code. you can play with it here: https://cashout-gains.vercel.app/",,0,tools
+92,295,294 clank.fun,"clank dot fun—a marketplace to buy and sell onchain agents. search for the type of conversation you're looking for, and receive personalized pitches from agents based on your wallet activity—boy/girlfriends, therapists, creative collaborators, etc.",agents|payments,2,payments
+93,294,293 archetyper.fun,i shipped my first app,,0,tools
+94,293,292 worldvote,"would you scan your eyeballs if it meant you could vote in your wallet from home?
+
+(not shown: reduced fraud, real-time auditing, cost reduction in vote administration)",,0,tools
+95,292,291 reveal vote,"if elections were onchain, you could set conditions to allow people to see who you voted for.",social,1,social
+96,291,290 vote,polymarket option to vote,,0,tools
+97,290,289 look up,the path from headline to pump needs to be shortened,,0,tools
+98,289,288 onchain context,onchain stuff as context for your codebase,,0,tools
+99,288,287 failure,was hoping to deploy an app today. haven't had time for a design after how time consuming debugging has been. hope to have a working app deployed soon.,,0,tools
+100,287,286 details,final touches on my first code composed app.,,0,tools
+101,286,285 animation in cursor,"i've successfully code composed my first loading animation.
+
+not shown:
+
+1. routing backend operations to the loading state messages
+2. multiple iterations of hover and focus transitions
+3. creating logic for input button and text",messaging|wallet,2,messaging
+102,285,284 wallet-search.tsx,shaping the main component of my first code composed web app,,0,tools
+103,284,283 terminal txn,what if you could broadcast transactions from a coding terminal?,social,1,social
+104,283,282 verified agent,these agents are becoming so believable. at what point does worldcoin need to verify they're *not* human?,agents|identity,2,agents
+105,282,281 composed code,"today is a bit different.
+
+i've been in cursor for almost 12 hours straight.
+
+i haven't been in a flow state this intense and for this long since i started learning design.
+
+i haven't even had the chance yet to build a ui. i'm just living in the terminal.
+
+i've spent the last few days trying to figure out how to fetch wallet balances and swaps and give it to chatgpt to psychoanalyze.
+
+and it finally worked.",,0,tools
+106,281,280 agent.fun,pump.fun for onchain agents,agents,1,agents
+107,280,279 agent balance,all ai agent social accounts should show their wallet balance,agents,1,agents
+108,279,279 solscan LLM,solscan + LLM to make the chain more human readable and insightful,agents,1,agents
+109,278,278 social commerce,,,0,tools
+110,277,277 music coin,"there are two ways to make money in memecoins: discover early or promote.
+
+sounds a lot like the way we earn cultural capital in music.",,0,tools
+111,276,276 trade interpretation,an LLM interprets the strategy of a trade when it's broadcasted,agents|trading,2,trading
+112,275,275 shill fee,you can only shill a token you hold in the group chat if you pay everyone a little bit of it.,gating|messaging|payments,3,payments
+113,274,274 swap prompt,"create an swap intent (market, limit orders, price conditions, etc.) with natural language.",trading,1,trading
+114,273,273 swap boost,phantom option to send a push notification to every user when you complete your swap,trading,1,trading
+115,272,272 holder ranking,,,0,tools
+116,271,271 coin powered meme,,,0,tools
+117,270,270 pfp agents,,agents|identity,2,agents
+118,269,269 doordash swap,doordash courier picks up physical items to swap,trading,1,trading
+119,268,268 launch L2,launch a new L2 from the dropdown,,0,tools
+120,267,267 trading coach,,trading,1,trading
+121,266,266 wallet prompt,,,0,tools
+122,265,265 social market summary,a social block explorer that gives you a market summary of friend activity,trading,1,trading
+123,264,264 swap predict,a swap widget that predicts and auto-populates,trading,1,trading
+124,263,263 chatgpt incognito mode,go incognito by storing your chats where you can own them,,0,tools
+125,262,262 trading...,"typing bubbles, but while someone is trading",trading,1,trading
+126,261,261 whereabouts,see where onchain a meeting participant is when they're late,,0,tools
+127,260,260 astrology,a trade recommendation based on your horoscope,trading,1,trading
+128,259,259 claim,a token page that shows you how much you have unclaimed,gating,1,gating
+129,258,258 perks,"i visit coinbase wallet often to find new things to do onchain. at some point, i'd like to see less emphasis on what i can mint and more on how to use what i've minted.",art,1,art
+130,257,257 mint prompt,mint prompts instead of images. ,art,1,art
+131,256,256 eip 7702,what is EIP-7702? wrong answers only.,,0,tools
+132,255,255 needle mover,wallet pins the top winner/loser so you can conveniently see what’s moving the needle,,0,tools
+133,254,254 ask your wallet,chat with your wallet,messaging,1,messaging
+134,253,253 swap everything,swap all assets on a selected chain,trading,1,trading
+135,252,252 wallet app clip,app clips for message signatures to eliminate app switching,messaging,1,messaging
+136,251,251 meta orion x pump.fun,,,0,tools
+137,250,250 ultraminimal,i have no idea if this would work but i'm craving an ultraminimal wallet ui,wallet,1,wallet
+138,249,249 bulk swap,,trading,1,trading
+139,248,248 swap actions,add actions to your swaps,trading,1,trading
+140,247,247 wallet in wallet,,,0,tools
+141,246,246 crypto paywall,"crypto paywalls would streamline payments for writers.
+
+it removes the friction of account creation.
+
+one-time payment options are quicker and more direct, giving access to readers that don't want to commit and paying writers more per piece.
+
+writers also benefit because it reduces transaction fees and opens up global access. ",gating|payments,2,payments
+142,245,245 lock screen txn,complete transactions from the lock screen,wallet,1,wallet
+143,244,244 betting market poll,option to create a betting market in a twitter poll,trading,1,trading
+144,243,243 de-surance,how long until smart contracts let us buy insurance products from individuals?,payments,1,payments
+145,242,242 blink listing,"phantom option to list an nft as a blink.
+
+share the link to twitter where someone can directly purchase without navigating to an nft marketplace.",payments|trading,2,payments
+146,241,241 tokenized subscription,a tokenized netflix subscription that you can share with your household instead of paying more to add people,social,1,social
+147,240,240 polymarket leaderboard,see the biggest winners and losers on polymarket,,0,tools
+148,239,239 camera gating,google meet option to token gate your camera,gating,1,gating
+149,238,238 minterest,"mint anything, anywhere",art,1,art
+150,237,237 smart contract agent,"smart contracts outlive their front-ends. and when they do, ai agents should be able help so we don't make mistakes.",agents,1,agents
+151,236,236 restaurant tab,"few things are more inefficient than the time between finishing a meal and paying the bill.
+
+if you could check in to a restaurant and open a tab with your wallet, you could pay and leave whenever you want.
+
+when an order is placed, the funds move to escrow. 
+
+if you walk out and forget to close, a smart contract executes a transfer to the restaurant's address after a reasonable amount of time.
+
+if you send something back to the kitchen, the restaurant can set a split for the item to refund from the escrow balance.",payments,1,payments
+152,235,235 resy.tech,"now that friend.tech has renounced the smart contract, someone should fork it for restaurant reservations.",,0,tools
+153,234,234 chain checker,"get paid when someone tries to re-mint your content.
+
+yesterday i minted a concept that featured someone else's zora content.
+
+i had intended to split mint rewards, but forgot to add them before minting.
+
+something like this would've been helpful.",art|rewards,2,art
+154,233,233 image and likeness,"mint your image and likeness, get paid when it's remixed.
+
+which makes me wonder:
+
+what if the intersection of crypto and ai has been modeling all along?",agents|art,2,agents
+155,232,232 teleporting buttons,"""blinks teleport buttons across the internet""",,0,tools
+156,231,231 add music,add music to your mint and split rewards with the artist,art|rewards,2,art
+157,230,230 for you,"there is absolutely no reason why every art marketplace shouldn't have ""for you"" recommendations based on the things you already have in your wallet",art,1,art
+158,229,229 collection match,"the role of ai in art marketplaces isn't just to give context on the art, the artist, or the collection.
+
+it's to interpret the taste profile of the collection in the wallet i've connected and give tailored context to how a piece fits in with what i've already collected.",agents|art|identity,3,agents
+159,228,228 founder mode,you can only trade coins below $1M market cap when Founder Mode is on,trading,1,trading
+160,227,227 blink broker,"an nft listing blink, but now that action chaining is available, you can program automatic splits to give the person that shares the blink a percent of the transaction.
+
+this opens up new possibilities and markets to incentivize people sharing blinks.
+
+it might not be your listing, but if you're persuasive enough, you can permissionlessly earn a cut based on your distribution.",social|trading,2,trading
+161,226,226 mute price notifications,option to mute price notifications at a specific price for a specific token,gating|trading,2,trading
+162,225,225 friend wins,get notified when your friend gets a big win,,0,tools
+163,224,224 coin filter,filter your twitter dms for coins you're holding,agents|messaging,2,agents
+164,223,223 friend reviews only,filter restaurant reviews for farcaster friends only,agents|social,2,agents
+165,222,222 dynamic island connect,dynamic island is designed for apps running in the background. can't we use it for wallet actions without app switching?,,0,tools
+166,221,221 derivative notification,the best design is one that already knows what you want to do.,,0,tools
+167,220,220 sport mode,what do you think an onchain sport mode does?,,0,tools
+168,219,219 streaming energy bill,"i was caught off guard with a high energy bill. if you could stream payments onchain, it would be easier to manage energy usage.",payments,1,payments
+169,218,218 portable messages,messaging protocols would be much better if they could meet us in the apps we already use,messaging,1,messaging
+170,217,217 instant connect,dreaming of the day i connect without app switching,wallet,1,wallet
+171,216,216 post and mint blink,"we've explored a lot of use cases to consume using blinks, but what if we could use blinks to create, too?",art,1,art
+172,215,215 blink hover preview,extensions should preview transaction results when hovering over a solana blink element,wallet,1,wallet
+173,214,214 renew anywhere,you should be able to get ens expiration alerts anywhere you connect your wallet.,identity,1,identity
+174,213,213 share sheet connect,connect from the share sheet,,0,tools
+175,212,212 crypto jukebox,,,0,tools
+176,211,211 solarm,burn funds if you don't wake up in time,,0,tools
+177,210,210 pay with higher,apple is set to open their nfc payment to third party developers which means we're closer to this reality than ever.,payments,1,payments
+178,209,209 blink alert,"get an opt in alert from your wallet when you're on a webpage that has blink link previews injected into the front-end.
+
+instead of opting in to blinks in the wallet, you should have the option to do it on a session basis.",,0,tools
+179,208,208 direct ticketing,"there's a world powered by crypto where artists and event organizers can sell tickets directly to their fanbase—in a social feed, in an email, or any other channel used for direct communication.
+
+embedding programmable transactions into a URL (in this case, using solana blinks), a fan can purchase directly in an email, triggering a wallet confirmation.
+
+you could also program the blink to whitelist fans that meet a certain criteria (i.e. collected a special edition thing).
+
+it doesn't currently exist, but i imagine if adoption of something like blinks increases, wallet interfaces will form around it.
+
+you could select the city of the artist's tour, number of tix, etc from the wallet (present day, we construct transactions in an app or website).
+
+and on the other side of the equation, the fan has full control in this reality.
+
+they're not beholden to ticket platforms, fees, or closed network marketplaces.
+
+they can transfer or resell tickets as they please, and if royalties are enforced, the artist benefits, not the intermediaries.
+
+crypto doesn't enable better ticketing platforms, it eliminates the need for them entirely.",gating|invest|payments|social,4,payments
+180,207,207 bump for context,see what tokens and onchain activity you have in common when you bump phones,,0,tools
+181,206,206 chain migration,copy data and tokens to other chains,,0,tools
+182,205,205 superchain usdc,"select and bundle usdc across multiple chains when sending money.
+
+there's a lot of jargon around the idea of a superchain, but this is one example of a use case chain interoperability unlocks.",,0,tools
+183,204,204 platformless tv,what's possible when our streaming content is tokenized?,,0,tools
+184,203,203 video attachment,attach a video message to any blockchain transaction,messaging,1,messaging
+185,202,202 cmd shift click,cmd + shift + u is cool but what if you could cmd + shift + click any text on the internet to open the swap?,trading,1,trading
+186,201,201 voice signature,"if we can authenticate blockchain signatures with face id, then we should able to do the same with voice.",,0,tools
+187,200,200 edition balance,"now that zora lets you trade editions like memecoins, i'd like to see them in my wallet's token balances",gating|trading,2,trading
+188,199,199 pnl,someone should propose a new nft standard that displays the holder's pnl in the metadata,,0,tools
+189,198,198 coinbase marketplace,"when you run out of cash to onramp, sell your stuff for crypto.",payments,1,payments
+190,196,196 proof of fitness,a chain that forms blocks when the validator closes their apple rings,,0,tools
+191,195,195 salary,option to receive your salary in USDC and automatically earn yield,invest,1,invest
+192,194,194 copy trade blink,phantom option to share your swap as a blink so others can copy trade.,trading,1,trading
+193,193,193 venmoon,offramp providers should facilitate payments to web2 payment networks,payments,1,payments
+194,192,192 blink store,the internet's expansion pack,,0,tools
+195,191,191 social chart,tweets overlayed on a token price chart,gating|trading,2,trading
+196,190,190 rent a citizenship,"""The first warm and developed country that has an easy and transparent process for renting citizenship is going to make a killing.""
+
+- naval, 6/23/2016",,0,tools
+197,189,189 flip a bitcoin,flip a coin when you're unsure about selling,,0,tools
+198,188,188 smart chores,receive your allowance when every family member attests you've finished your chores.,,0,tools
+199,187,187 shopping concierge,"we aren't talking enough about the code injection enabled by solana blinks.
+
+you can add the chain to any web2 app.
+
+imagine if every product hyperlink fetched by perplexity was injected with a transaction, letting you check out directly without leaving the app.
+
+blinks let you literally turn any LLM into a shopping concierge... *permissionlessly* 🤯",agents,1,agents
+200,186,186 unicart,"the uniswap extension as a sidebar is thought provoking.
+
+in it's current state, it makes interacting with the chain while using apps less obstructive. for example, if you want to mint this design everyday, you mint and watch the animation without any visual obstruction.
+
+but it also makes me think about the future of a wallet extension's form factor. 
+
+the sidebar reminds me of a shopping cart, and i've always loved the idea of a universal shopping cart powered by crypto.
+
+imagine adding items from multiple websites, paying with any token, and the shopping cart can make suggestions based on what's in your cart across any website on the internet.",art|gating|trading,3,art
+201,185,185 bet balance,"follow up from yesterday, polymarket can also do a better job of surfacing your current position in a bet and provide a quick affordance to sell.",social,1,social
+202,184,184 polymarket buttons,"the numbers on polymarket's buttons have always been confusing to me.
+
+it presents the price per outcome you want to bet, which is the least useful information, imho.
+
+i always feel embarrassed by how much time it takes to realize that the price per bet corresponds to the percent of that outcome (i.e. 64¢ means 64% odds).
+
+i also have no desire to think about betting in terms of ""shares."" i just want to bet $100 on yes or no and quickly determine how much i'd make if i win.
+
+which of these button patterns accomplishes that?",trading,1,trading
+203,183,183 smart date,incentivize better dating app outcomes by staking funds into a smart contract on match and then refunding when you can prove you've met.,invest,1,invest
+204,182,182 outage,,,0,tools
+205,181,181 growth chart,spare your walls. track your child's growth onchain.,trading,1,trading
+206,180,180 de-comments,a decentralized network for sticky comments anywhere on the web,messaging,1,messaging
+207,179,179 vampire attack,burn a competitor nft for a discount,,0,tools
+208,178,178 group chat betting,"we've seen solana blinks implemented in the feed, but there's also an exciting design space for DM and group chat use cases.
+
+a private betting market could be a great place to start.",messaging|privacy|social|trading,4,trading
+209,177,177 polymarket 8 ball,an 8 ball that gives you answers based on polymarket odds,,0,tools
+210,176,176 crypto shazam,shazam but for token vibe,gating,1,gating
+211,175,175 image search,"search the chain for similar images, discover its source, or explore related content.",social,1,social
+212,174,174 polymarket deposits,redesigned betting flow to make deposits as simple as possible,,0,tools
+213,173,173 smart contract work,founders will appreciate this,,0,tools
+214,172,172 stack to split,split the bill by stacking devices,,0,tools
+215,171,171 handshake,,,0,tools
+216,170,170 donation blink,a solana blink to donate memecoins to fundraisers without leaving the feed,social,1,social
+217,169,169 reveal,hard press to reveal an nft's utility,,0,tools
+218,168,168 wallpaper,wallpapers are the new rolexes,,0,tools
+219,167,167 chaincard,"postcards are great. you can pin them to your fridge or add to a scrapbook. 
+
+you don’t have that kind of creative freedom with digital postcards. but if they’re onchain, you might.
+
+you can take it with you anywhere on the internet to display and remix.",identity,1,identity
+220,166,166 curator score,"instead of onchain tipping, use attestations to accrue an onchain rating (i.e. curator score)",,0,tools
+221,165,165 dating app,a dating app that builds a profile based on holdings,identity,1,identity
+222,164,164 calculator,"met someone last night who was like 
+
+""oh you're the guy that makes things like 'when i open my calculator app i should be able to connect my wallet!'""",,0,tools
+223,163,163 infinite mint,what if you had to get to the end of an infinite canvas piece to mint it?,art,1,art
+224,162,162 marketplace listings,"tokenizing things doesn’t just make them easier to resell, it makes them easier to resell in more places.
+
+list once, post everywhere.",,0,tools
+225,161,161 bank permissions,there's gotta be a way to abstract on/offramping so you can just connect smart wallets and spend directly from your bank and when that becomes real you'll be able to control permissions from your bank app instead of your wallet.,privacy,1,privacy
+226,160,160 bank smart wallet,what if you could create a smart wallet from your mercury bank account and you could spend your fiat onchain (abstracting away on and offramping)?,,0,tools
+227,159,159 web3 social,"“web3 social” is very misunderstood. 
+
+it's not about creating a new social platform, it’s about making every app a social platform.",,0,tools
+228,158,158 broadcast signatures,onchain notifications makes it really easy to discover what your friends are minting. i wish the same was true for apps my friends are using so i can find new apps to use.,art|social,2,art
+229,157,157 leases,tokenized rental agreements so you can transfer and resell ,,0,tools
+230,156,156 web2 airdrop,"which web2 company will be the first to airdrop their earliest, most loyal and most active users?",rewards,1,rewards
+231,155,155 smart limits,gm. i had a lot of fun last night. maybe a little too much fun. smart wallets fixes this.,,0,tools
+232,154,154 data ownership,we won't be able to have the kind of life-changing experience with LLMs until we can truly absolutely positively own our data online,,0,tools
+233,153,153 pump dot calm,what if pump dot fun was calm?,,0,tools
+234,152,152 train-to-earn,"let's assume we get to the point where most of our browsing data, purchase history, media we own and other personal information is onchain (privately, of course).
+
+what if you could stake your data to train AI models and earn a revshare?",agents|invest|payments,3,payments
+235,151,151 airdrop tip,airdrop culture is getting out of hand,rewards,1,rewards
+236,150,150 merchant tumbler,"now that the sec has backed off ethereum, can we bring back tumblers for registered businesses so that i can buy my coffee with usdc without you all tracking my whereabouts?",payments|privacy,2,payments
+237,149,149 holder nearby,what if you can get alerts when holders are nearby?,,0,tools
+238,148,148 rent this song,"interoperable music makes things interesting. yesterday i explored what it might look like to play your music nfts in any environment you enter, like in your uber ride.
+
+but what would it take for this to be economically feasible for artists?
+
+it might not make sense for an artist to sell cheap open editions that allow permanent streaming rights.
+
+so maybe there's a way to time box use while maintaining a permanent record of ownership (for social purposes).
+
+i know very little about the music industry, so this could be completely off base, but i wonder how realistic it is for an artist to rent their songs for non-commercial use using subscription nfts (""non-commercial"" is the key word here).
+
+that could ensure the artist gets paid directly while giving you the ability to play their song on any app and across any website.
+
+it could open up an entire new ecosystem of streaming players and streaming use cases:
+
++ play a song on your profile
++ use a song for your video post
++ use a song as an input for ai music generator
+
+etc.",agents|art|identity|privacy,4,agents
+239,147,147 stream anywhere,"the thing about tokenizing and owning digital things, any app can take advantage of it.
+
+for instance, uber could let you play music nfts during your ride without needing spotify's permission or paying for their api.
+
+it's your music. you can play it wherever you want.
+
+of course, at the point in time this becomes a reality, we won't be calling them ""music nfts"" but i'm using the term we know now to make a point.
+
+and obviously a lot needs to change in the music industry before this becomes real. 
+
+someone still needs to be paid when a song is played. something i'll explore tomorrow.",privacy|social,2,social
+240,146,146 fan reward,"this is why i love crypto so much.
+
+fred again is playing his first stadium show, the biggest of his career after his meteoric rise. 
+
+before the show, he personally tracked down the 150 people that attended in 2021 before he blew up and invited them to a secret listening party.
+
+if ticketing was onchain, fred would always know who his early fans were and which shows they attended without needing to rely on ticketmaster, dice, etc.
+
+at its core, onchain ticketing is basically a public database of attendance that no single company can own or gate keep.
+
+it’s not always about coins and their prices.
+
+sure, if you had a ticket to one of fred’s early shows you could probably sell it for a lot of money.
+
+but…
+
+not only would fred be able to immediately identify you as an early fan, but he’d also be able to automatically send an invitation to one of these secret shows.
+
+he could program conditions around the invitation too. for example, he could say every person that attended my first LA show will receive a NON-TRANSFERABLE ticket to my secret listening party (as a way to combat toxic resellers). 
+
+he could perform in any city and program merch sales so that anyone that attended a previous show gets free merch.
+
+you can probably imagine an infinite number of scenarios. there are so many creative possibilities for artists to express their gratitude for early fans.
+
+and on the flip side, it gives fans the opportunity to express their gratitude too. 
+
+i personally traveled to multiple cities just to see fred perform on his 2022 tour. 
+
+i wish i had a way to prove that and signal my fandom, even if it had no financial upside.
+
+i haven’t thought too deeply about why exactly but it feels good to make my enthusiasm for his music known.
+
+his music has powered a lot of memories that mean a lot to me.
+
+we’re a ways away from this happening, but i hope someday he’ll continue creatively rewarding his early fans. and i hope im one of them.
+
+and i hope its tokenized so i can brag about it.",gating|rewards|social,3,social
+241,145,145 gift ideas,what if you could use onchain history to suggest gift ideas?,,0,tools
+242,144,144 smart wallet paymaster,a mobile browser extension that allows you to make your EOA the paymaster for any smart wallet you've created.,,0,tools
+243,143,143 connect to EOA,"smart wallets can fragment your onchain identity.
+
+what if there was a way to associate a smart wallet with your EOA so you can spend existing balances without moving funds around.",identity,1,identity
+244,142,142 mint hunter,,art,1,art
+245,141,141 siri app intents,"siri/app intents can stitch together web2 and web3
+
+examples:
+
++ create trade conditions based on news
++ send usdc to a contact from a calendar event
++ mint an image from the photos app
++ send cal invites to holders of a token
++ purchase something when exercise rings are closed",art|gating|payments|trading,4,art
+246,140,140 mattress,"money in your mattress > money under your mattress
+
+i wonder what other obscure objects can serve as hardware wallets.",,0,tools
+247,139,139 vinyl records,"collecting vinyl records have become a deliberate act of preserving music culture.
+
+it's hard to imagine a future where record collecting doesn't evolve into music nfts.
+
+some thoughts 🧵
+
+record collecting revolves as much around displaying as it does creating.
+
+the thrill of the hunt and the art of crate digging (searching for obscure artifacts, often by thrifting) is a core part of the experience.
+
+crate digging is about discovering rare and obscure records that few others have.
+
+It's about uncovering hidden gems through hours of searching.
+
+and everyone loves a good hidden gem. why?
+
+first, it's way to demonstrate superior knowledge, taste, and status through the rarity and eclecticism of their finds.
+
+collecting can often be a status game.
+
+but hidden gems also have financial value.
+
+if you're reading this, you've likely collected an nft, so i don't need to explain the social and financial upside of owning  rare/coveted artifacts.
+
+*especially* if you collect something from an artist before they become more popular.
+
+music nfts not only add new possibilities to the form factor of collecting, but they also add new possibilities to the way they can be collected.
+
+it might not be the dominant way we discover and consume music, but there will inevitably be   limited releases of music at some point in the future via music nfts.
+
+imagine exclusive tracks:
+
++ airdropped to top streamers
++ claimed at a live show
++ sold as a limited-edition release
+
+and the only way to hear the track/album is by owning it.
+
+the entire meatspace becomes a giant crate to dig, not just secondhand record stores.
+
+learning musical history and connecting to a genre's culture becomes more fun and spontaneous.
+
+and if that ever happens, there's bound to be  an ecosystem of products that form around these new music collectibles: both hardware and software.
+
+things we display in our homes and personal spaces, where we most express our taste and identity.
+
+the interfaces will focus more on displaying the historical provenance of a collectible than on the playback experience.
+
+the core part of the ux is the story behind the track, and the ease of displaying and sharing with others.",art|identity|rewards,3,art
+248,138,138 thoughts on minting,"my instinct while watching roaringkitty was:
+
+""i wish i could mint this""
+
+at some point in the future, it becomes a cultural artifact. proving you were there when kitty resurfaced will have social value and surely some financial upside.
+
+the ability to mint anything (read: capturing some material from a moment in time) adds a new dimension to collecting—what is considered a basic human instinct.
+
+instead of vinyl records, stamps, sneakers or baseball cards, imagine you can tell a richer story about yourself with moments.
+
+because that's why we collect anything at all, isn't it? 
+
+we want to evoke memories and tell a story, and ultimately use that to connect with others who share our interests and values.
+
+maybe someday we'll get to a point where peeling off a small piece of a moment on the internet can become completely ubiquitous.",art,1,art
+249,137,137 read attestation,"the blockchain is great for verifying successful transactions, but sometimes you just want to confirm the recipient saw the funds or media you sent to them.",,0,tools
+250,136,136 tokenized agent,"if ai agents were tokenized, they could be ported and accompany you into any website or app to offer a helping hand.",agents|trading,2,trading
+251,135,135 ui skins,"someday, you'll be able hold a UI token that transforms the look and feel of every app for only you.",gating,1,gating
+252,134,134 psychographics,"psychographic personas are a massive and underrated design unlock.
+
+i'll demonstrate why, using michael saylor and ansem as examples for a trading product:
+
+users should be at the core of every design decision.
+
+but how do you do that, exactly?
+
+by creating fictional characters based on real data to tell compelling stories about user needs.
+
+psychographics are a necessary ingredient for rich and actionable storytelling.
+
+unlike demographics (like age, gender, and location), psychographics (personality, values, and interests) dive deeper into motivations and tendencies.
+
+let’s use a really simple framework to create our personas—the Big Five personality traits:
+
+1. openness: curiosity, imagination, and willingness to try new things.
+
+2. conscientiousness: being organized, dependable, and self-disciplined.
+3. extraversion: sociability, assertiveness, and tendency to seek stimulation.
+
+4. agreeableness: being cooperative, compassionate, and trusting.
+
+5. neuroticism: tendency to experience negative emotions like anxiety, depression, and mood swings.
+
+now let's plot ansem and saylor along this framework.
+
+(idk much about their personalities, so i'll make a guess)
+
+for the sake of argument let's just say saylor is more conscientious and ansem is more open and extraverted.
+because saylor is less open, we can assume he likes things that are familiar and straightforward.
+
+the ui should look and feel like other financial tools he's used to, avoiding any experimental interface designs.
+ansem would hate that.
+
+being very open and extraverted, he loves new experiences and actively seeks out stimulation.
+
+it would be worth investing in dynamic visuals, animations, and interactive elements to keep him engaged.
+
+with low conscientiousness and moderate neuroticism, ansem tends to be impulsive and seeks instant gratification—so it's worth making real-time price action the focal point.
+
+he'll also respond well to gamified features, so there's reason to prioritize ideating ways to gamify P/L.
+
+impulsive tendencies can also often translate to a willingness to move fast and emotionally, which means we can assume any over the top security features will become a frustrating burden for him.
+
+i'd probably prioritize mobile since he's most likely not using a hardware wallet.
+
+whereas saylor's personality is more conservative, he'll go out of his way to use a hardware wallet.
+
+he also requires more detailed and structured data because of his high conscientiousness.
+
+he'll prefer high info density with sections and tabs to stay organized.
+
+give him a web ui. he'll never use mobile for important actions.
+
+he moves deliberately, reads whitepapers, and researches thoroughly so he'll appreciate an easy way to navigate technical data.
+
+because he's not neurotic or agreeable, you can expect him to be skeptical and prefer clear, unemotional messaging in the ui.
+
+saylor's low extraversion means he might have a hard time taking social features seriously.
+
+but a product with forums, chat, and social proof will be much more sticky for someone with ansem's extraversion.
+
+this exercise hopefully shows how vastly different a product might be when you prioritize one over the other.
+
+there is certainly no way to appeal to both, and that's an incredible design constraint.
+
+granted, this is an oversimplified example. but it hopefully demonstrates how a small amount of personality context can go a very long way in the design process.
+
+these insights can be applied to the design strategy (how it should work) and also have tangible implications on the ui (how it should look).
+
+there is no one way to present a persona. as long as it's based on real observations and, most importantly, prioritized, it will help you tell a story.
+
+in the early stages of the design process (before testing and prototyping), stories are the ultimate measure of success for a design.
+
+it's a shared reference across everyone working on a product, a guiding force and lens to evaluate a design.
+
+it's the basis for decision-making.
+while psychographics remain a debated tool (they can create unnecessary bias, be too ambiguous compared to other user-centered methods) they're my secret weapon for early stage ideation.
+
+i recommend giving it a try. if you want more tips on how to get started, shoot me a dm.",agents|identity|messaging|trading,4,trading
+253,133,133 find my friends,use onchain activity to get realtime tracking on what apps your friends are using,social,1,social
+254,132,132 supply chain variances,"apparently, the fda allows +/- 20% variance on nutrition facts.
+
+if the food supply chain is onchain, we'd be able to see the exact ingredient sources and have dynamic food labels.",,0,tools
+255,131,131 fingerprint signer,smart wallet final form: signing transactions with your fingerprint.,,0,tools
+256,130,130 documents,"i lost my ID and it's been a pain to get a physical replacement.
+
+what would it take to make having a digital version of your documents (IDs, insurance cards, etc) secure, private and easily accessible across devices?
+
+because, you know, wallets are for more than money.",privacy,1,privacy
+257,129,129 proof of capture,an iteration of yesterday's concept: camera hardware with an embedded wallet for authentication.,,0,tools
+258,128,128 point of capture,"the only way to truly verify the authenticity of a photo is to directly mint onchain at the point of capture.
+
+embedding wallets into cameras can assure that a photo's metadata—including device, location, timestamps, etc.— is recorded onchain before it's edited or tampered with.",art|identity,2,art
+259,127,127 tradable content,"it's crazy to see a-list celebrities try to monetize attention with memecoins.
+
+at what point will the content in our feeds become tradable?",,0,tools
+260,126,126 streamint,"if you could have a piece of all the content you consumed, over a long enough time horizon you would surely have some upside on things you discovered early.",,0,tools
+261,125,125 streaming buffet,"hear me out:
+
+endless shrimp bankrupted red lobster. crypto fixes this.
+
+let's form a DAO, buy the company, drop a token, and replace all-you-can-eat shrimp with streaming token payments.
+
+who's in?
+
+(i think i'm officially out of ideas)",gating|payments,2,payments
+262,124,124 programmable etf,"an eth etf is great and all, but just wait until spot investors learn about programmable money.",,0,tools
+263,123,123 skip the line,"i know it's a cliche at this point, but using the chain to prove and reward true fans is still one of the most exciting use cases.",rewards,1,rewards
+264,122,122 default connected ,"what if you never needed to press ""connect"" and you're default logged in to every app?
+
+the browser already knows your primary.",wallet,1,wallet
+265,121,121 recall,"microsoft recall is extremely creepy but it's honestly really well suited for my onchain activity.
+
+it's impossible to find things i've minted more than a few days ago and would be nice to have a semantic search.",,0,tools
+266,120,120 swap to utility,what if the swap/mint/trade confirmation screen directed you to the token's [enter utility]?,art|gating|trading,3,art
+267,119,119 car wallet,"what would you do if you could connect your wallet to your car?
+
+i'm not sure i nailed a good use case here, but it's a good thought experiment to consider:
+
++ how would you interact with other drivers?
++ what dapps could be useful?
++ what kind of streaming payments could be made?
+
+etc.
+",payments,1,payments
+268,118,118 context,what if your transaction history could give you context on things you received?,,0,tools
+269,117,117 swipe staking,"the stakes need to be higher to convert dating apps from entertainment to an actual way to meet people.
+
+literally—you should have to stake funds in order to match and have it slashed if you don’t respond within 24 hours.",invest|social,2,invest
+270,116,116 condom,"ok hear me out: sometimes i want to try a new wallet but i don't feel safe importing private keys.
+
+what if i could generate a new, delegated wallet that can pull funds from my primary wallet and passes all mints back to my primary (non-imported) EOA wallet.",gating|privacy,2,gating
+271,115,115 neighbor score,"i realized it too late but a better example of a neighbor score would have been on zillow, where you could see if you had any interests in common with your neighbors based on onchain history.
+
+(anonymously, obv)",,0,tools
+272,114,114 email opt-in,"what if we used zkproofs to opt-in to email lists without revealing our contact info?
+
+this would allow brands to reach us (via some private messaging relayer) at whatever preferred communication method without worrying our info will be shared/leaked/sold to other spam marketers.",messaging|privacy,2,messaging
+273,113,113 car mode,"a simplified swap interface with an amount slider and oversized buttons, designed for use while driving",trading,1,trading
+274,112,112 node,what if running a node was beautiful?,,0,tools
+275,111,111 block explorer filters,filter a block explorer feed for things,agents|social,2,agents
+276,110,110 listening to,a block explorer that also shows your streaming activity,,0,tools
+277,109,109 fedex oracle,what if fedex was the onchain oracle for peer-to-peer marketplaces?,,0,tools
+278,108,108 POAP airdrop,partiful option to get the POAP airdropped when you arrive,rewards,1,rewards
+279,107,107 tip the dev,we've seen tipping users. but what if you can tip the devs of an app or website you're enjoying?,,0,tools
+280,106,106 sticky notes,"in a more interoperable internet, we'll be able to leave notes for our friends on any website in any browser.",social,1,social
+281,105,105 gift tracker,one of the benefits of transparent blockchains that no one is talking about is being able to track when someone resells a gift,,0,tools
+282,104,104 tap to tip,tap devices to trigger a degen tip,,0,tools
+283,103,103 boomerang funds,"there are so many interesting consumer crypto apps worth trying and testing.
+
+the problem is most of them require a balance to fully experience (i.e. to mint things, swap, etc).
+
+what if you could load a wallet and have funds automatically returned after a trial period?",art|trading,2,art
+284,102,102 magic payment method,"i'm absolutely blown away by @WilsonCusack and the smart wallet team's work with magic spend—transacting with your exchange balance without needing to transfer to your wallet.
+
+i may be jumping the gun here, but if you can pull funds from an exchange at the point of transaction, couldn't you also technically pull funds from your bank or other fiat sources too?
+
+(by bundling both the exchange onramp and onchain transfer)",payments,1,payments
+285,101,101 credit card,"what if you never needed to load a wallet?
+
+what if you could just connect a credit card and you would be charged based on the final settled amount?
+
+this obviously shouldn't be the primary way to transact, but should be an option for those that don't want to tolerate the friction of onramping.",,0,tools
+286,100,100 intersubjective membership,"eigen layer recently introduced the idea of an ""intersubjective work token.""
+
+why are many excited about this? intersubjectivity has been a thing that smart contracts have had difficulty accounting for: an objective outcome that requires opinion and consensus. and this mechanism provides a way to make forking easier based on social consensus.
+
+but why should anyone care? are there consumer use cases?
+
+here's one: imagine a membership token where the group wants to revoke the membership for an individual.
+
+they can vote to fork the token with an updated balance that excludes the exiled.",gating,1,gating
+288,99,099 auto-claim rewards,your wallet recognizes when you regularly claim rewards and suggests a recurring transaction to check reward balances and claim on your behalf,rewards,1,rewards
+289,98,098 phone a friend,request a quick trade with a friend when you encounter a swap in your wallet that can't be completed,trading,1,trading
+290,97,097 resy attestations,"restaurant reservations in new york city are getting out of hand.
+
+sure, you can tokenize the reservation and create an efficient secondary market. even cut in the restaurant on the resale.
+
+but it would still be riddled with resellers. what if you could gate priority access for the most deserving customers?",gating|trading,2,trading
+291,96,096 mint symbol (collect),"a follow on from yesterday's concept for a ""create onchain"" symbol.
+
+i'm going to hard disagree with anyone proposing arrow alternatives.
+
+what's more important than indicating the ""onchain"" aspect is the *creating* vs *collecting* distinction.
+
+the visual relativity and directionality is what matters.
+
+we use ""mint"" to describe both and it's confusing as fuck.",art|social,2,art
+292,95,095 mint symbol (create),"EDIT: updating with arrow up based on feedback.
+
+i'm by no means an expert icon designer, but we need a universal symbol for publishing content onchain.
+
+whatever it ends up being needs to illustrate the concept of creation and authenticity, scale to small sizes, transcend cultures, and use clean and bold lines.",art,1,art
+293,94,094 starter quests,showing quests when you create a new wallet so you have the option to earn rather than buy crypto.,payments,1,payments
+294,93,093 hide transaction,"i don't know how we're going to get it done, but we need to make hiding embarrassing transactions happen",,0,tools
+295,92,092 approvals,view all approvals in your wallet and set a recurring schedule to revoke all.,,0,tools
+296,91,091 social block explorer,"the chain knows all, but it's too much work to get questions answered about someone's onchain presence.
+
+there should be an LLM powered search engine on every decentralized profile.",agents|identity,2,agents
+297,90,090 invite gating,token-gate who can invite you to group chats,gating,1,gating
+298,89,089 refresh keys,"i know it's not possible, but i wish there were a way to rotate private keys the way we do passwords.
+
+i want to maintain wallet longevity.
+
+i'm less worried about losing assets and more worried about losing the years of reckless (but rich) onchain history with my hot wallet.",privacy,1,privacy
+299,88,088 social proof swaps,see which farcaster friends are holding a token before you swap,gating|social|trading,3,trading
+300,87,087 delegate trading,"the best part about trading memes is doing it with friends—making and losing money together, sharing laughs, etc.
+
+but between checking group chats, doing due dilligence, copy and pasting addresses and triple checking that everything is correct, sometimes it's just too much work.
+
+it would be great to just let my friends trade for me a bit when i'm tied up or experiencing swap fatigue.
+
+sure, you can set up a party wallet and delegate trades to one or more people, but then that's yet another place where i'd have to navigate to and check balances.
+
+i'd rather just hand over funds to a friend for a bit.",social|trading,2,trading
+301,86,086 wallet tooltip,what if the wallet ui appeared next to the click instead of in a new browser window?,wallet,1,wallet
+302,85,085 stepper,a stepper to both connect and submit the transaction without app switching.,,0,tools
+303,84,084 single balance,normalize showing a single balance across all chains,,0,tools
+304,83,083 chat roulette,chat roulette but set filters for holdings and onchain activity,messaging,1,messaging
+305,82,082 memecoin marketplace,"a marketplace dedicated to memecoin trading, where you can see key pricing metrics alongside more qualitative attributes like active members and onchain memes associated with the token.",gating|privacy|trading,3,trading
+306,81,081 channel pass,what if you could only gain a channel pass (ability to post in a farcaster channel) IRL?,gating,1,gating
+307,80,080 swap courier,doordash courier that swaps your coins for cash,trading,1,trading
+308,79,079 request,"the receive button in most wallets should be a request button.
+
+usually receive means copying an address, and there are more efficient ways to retrieve that.
+
+request should send a push notification to another user for a venmo-like payment request.
+
+it can be done using something like xmtp (which coinbase wallet and a few others use) network level consent for preventing spam and filtering for trusted contacts.",payments|wallet,2,payments
+309,78,078 reconnect,a connect button that remembers your previous wallet choice combinations,,0,tools
+310,77,077 summarize thread,"i'm not even sure how useful this would be but i would love to have an LLM read the replies on casts with hundreds of them and give a summary.
+
+this could help dodge spam and instantly understand the context and sentiment about a topic.",agents|messaging,2,agents
+311,76,076 actions,press and hold to reveal cast actions,,0,tools
+312,75,075 content,"onchain actions are content too.
+
+warpcast can continue to differentiate itself from twitter once and for all by incorporating onchain activity into the feed.
+
+obviously, you need to give the user control to opt in and out of surfacing wallet activity in the feed. but often times mints and trades are the most authentic forms of content.",social,1,social
+313,74,074 high-effort replies (proposal),"using social proof and visual cues to increase high-effort replies:
+
+research has found that simply seeing faces, even briefly, activates the part of our brain that recognizes friends, priming us to be more social and engaged.
+
+seeing familiar faces within proximity of content in the feed of friends provides a powerful social motivation, incentivizing people to interact.
+
+when users see their friends have interacted with a post, they perceive the content as more valuable and are more motivated to engage with intent.
+
+once users are primed and motivated to engage, the interface should adapt and nudge the action. in this case, it could be as simple as presenting the input directly within the content (eliminating the extra click).
+
+a study from NIH found that users were significantly more likely to provide a well-formed, substantive response to an open-ended question when presented with a prominent text input.
+
+in short, pairing familiar faces (social proof) and prominent inputs can potentially improve users' motivation to engage with high-effort replies.",messaging|social,2,social
+314,73,073 connect options,"when connecting to a wallet that has a wallet browser, i never get the option to connect without being pushed into the in-wallet browser.
+
+i want the choice to only connect.",wallet,1,wallet
+315,72,072 friend noti,get notified when your friend joins the chain,,0,tools
+317,71,071 chat suggestions,telegram suggests group chats to join based on your onchain activity,messaging,1,messaging
+329,70,070 downvote,take warps when someone casts something you don't like or disagree with,,0,tools
+330,69,069 parental controls,"create an onchain allowance and limits for your kids.
+
+memecoins aside, this applies to everyday purchases too.
+
+it's the onchain equivalent of giving your child your credit card, which can give parents a lot more flexibility and control over spending.",,0,tools
+333,68,067 tip the message,tip degen to a single message in the chat,messaging,1,messaging
+334,67,066 generated bio,the chain knows you better than you do,,0,tools
+337,66,065 shopping cart,interoperable shopping cart—build a cart across multiple websites and get discounts on your entire order,,0,tools
+338,65,064 security alert,get notified when your seed phrase is entered in another wallet,privacy,1,privacy
+339,64,063 allowance,would people treat you differently if they could see what your degen allowance was irl?,social,1,social
+340,63,062 you might also like,get product recommendations based on the memecoin you're trading,trading,1,trading
+341,62,061 tuner,tune your social feed using a text prompt,social,1,social
+342,61,060 chat ticker,trade in the chat,messaging|trading,2,trading
+343,60,059 incognito mode,Transact from a proxy wallet to avoid notifying onchain followers,social,1,social
+344,59,058 interoperable chats,view any chat in any chat app,messaging,1,messaging
+345,58,057 proof of focus,"Internet addiction is an equally beautiful and terrifying thing. 
+
+On the one hand it’s a trait a lot of people in the crypto universe share and that common way of being in the world brings folks together across different backgrounds. On the other hand, being so hyperconnected can wreck your mental health and attention span so much that you can’t focus on anything other than doomscrolling.
+
+So, what is the solution here? How do we stay online but reclaim some ability to concentrate on meaningful activities, whether that is work or play? I think the answer has more to do with sticks than carrots and that is what we’re trying to explore with Proof of Focus.
+
+This concept works in several steps. 
+
+First, select behaviors you want to avoid (and for a specific window of time). For example, checking TikTok on your phone over the next 3 hours. Second, stake ETH as collateral for the purity of your attention. Let’s say 0.1 ETH here because you have an important memo you need to write for work. Third, if you participate in any of the behaviors on your blacklist during the specified window, that staked ETH is slashed. Check TikTok? Say goodbye to the ETH.
+
+What this offers people is a mechanism for putting digital skin in the game. Do you really want to concentrate? Then bet on yourself. When you’re tempted to break your workflow and go check social media a ‘Proof of Focus’ stake would create an actual cost to that interruption, and the hope is that would be enough to keep you (more) on task.",invest|social|trading,3,invest
+346,57,056 component token,design everydays don't have much utility but what if they were component tokens that you can one-click add in your code editor.,gating,1,gating
+347,56,055 meme editions,"updated 6/19/24:
+
+life after memecoins. i have an idea, hear me out:
+
+i think we can build an attention economy on top of open editions.
+
+let me explain.
+
+we formed markets around the variations of erc-721s, some metadata was valued more than others (i.e. hoodie punk is better than mohawk punk).
+
+they were more expressive and created new status games on the internet, which made crypto fun because it pushed it into mainstream culture.
+
+but the problem is the jpegs are far less liquid.
+
+so we went back to trading attention around erc-20 tokens (aka coins). the coins could be bought and sold a lot faster and with less effort.
+
+but what we gained in velocity and liquidity, we lost in social expression (the thing that arguably made nfts so fun).
+
+so here we are on two extreme ends of the degen spectrum.
+
+but what if there was something in the middle? pictures with high fungibility that can be traded like shitcoins but  also let you visually express your taste.
+
+what’s the difference between trading $wif and trading a million erc-1155 pictures of dog wearing the hat?
+
+i’ll tell you what the difference is. with 1155’s we can trade actual media like shitcoins.
+ 
+boom. that’s it.
+ 
+now instead of trading tickers, we can not only trade memes but we can trade ART, MUSIC, WRITTEN ESSAYS, PRODUCT ANNOUNCEMENTS or whatever the fuck else we’ve been minting as worthless open editions the last few years.
+ 
+and we can trade them at the same velocity as highly fractionalized tokens that alsooooo have the visceral material that we can connect to emotionally (a fancy way of saying “jpegs” basically).
+
+how fucking cool would that be?
+ 
+why can’t we create market makers for a @jshorne essay, a @jackbutcher or @0xlght  art piece, an @rac or @imdanielallan track, a @ufo__club or @chaserchapman podcast episode, those creepy looking @farcaster_xyz protocol upgrades?
+ 
+we should normalize minting onchain media with a supply in the bajillions so they have the liquidity of these lame coins we’re sloshing money around in.
+
+the thing that’s missing is a user-friendly marketplace or AMM protocol, an idea i’ve explored before and honestly thought was really stupid until now… 🤔
+
+it adds another substantial dimension to this attention economy that we're all trying to create generational wealth in.
+
+that added dimension creates space for culture, all kinds of culture, especially the ones that transcend crypto twitter.
+
+it opens up the market for all kinds of creative output.
+
+and gives power to tastemakers, curators, and tribes and gives us the chance to relate to one another via ownership again.",art|identity|trading,3,art
+348,55,054 used items,an iyk badge on ebay that tracks all the dirty places a chipped used item has been worn,identity,1,identity
+349,54,053 friend reviews,someday you'll be able to port your social graph into any app and filter down reviews/recs from only friends.,agents|social,2,agents
+350,53,052 data offer,own your data and get paid to share it,trading,1,trading
+351,52,051 ad preferences,"future of advertising: ad networks are inevitable, but crypto unlocks more control over what you see across the entire web (not just a single platform)",,0,tools
+352,51,050 bounties,future of work: bounties that find you.,,0,tools
+353,50,049 multiplayer shop,a decentralized multi-player shopping cart where you can add items across different websites.,,0,tools
+354,49,048 image source,if media publications sourced images from the chain,,0,tools
+355,48,047 disappearing photo,using proto-danksharding (eip-4844) to mint photos onto temporary block space.,art,1,art
+356,47,046 collect call,i know we don't do collect calls anymore but it would be interesting to think about how it would be implemented on the blockchain,,0,tools
+358,46,045 pay gas from,rainbow option to select another wallet to pay gas from,payments,1,payments
+359,45,044 last seen,"What if there was a single interface that showed what your friends have been up to onchain?
+
+So and so was last seen in January getting liquidated trading $BONK perps.
+
+That girl you met at ETHDenver was last seen minting 3 NFTs from a new photography collection.
+
+0xngmi was last seen scanning his eyeballs in Worldcoin orb #14 for an airdrop.
+
+And so on.
+
+There is something so fun and social about being able to passively check in on people you know. We already do this by tracking the music our friends are listening to on Spotify, seeing the games folks are playing on Steam in real time, and even following location updates in Snapchat, but there is no intuitive way to do this for onchain activity.
+
+At least, not yet.
+
+—Ben Roy",art|rewards|social|trading,4,art
+360,44,043 ringtone,ringtone nfts,,0,tools
+361,43,042 double or nothing,Would you?,,0,tools
+362,42,041 report content,option to request reward splits when someone uses your shit onchain,rewards,1,rewards
+363,41,040 health meter (erc-404),"a playable fighter avatar as an erc-404, with tokenized units of health that are burned in-game and can be regenerated by purchasing on a decentralized marketplace.",identity,1,identity
+364,40,039 book a flight,"purchase a flight with onchain points and verify multiple government-issued credentials across different chains in a single transaction.
+
+all powered by @zksync.
+
+--
+
+the most interesting thing i learned after briefly working with @zksync is it's not just privacy tech.
+
+it makes the data across different blockchains more interoperable and efficient.",identity|payments|privacy|rewards,4,payments
+365,27,026 pinch to confirm,a more natural way to interact with the blockchain,,0,tools
+366,2,002 instant checkout,"the most obvious future state of interactive content:
+
+🤑 instant checkout
+
+no more external checkout links. no more forms. user info and address at some point will be built in to our onchain identities.
+
+and affiliate attribution is clear.",payments,1,payments
+367,16,016 superbowl quests,creating an onchain quest seems like the only logical next step for temu after dominating the superbowl,,0,tools
+368,15,015 medical records,"we can’t have AI healthcare without owning our health records.
+
+and we can’t own our health records without private and secure blockchains.",agents|privacy,2,agents
+369,39,038 penalize devs,penalize the devs when Warpcast goes down,,0,tools
+370,14,014 erc-404,,,0,tools
+371,13,013 onchain ctg,"crypto: the game didn't need to use crypto.
+
+but here's why it should in the future:
+
+so you know who your real friends are... everywhere you go.",social,1,social
+372,1,001 shotgun mint,mint on multiple chains simultaneously,art,1,art
+373,28,027 run-gating,run-gated mint of an edition from your favorite digital artist,art|gating,2,art
+374,26,025 fractionalized profile,multiple owners for a single farcaster id,identity,1,identity
+375,38,037 tipping,a new place for a classic interface,,0,tools
+376,37,036 default wallet in tab,a browser option to select different wallets to default for different tabs,,0,tools
+377,36,035 vitalik also bought,"the most important part of tokenizing physical products isn't proof of authenticity, it's proof of interest.
+
+i just want to know what my friends like, and befriend the likeminded.",social,1,social
+378,35,034 bank conversion,chase option to convert your bank account to a web3 wallet,,0,tools
+379,34,033 interoperable algos,"if search engines were decentralized, you could swap out composable search algorithms like game cartridges.",trading,1,trading
+380,33,032 fork spotify,if spotify was a protocol,,0,tools
+381,32,031 rewards staking,a rewards program where you stake eth and earn free coffee and with the yield,invest|rewards,2,invest
+382,31,030 airdrop radius,option to airdrop an nft to every wallet within a specified range,rewards,1,rewards
+383,30,029 return pools,return on sudoswap—a liquidity pool for decentralized returns and chargebacks.,trading,1,trading
+384,29,028 capture the flag,"capture the flag, an erc-721",,0,tools
+385,12,012 airbnb network ownership,"what if airbnb created a network of properties that you could buy ownership in via a token?
+
+it would have the same equity building benefits of homeownership while offering the flexibility of renting.",gating|payments,2,payments
+386,11,011 ama frame,how would this work?,,0,tools
+387,10,010 gated frame,token-gate frame interactivity and content reveals,gating,1,gating
+388,9,009 dating.tech,"how about datingtech
+
+it's friendtech meets omegle, except the chat is anon and only reveals if you buy the other person’s key.",messaging|payments|privacy,3,payments
+389,8,008 vr treasure hunt,,,0,tools
+390,7,007 physical art,what will we do with our physical art in the era of spatial computing?,art,1,art
+391,6,006 imessage mints,imessage contact details shows you mints in common,,0,tools
+392,5,005 calendar explorer,a calendar view that shows your onchain activity throughout the day,,0,tools
+393,4,004 frame gestures,"
+0xdesigner💩
+@0xdesigner
+·
+1mo
+frames are great, but i'm sure we can all agree that the accompanying buttons aren't pretty.
+
+instead, how about native gestures?
+
++ press and hold
++ swipe
++ pinch
+
+etc",,0,tools
+394,25,024 tip settings,warpcast tip settings,,0,tools
+395,22,021 bail outs,a proprietary yuga dashboard to track potential acquisitions,,0,tools
+396,24,023 interoperable f/channels,"sufficiently decentralized social networks should scale beyond just more twitter clones.
+
+you can build unique experiences around specific communities.
+
+for instance, imagine if peloton created a separate leaderboard for active /fitness users.",social,1,social
+397,23,022 translator,a twitter feature to translate colloquial language into corporate speak,,0,tools
+398,21,020 txn llm,a rainbow wallet LLM that adds commentary in your transaction preview screen,agents,1,agents
+399,3,003 dm frames,"farcaster frames have ignited our imagination.
+
+now imagine what you could do with frames in direct messages.",messaging,1,messaging
+400,20,019 block everywhere (b),what if you could block someone across every messaging app?,messaging,1,messaging
+401,18,018 coin,load your crypto onto a physical coin that can tap to pay,payments,1,payments
+402,19,019 block everywhere (a),what if you could block someone across every messaging app?,messaging,1,messaging
+403,17,017 imessage auto-sell,auto-sell crypto when a designated contact asks about it,,0,tools
+413,346,Mints in Common,Warpcast shows you mints in common (instead of followers in common).,social,1,social
+414,345,Gated Figma Spotlight,Token-gate who can follow you around in Figma.,gating|social,2,social
+415,344,Interoperable Metadata,"Another interesting aspect of onchain media is interoperable metadata.
+
+Ex: a publication uses the chain to source authenticated images that have product links appended to them.",,0,tools
+416,343,Checkout with Staking Rewards,Shopify option to checkout with staking rewards.,invest|payments|rewards,3,invest
+417,342,Housing Marketplace,Decentralized housing marketplace that allows offers on unlisted homes.,trading,1,trading
+418,340,Credit Card Payment,Option to pay off your credit card with crypto.,payments,1,payments
+419,341,Cost Basis,Option to see prices based on your cost basis when you checkout with crypto.,payments,1,payments
+420,339,Export Wallet,"A tokenbound account generated as an embedded wallet.
+
+When the user is ready to take full custody, they can ""absorb"" the tokenbound account their non-custodial wallet.",,0,tools
+421,338,P2P Market,"A peer-to-peer marketplace, facilitated and brokered by AI agents.",agents|trading,2,trading
+422,337,Order Tracking,"If the supply chain were onchain, you could track all of your online orders in a single place.",,0,tools
+423,336,Mint to Folder,,art,1,art
+424,335,Ubiquitous Elections,"If public elections were onchain, they would not only be more secure and immutable, but ubiquitous.
+
+Election ballots can be indexed and surfaced on any front-end, and submissions can be made anywhere on the internet.",,0,tools
+425,334,Transfer Content,"Tokenized social media content that can be transferred and resold across accounts.
+
+Would you claim this tweet as yours if you could?",,0,tools
+426,333,Authenticate Transfer,a token standard for multiple factor authentication required for transfers,gating,1,gating
+427,332,Title Transfer,Smart contracts will one day replace the DMV.,,0,tools
+428,331,Membership Trial,"Wrapped reversible tokens for onchain membership trials.
+
+Use the token for a fixed period. If you like the service after said time, you keep it. If you don't, automatically reverse the transaction and get your money back.",gating,1,gating
+429,329,Pay with Bitcoin ETF,Historic day.,payments,1,payments
+430,330,AI Utility Surfacing,AI that tells you the utility of your onchain media as while you're consuming it.,agents,1,agents
+431,328,Social Recovery,"What if the SEC and other government accounts could make official announcements onchain? 
+
+Publish once and every media or social app indexes the content.
+
+Government accounts would even be more secure with multi-sigs and networked/social recovery.",privacy,1,privacy
+432,327,Onchain Cap Table,"See: balaji's ""The Mirror Table"" (https://balajis.com/p/mirrortable)",,0,tools
+433,326,Streaming Payments,Stream payments in real-time as you consume paid content.,payments,1,payments
+434,325,Mint Multiplier,"Increase the number of mints for a single edition by clicking multiple times or by pressing and holding.
+
+Inspired by the OG medium clap.",art|identity,2,art
+436,324,Intent List,Quickly set purchase intents based on discount conditions using siri.,payments,1,payments
+437,323,Subscription Renewal,"ok hear me out:
+
+i'm not sure if this is net better. but if software subscriptions were onchain, you could set them to require approvals and it would be harder to forget about those annoying auto-renewals.",,0,tools
+438,322,Season Tickets,"Aa single token for season tickets that can be rented during scheduled games.
+
+Advantages of this design are interesting:
+
+1.A single token to track and manage, instead of 41 individual game tokens
+2. Simple smart contract listing logic (list every game 10% above floor)
+3. Verified resale (obviously)
+
+and more!",gating|trading,2,trading
+439,321,Notes in the Margins,append notes and highlights metadata to a tokenized e-book.,,0,tools
+440,320,Kindle NFT,Resell a kindle book when you're done.,,0,tools
+441,319,Online Shopping,"If the supply chain was onchain, we'd be able to shop the entire internet and instant checkout like this.",payments,1,payments
+442,318,Resolution Markets,Prediction markets for your friends' new years resolutions.,social|trading,2,trading
+443,317,Etherscan Away Message,Set your status onchain and verify it on etherscan.,identity|messaging,2,identity
+444,316,Tax Loss Harvesting,Blur suggests items to list to offset your capital gains at the end of the year.,,0,tools
+445,315,Interoperable Fitness Data,Record your fitness data onchain and make intent-based transactions like ordering dessert once you reach your move goal.,,0,tools
+446,314,Copy Trade,An interface notification that let's you quickly copy the trade of someone you follow.,social|trading,2,trading
+447,313,MintBot,"A bot that mints and trades for you with a destination address so that there are no assets held by the bot at any time. Each interaction results in assets ending in your custody.
+
+This would likely also require some form of account abstraction to pay for gas with a separate wallet.",payments,1,payments
+448,312,Tokenized Christmas,A tokenized gift with the option to trade or redeem the physical.,trading,1,trading
+449,311,Follower Suggestions,A blockchain aware twitter that give you follow suggestions based on things you own.,social,1,social
+450,310,344,Add context for wallet watchers when interacting with the chain.,,0,tools
+451,309,Secrets,Keep your secrets safe with safe{wallet}. Use a multi-sig to approve how confidential information gets shared outside of the group.,,0,tools
+452,308,Invite to Earn,Invite your dinner guests via the Resy app and earn a percent of their future spend when they book and pay in the app.,payments,1,payments
+453,307,Onchain RSVP,RSVP onchain and allow other apps to index them and do cool things like tell you which of your friends are attending the same event as you.,social,1,social
+454,306,Crypto's Home Screen,What would you like to do?,,0,tools
+456,305,Timed Revoke,Automatically revoke all permissions after a period of token inactivity.,gating|privacy,2,gating
+457,304,Expiring Mints,"Collecting is preservation.
+
+Mints should expire. Minting should be a way to keep an idea alive.",art,1,art
+458,303,Remove Permissions,Automatically revoke permissions after the transaction is complete after allowing them for a trade or listing.,privacy|trading,2,trading
+459,302,Points,A tab in your wallet for points,rewards,1,rewards
+460,301,Lunch,Order lunch from your wallet.,,0,tools
+461,300,Pay with Credit Card,Connect your credit card and use it as a payment option in your wallet for any onchain transaction.,payments,1,payments
+462,299,Coinbase Bridge,Coinbase is in a unique position to vertically integrate their CEX into the bridging experience and make their L2 hard to compete with.,payments,1,payments
+463,298,Long-Term Mode,"Make navigating volatility easier for high-conviction, long-term investments.",,0,tools
+464,297,Viewed Your Wallet,See who's stalking you onchain.,,0,tools
+466,296,Multi-Sig Message,Send your multi-sig transaction to your cosigners in the chat.,messaging,1,messaging
+467,295,Own Your Library,What if you could actually own your music library and earn streaming payouts on the songs you've collected?,payments,1,payments
+468,292,Open from Wallet,Open files on your computer from your wallet.,,0,tools
+469,293,Swap in Feed,Swap and make purchases directly within a post.,social|trading,2,trading
+470,291,Own to View,"Tokenized online courses. Take the content with you wherever on the internet you go: Opensea, your favorite wallet, or your favorite onchain media player.
+
+Not an access token. The token is the content.",gating,1,gating
+471,290,Gift a Cocktail,A Blackbird option to gift a tokenized cocktail that can be burned to redeem.,,0,tools
+472,289,Onchain GPUs,"Decentralize computing power and purchase onchain when making large, expensive requests. ",payments,1,payments
+473,288,Right Click Mint,"Serious question: Why can't minting be this easy???
+
+No wallet connect, no signature, no ramps, no bridging, no network switching, no browser and wallet ping pong, no transaction preview.
+
+I see a picture, I take a picture. Just give me the fucking thing.",art|identity,2,art
+474,287,NFTs Wrapped,A Spotify-like personalized summary of onchain mints.,,0,tools
+475,286,Proof of Meet,"I met Jacob for the first time today and have nothing onchain to show for it.
+
+But what if i could (using something like iOS Namedrop)?",,0,tools
+476,285,Portfolio Manager,An AI agent that can use its discretion to invest on your behalf.,agents|invest|privacy,3,agents
+477,284,View As,"In the future, the only bridging interface you'll need is a ""View As"" toggle.
+
+Everything else gets abstracted.",wallet,1,wallet
+478,283,Onchain Affiliate,Onchain affiliate splits can be more transparent if more stuff is purchased onchain.,,0,tools
+479,282,Payment Toggle,What if toggling the payment rail was this simple?,payments,1,payments
+480,281,Home Screen Offers,"Accept offers from your home screen.
+
+Now... I know what you're thinking. 
+
+'But 0x, offer bots are going to spam my notifications!'
+
+Then OpenSea should make it easier to find and manage the threshold of notifications.
+
+i.e. Only notify of offers that are at floor or above.",trading,1,trading
+481,280,Airbnb Wallet,What if Airbnb made a wallet?,,0,tools
+482,279,Onchain Sleep Score,"Saw the CEO of Eight Sleep tweet about user sleep data. Thought that was a bit creepy, and we might as well have our data onchain at this point.
+
+The tweet 👉 https://x.com/m_franceschetti/status/1726732560770666979?s=20",identity,1,identity
+483,278,Crossposting,Would there still be waves of topic interest across different platforms if you could crosspost in real time?,,0,tools
+484,277,Smart Tip,"Smart contracts can fix tipping culture.
+
+Instead of that awkward moment at the end of a service, you can set the terms for your tip beforehand.
+
+For example, you can choose to tip your Uber driver only if they get you home on time or faster.",,0,tools
+485,276,Smart Contract Police,"What role, if any, can smart contracts play in reinforcing safe AGI?",,0,tools
+486,275,Round-Ups,Round up all purchases to the nearest 5 or 10 ETH and sweep a collection floor with the change.,,0,tools
+487,274,Stickers,Leave stickers (NFTs) on any web page for anyone to peel.,,0,tools
+488,273,Manage Listings,Manage NFT listings directly from your wallet.,,0,tools
+489,272,Tokenized Services,Tokenize services and barter with others onchain.,,0,tools
+490,271,Metaverse Proposal,Proposing in 2033.,,0,tools
+491,270,AR Token Gating,Unlock physical doors with NFTs.,gating,1,gating
+492,269,Restaurant Bonding Curve,Friend.tech-style bonding curve but for restaurant reservations.,,0,tools
+493,268,Onchain Away Message,An interoperable away message for anyone onchain to see.,messaging,1,messaging
+494,267,Gamified Will,Grandma gamifies her will onchain and increases inheritance based on proportion of visits.,,0,tools
+495,266,Web3 X GPT,"7 ways OpenAI's Assistant API can make Web3 easier to use right now:
+
+1. Give context for gas levels in a wallet UI. When they're high, explain why and give an estimate for when it might come down.
+2. Allow users to chat with their errors. If a transaction fails, present a chat interface that explains the error and offers to guide the user through the solution.
+3. Help users discover what utility is available in their wallet—what assets are they holding that have special access or claims they were unaware of?
+4. Don't just present users with active offers on their NFTs. Give context to offers that are worth considering based on estimated value so they don't fall prey to lowball offers.
+5. Translate on-chain actions to human-readable actions.
+6. Give context to a collection's floor value so the user understands whether the source of value is hype or something more substantial.",agents|gating|messaging|trading|wallet,5,trading
+496,265,Onchain Agent,"Yesterday, OpenAI announced the ability to create GPTs.
+
+This could enable converting your avatar NFT to onchain agents:
+
+1. Deposit funds into a tokenbound avatar
+2. Model its trading behavior by feeding it activity from specific wallets
+3. Configure specific onchain actions it can take on your behalf",agents|identity|trading,3,trading
+497,264,ZKandMe,A leak-proof analysis of your secured onchain genetic data.,,0,tools
+498,263,See Similar Posts,"Could this be where the new ""See Similar Posts"" feature is headed?",,0,tools
+499,262,Everything App,[Insert layer 1 blockchain] everything app.,,0,tools
+500,261,Reverse Proposal,What if nouns could send *you* a proposal?,,0,tools
+501,260,App Icons,What do you expect to happen when you tap one of these app icons?,,0,tools
+502,259,Onchain Gossip,Onchain TMZ with revenue splits for the source.,,0,tools
+503,258,Mint and Create Post,"Automatically create a post on Farcaster when minting on Zora.
+
+My current workflow:
+
+1. export jpg from figma
+2. post to x
+3. post to farcaster
+4. mint on zora
+5. copy mint link from zora
+6. paste mint link on x and warpcast
+
+This should all happen in one or two clicks. Web3 can and should fix this.",art,1,art
+504,257,Venmo Block Explorer,Venmo indexes all chains.,,0,tools
+505,256,Mint from Figma,Straight from the source.,art,1,art
+506,255,Trick or Treat,Google Maps scans the blockchain for candy purchases and optimizes your trick-or-treat route.,,0,tools
+507,254,iMessage Tracker,Follow your friends' trades in iMessage.,social,1,social
+508,253,Currency Selection,"Set your currency in your wallet, apply it as the default to every dapp you connect to.",,0,tools
+509,252,Content Moderation,How should decentralized social platforms handle content moderation? Here's one option.,identity,1,identity
+510,251,Toast,"For most dapp blockchain interactions, a toast is the only wallet UI you need.",wallet,1,wallet
+511,250,Onchain Radio,An onchain radio player that seeks ens channels.,identity,1,identity
+512,249,IQ Test,Take an IQ test to create a wallet.,,0,tools
+513,248,Connect Wallet to Browser,"Less of: browser in the wallet
+More of: connect wallet to your browser",,0,tools
+514,247,Block Explorer Player,What’s the point of having onchain media if you can’t consume it anywhere and everywhere?,,0,tools
+515,246,Mint in Message,A messaging service that scouts new mints for you.,art|messaging,2,art
+516,245,Private Transactions,"This concept, co-created with @AleoHQ, explores the future of everyday crypto with public ledgers.
+
+What does the future look like when everything is onchain? The North Star use case for crypto is buying a cup of coffee. It's always been the ultimate measure of adoption. If we (anyone, everyone) can buy a coffee with crypto, we can buy anything with crypto. I don't know if it's inevitable, but on a long enough time horizon, it's very likely we'll get there.
+
+But there's one problem... Even if the moment of purchase is simple, intuitive, and frictionless—a design utopia— I would still think twice. I don't want to buy a coffee if everyone online and in proximity (the barista, other customers) can see my balance and transaction history.
+
+In its current state, everyday purchases with crypto means retailers basically have their own public ledgers. It's not that farfetched. And it's weird. If the future of crypto is multi-chain, at least some of those chains will need to be private and secured with zk.
+
+Making web3 easier to use is key, but not at the cost of personal privacy. After all, some transactions are better kept private, and ensuring privacy might just be the catalyst for adoption.",payments|privacy,2,payments
+517,244,ChatGPT Delegation,Give ChatGPT wallet delegations to take onchain actions on your behalf.,,0,tools
+518,243,Onchain Wikipedia,Transparent and immutable records.,,0,tools
+519,242,List for Sale from Wallet,"Create and edit listings without having to navigate to a marketplace.
+
+You shouldn't have to go to opensea to transact on Opensea. It completely neglects one of the coolest things about web3: interoperability.
+
+I've done a good job lately of avoiding concepts around trading (boring use case), but this one just seemed so obvious.",trading,1,trading
+520,241,I made you something,Create art onchain and transfer it via chat app.,art|messaging,2,art
+521,240,Twitter/X Onchain Media,Would it reduce misinformation?,,0,tools
+522,239,Send to Friend's Bank,"Some say crypto's best innovation to date is still as a global payment network. You can send money to any country in a few seconds.
+
+But just because crypto is borderless, doesn't mean it isn't without constraint. The biggest border yet to be removed is a figurative one—between wallet users and non-wallet users.
+
+You can't send crypto to anyone in any country. You can only send crypto to crypto users in any country.
+
+Going from receiving crypto to spending it on everyday things sometimes feels impossible.
+
+If you're like me, you probably don't even bother trying to convert back into fiat unless you're in a bind.
+
+The easier it is to move in and out of crypto, the more useful (and valuable) it becomes.",payments,1,payments
+523,238,Relationship Status,"Broadcasting relationship status on-chain can expand your dating pool, creating potential matches without having to do the work on apps.
+
+It can also be an authentic, meaningful way to assess compatibility and create common ground. Granted, this could expose users to predatory behaviors and unwanted attention.
+
+I'm not sure exactly how this would be executed, but allowing users' ""dating profile"" to be hidden from specific chains, holders, and users could create some level of safety and control.",identity,1,identity
+524,237,Follow ENS,"One of the most promising aspects of creating content on-chain is platform independence—you can create a body of work that lives outside of the walled gardens of social platforms.
+
+Create anywhere, consume the same content in different interfaces. Such a beautiful thing.
+
+The challenge with this is there's currently no single way to find the art, essays, and social posts that users are creating across different protocols. 
+
+Web2: Users build on top of platforms
+Web3: Platforms build on top of users
+
+This paradigm shift is still in flight.",art|identity|social,3,art
+525,236,ZK Rent Application,"The amount of sensitive info you need to share to rent in NYC is laughable.
+
+What’s worse, it’s usually shared via email. Yikes.
+
+What if you could have complete control over your info and, better yet, only prove you meet the rental requirements?
+
++Prove you have good credit without sharing your credit history
++Prove you have money in the bank without sharing your bank info
++Prove you’re legally employed without sharing your employment details
+
+In this scenario, instantly verifying using the iOS interface to sign the transaction, the landlord earns your trust and you keep your information private.",privacy,1,privacy
+526,235,Shake to Exit,Shake to move up in line during an exit event with a long queue.,,0,tools
+527,234,Speed Up Transaction,"Yell into your phone. The louder you are, the faster your transaction.",,0,tools
+528,233,Rotate to Dis/Connect,"Rotate clockwise to connect. Rotate counterclockwise to disconnect.
+
+New universal gestures for connecting at the hardware level can make sharing/revoking data faster and make it feel like we have more control.",,0,tools
+529,232,Device Handoff,Start a transaction on your Macbook and confirm with mobile Face ID.,,0,tools
+530,231,Wallet Tabs,Search and organize your assets in your wallet with custom tabs.,,0,tools
+531,230,Folders,Arrange NFTs into folders.,,0,tools
+532,229,Connect Wallet to GPT,What better way for chatgpt to know you better (and give better responses) than to give it your onchain data?,agents,1,agents
+533,228,Group Wallet,Wallet owned by a group.,,0,tools
+534,227,Mint & Send,Option to mint and send to another address in the transaction confirmation. It would be a great way to securely mint from a hot wallet and receive things in your cold storage/vault.,art,1,art
+535,226,Minting With,"Not sure if this is something others experience, but I often accidentally mint from the wrong wallet, breezing through confirmations on autopilot.
+
+Maybe not always the case, but it would be nice if the app reinforced which address and wallet I'm minting from upfront.",art,1,art
+536,225,WalletConnect Memory,WalletConnect should remember my last selection (wallet address and chosen extension).,,0,tools
+537,224,Single Holders Nearby,A PFP community dating app to find holders nearby.,identity|social,2,social
+538,223,Stake to Super Like,"Stake ETH to super like on Tinder. If she like you back, she keeps it.",invest,1,invest
+539,222,Friendtech Cashout,Sell a friendtech key and cash out directly to your bank account using Beam.,privacy,1,privacy
+540,221,Trait Research,"OpenAI announced GPT can analyze images in the ChatGPT interface.
+
+In the future, GPT can detect, understand and explain nuance in trait value across historic NFT projects.",agents,1,agents
+541,220,Home Royalties,Put your home onchain. Earn perpetual royalties when it resells.,invest,1,invest
+542,219,Value,95% of NFTs are worthless (financially).,,0,tools
+543,218,Twitter NPC,Turn your onchain pfp into an AI content creator that posts and builds an audience on your behalf (aka NPC).,agents|identity,2,agents
+544,217,Mint from Live TV,A highlight is available to mint within a small time window of a livestream to prove you watched it.,art,1,art
+545,216,Email ENS,Send an email to and from an ENS address from any email client.,identity,1,identity
+546,215,Unsubscribe from Airdrops,Getting airdropped spam kind of feels like getting emailed spam.,rewards,1,rewards
+547,213,View Feed As,What better way to understand another person's worldview than to consume their information diet?,social,1,social
+548,214,Fork Builder,No-code fork builder to make it easy for anyone to fork a protocol without any technical experience.,,0,tools
+549,212,Expiring Keys,Friendtech keys that expire.,,0,tools
+550,210,Mint Nearby,Imagine walking through a museum and getting notified when a work of art has an accompanying digital collectible.,art,1,art
+551,211,Condition Authenticator,Scan a tokenized physical item to analyze the item's condition when listing on secondary markets.,trading,1,trading
+552,209,Amazon Dash,Top up your wallet with a physical button.,,0,tools
+553,208,Mint Dead End,Guide the user to add more funds or mint from another wallet when their balance is below the mint price.,art|trading,2,art
+554,207,Cookie Preferences,Set your cookie preferences in your wallet and apply them to every website you connect to.,,0,tools
+555,206,Social History,"""Used"" items takes on a new meaning. See where a pfp has been used in the wild before purchasing. ",identity,1,identity
+556,205,Rage Quit,Send all your assets to the burn address and delete the wallet from your account.,,0,tools
+557,199,Open in Browser Wallet,Switch from in-app browser to wallet browsers.,,0,tools
+558,198,Snappy Connect,When will we make connecting your wallet on mobile this fast and snappy?,,0,tools
+559,197,Onchain Emote,"Onchain reactions, on any platform you encounter a token.",gating,1,gating
+560,196,Operator Range,A DAO multisig that assigns an acceptable range for operators to execute,privacy,1,privacy
+561,195,Network Switcher,The best UI for network switcher is no UI.,wallet,1,wallet
+562,192,Airdrop Messages,See messages attached to airdrops to better understand where it came from and why.,messaging|rewards,2,messaging
+563,191,Token Approval,Slide to approve.,gating,1,gating
+564,190,Pay Gas With,Choose a token on any chain to pay gas with (swapped behind the scenes).,gating|payments,2,payments
+565,187,Checkout with Crypto,"Shopping online with a crypto wallet will eventually rival or even exceed the UX of apple pay. We just need to figure out how to manage shipping addresses.
+
+Connect to any app, across any device or OS, without having to create an account.
+
+And pay with any currency.
+",payments,1,payments
+566,186,Web3 Invite Codes,Generate invite codes for only wallets a user has interacted with the most.,,0,tools
+567,185,Hardware Wallet,Swipe to confirm transaction.,,0,tools
+568,182,Deeplink,Deeplink to onchain media.,,0,tools
+569,181,Spotify Wallet,Exploring what's possible if Spotify integrated a wallet experience.,,0,tools
+574,180,Gift a Wallet,Send a pre-loaded wallet via text message.,messaging,1,messaging
+575,179,Wedding Gift Pt 2,"Withdraw your staked wedding gift when the couple doesn't make it.
+
+Part 1: https://zora.co/collect/eth:0x5908eb01497b5d8e53c339ea0186050d487c8d0c/178",,0,tools
+576,178,Wedding Gift,"Stake your wedding gift. rewards go to the couple, and if they get divorced, you get your ETH back.",invest|rewards,2,invest
+577,177,Shazam,Shazam tells you when a song is collectible.,,0,tools
+578,176,Drag and Drop Migration,Permanently migrate or make a copy of a mainnet NFT to another chain.,,0,tools
+580,175,Snap to Mint,Onchain media doesn't have to exclusively be digital media.,art,1,art
+581,174,Airdrop Creator Earnings,Distribute platform payouts to your followers.,payments|rewards|social,3,payments
+582,173,Tokenized Feeds,Curate and productize an information diet.,,0,tools
+583,172,Bridge Presets,Convenient predefined amount for populating amount to bridge.,payments,1,payments
+584,171,Privacy Option,"Like Venmo, wallets should provide the option to send a private transaction.",privacy,1,privacy
+585,170,Starter Pack,"When creating a wallet for the first time, a user can request starter funds from a friend.",,0,tools
+586,169,Mint an Excerpt,"Mint your favorite excerpt from a Mirror post, and see what the most minted excerpts are.",art,1,art
+587,168,ENS Wallet Bundling Pt 2,"What happens when you link multiple wallets to a single ENS identity? How does an app handle identity to an ENS that's already been connected?
+
+This design shows an example of how an app might enable logging into a profile from multiple wallets.",identity,1,identity
+588,167,ENS Wallet Bundling,Use a single ENS across all of your wallet addresses.,identity,1,identity
+589,166,BTR Payment Method,Burn-to-redeem as a payment method on web2 ecommerce.,payments,1,payments
+590,165,Gas Preview,"Normalize previewing gas on mint buttons, and disabling them when your balance is insufficient.",art,1,art
+591,164,Buy Entire Collection,"Opensea option to buy all assets for a collection, including, but not limited to:
+
++ Twitter account
++ Discord server
++ Treasury
++ Other related assets
+",invest|payments,2,invest
+592,163,In-Token Messaging,"Send a message to a token, independent of the holder.",gating|messaging,2,messaging
+593,162,Wallet Search?,"You ever wonder how few (if any) wallets let you simply search your NFT collection?
+
+You can't. Go ahead, try it in your favorite wallet. I'll wait.",wallet,1,wallet
+594,161,dDash,"Between reputation, messaging, and intent protocols, i think we have everything we need to create a decentralized DoorDash.",identity|messaging,2,identity
+595,160,Eliminate Price Charts,What if consumer wallets eliminated price charts and trading metrics? Would the token feel more like a product?,gating|trading,2,trading
+596,159,Social Graph Verification,Get verified with social proof from others that have had their eyeballs scanned.,identity,1,identity
+597,158,Everything App,"Incorporating wallet balances, marketplaces, and other services into Twitter, powered by crypto.",,0,tools
+598,157,Decentralized 23andMe,"Get detailed insights about your health, carrier status, and predispositions without sharing your genome profile with a third-party.",identity,1,identity
+599,156,OpenSea Notifications,A notification center that aggregates WETH and deal offers.,trading,1,trading
+600,155,Message from Creator,Get airdropped onchain messages from a project's creator.,messaging|rewards,2,messaging
+601,154,Swap Breathalyzer,Check your BAC when making a trade for a highly volatile asset late at night.,trading,1,trading
+602,153,Airline Seat,Own an airline seat and control who can rent it.,,0,tools
+603,152,Wear-to-Earn,Earn a share of project royalties based on the impressions you generate while wearing PFP on your Twitter profile.,identity|invest,2,identity
+604,151,Transaction of the Day,Transaction of the day curated in your wallet. One fun thing to do onchain every day.,,0,tools
+605,150,Streaming Gifts,Send crypto and NFTs to livestreamers on TikTok.,,0,tools
+606,149,Pay to Flake,"Stake ETH when you commit to a meeting and have it slashed if you cancel or reschedule.
+
+Ironically, I bailed on coffee with a friend to make this concept.",invest|payments,2,invest
+607,148,Fitness Staking,Stake your ETH with ClassPass and have it slashed when you don't meet the performance goal.,invest,1,invest
+608,147,Restaurant Reservations,Popular Opentable reservations as NFTs that can be resold,,0,tools
+609,146,Time Bidding,Time slots on Calendly go to the highest bidder.,,0,tools
+610,145,Retail Intents,"Someday, you'll be able to trade a digital item for a physical one on ethereum.",trading,1,trading
+611,144,Top Comment Preview,"I can't stop thinking about ways to interact with these reply bubbles on the t-word app.
+
+I often enjoy reading the replies more, and it would be useful to have a quick view like this to preview top comments.",messaging,1,messaging
+612,143,CourtScan,"Generally, court filings are available to the public.
+
+But putting them onchain enables anyone with internet access to look up public legal docs, anytime and anywhere, without needing to physically go to a courthouse or request documents from a government office.",gating,1,gating
+613,142,Transfer Threads Onchain,Threads allows your to transfer your data off their platform. I've added Ethereum as an option to allow you to port your web2 social activity across decentralized social protocols.,messaging,1,messaging
+614,141,Launcher Intents,Create Ethereum sell intents directly from the launcher.,,0,tools
+615,140,Amazon Intents,"Intent-based transacting on Ethereum is an exciting UX unlock.
+
+It gives us the flexibility to choose the conditions we want to buy something, without needing to execute the txn ourselves when they're met.
+
+Maybe someday we can use it for everyday purchases like toilet paper.",payments,1,payments
+616,139,Onchain Tax Allocation,"The most American thing you can do is pay taxes.
+
+What if you can pay onchain, allocate some of your payments to initiatives you care about, and track how the money is spent?",payments,1,payments
+617,138,Snooze Tweet,Sometimes I just want to come back to the alpha later.,,0,tools
+618,137,Snooze Tweets,Set a reminder to make tweets resurface in your feed. Especially the ones with alpha.,social,1,social
+619,136,Rate Limit Exceeded,Put tweets onchain when rate limits are exceeded.,,0,tools
+620,135,NFT Spam Blocker,A third-party wallet protection to block spam tokens.,,0,tools
+621,134,Snap Onchain,Mint a photo onchain directly from your favorite camera app.,art,1,art
+622,133,Mint from File Explorer,What if you didn't have to open your browser to mint stuff onchain?,art|wallet,2,art
+623,132,Multiplayer Web Browser,Chat with other people visiting the same site as you.,messaging|social,2,social
+625,131,Mark as Drunk,Let others know you were drunk when you made a trade on Etherscan.,trading,1,trading
+626,130,Multi-Chain Connection,"Connect to multiple chains simultaneously.
+
+Your wallet detects the chain you're interacting with without the need to switch networks when connecting to an app.
+
+You can deactivate chains you don't want to automatically interact with in the dropdown.",,0,tools
+627,129,Signature History,Keep a history of the messages you've signed.,messaging,1,messaging
+628,128,Zora Collection Filter/Sort,"Small but mighty change at the top of my creator wishlist. I would love a more meaningful way for others to explore my collection of concepts, especially as it grows.",agents|social,2,agents
+629,127,Conditional Offer,Automatically cancel your offer if the tokenbound contents change.,trading,1,trading
+630,126,AI Generated TV Series,An AI generates a TV series based on your trading activity.,agents|trading,2,trading
+631,125,Follow a PFP,"What if you could ""follow"" a pfp on Twitter and only see the content from its current owner?",identity|social,2,social
+632,124,PFP History,See what PFPs a Twitter user has rocked in the past.,identity,1,identity
+633,123,Etherscan Dating,Find your soulmate on Etherscan.,,0,tools
+634,122,Trades in Common,Badges on dating profiles so you can see what trade decisions you have in common.,identity|trading,2,trading
+635,121,Onchain Dating Matches,"Dating suggestions based on onchain activity, because the things you own say much more about you than what you say about you.",,0,tools
+636,120,Collection Art (June '23),Meme it.,art,1,art
+637,119,Membership Tab,We have tokens. We have NFTs. We need something to monitor and display our memberships to DAOs and social clubs.,gating|identity,2,identity
+638,118,Universal Profile,Clubhouse makes a comeback as the de facto web3 platform for all of your decentralized social graphs.,identity,1,identity
+639,117,Import Farcaster,Tap the elements of your Farcaster profile to import when connecting to a new social platform.,identity,1,identity
+640,116,Wallet Offramp,"The only thing more important than an onramp, is the offramp.
+",payments,1,payments
+641,115,Stand with Users (Easy Button),"The Stand with Users commemorative NFT is a symbol of unity for the crypto community seeking easier user experiences.
+
+The NFT features a red easy button, representing a collective stand to advocate for user adoption. 
+
+The red button not only shows your support for the cause but also that you’re part of a growing community who believes in the future of crypto's consumer moment.
+
+This is a purely commemorative NFT with an open mint and has no intended utility or value.",art|social,2,art
+642,114,Creator Subscriptions,Get notified for an onchain collection's new mints the web2 way (email) or the web3 way (wallet notifications).,,0,tools
+643,113,Soulbound Brand Wallet,"Are soulbound token the future of onchain brand experiences?
+
+https://twitter.com/0xDesigner/status/1667331945070510086?s=20",gating|identity,2,identity
+644,112,Simple Wallet Signature,"Wallets should standardize progressively disclosing security info (nonce, URI, timestamps, etc.) for signatures so that messages can become branded moments.",messaging,1,messaging
+645,111,Tokenized Product Communities,"When you purchase a physical product, you also purchase the accompanying digital token. It enables access to events and a social platform for exchanging ideas on how you use the product.
+
+Great for identity-based products, everyday tools, and products with cult followings.",gating|identity|payments|social,4,payments
+646,109,Focus to View,An iMessage HUD for Apple Vision Pro. An immersive UI adaptation for it's current form which appear as mere floating iPad apps.,,0,tools
+647,110,Bump to Transfer,iOS 17 allows you to airdrop by bumping phones. What if you could do the same with the NFT ticket in your wallet?,gating|rewards,2,gating
+648,108,ENS Backup,"With EIP-6551 you can use NFTs as a wallet. ENS domains are great for identity-based wallets.
+
+But what happens when the ENS expires? Do you lose ownership of everything associated with the ENS?
+
+There should be a way to protect you from this.",identity,1,identity
+649,107,Like to Mint,Bringing the minting experience as close to the moment of discovery as possible.,art,1,art
+650,106,Time Token,Gate your time and let the market decide the value of it.,gating|trading,2,trading
+651,105,Membership Accounts,"Imagine this:
+
+Your Soho House application gets accepted. You show up for orientation and scan a QR code to claim your digital member card in-app (an NFT).
+
+With EIP-4337 and EIP-6551, the NFT is both the membership card and wallet account for club balances.",gating,1,gating
+652,104,Twitter DM,Send digital items over Twitter.,messaging,1,messaging
+653,103,Reorder and Hide Wallets,"Groundbreaking, I know.",,0,tools
+654,102,App Limit Payments,Set screen time limits for addictive apps. Stream payments from your wallet as a penalty for exceeding app limits and choose a charity as a beneficiary.,payments,1,payments
+655,101,"Push Notification for ""Abilities""",Push notifications from Daylight to track updates from my favorite projects.,,0,tools
+656,100,Burn to Print,"Limited-edition, tokenized gaming assets that you can transfer into the real world (via 3D printing) by digitally burning.",,0,tools
+657,99,Permissions In-Wallet,A token view that let's you manage permissions directly from your wallet.,gating|privacy,2,gating
+658,98,Pay to Post Offchain,The biggest perceived issue with content onchain is permanence. It's scary. What if you had the choice?,payments,1,payments
+659,97,Loss Gating,A support group gated for only accounts with more than X amount in realized losses.,gating,1,gating
+660,96,Crypto Zillow,"It's hard to imagine using crypto for everyday purchases like coffee. But some things could actually be better with crypto, like buying a home.
+
+Home ownership is fraught with paperwork, delays, and intermediaries.
+
+Crypto simplifies this with transparent, immutable records.
+
+There's no waiting for bank approvals or for funds to clear, reducing time and saving on broker fees.",,0,tools
+661,95,ChatGPT Transaction Warnings,ChatGPT simulates and analyzes transactions before you submit them and generates human-readable descriptions that you can interact with.,,0,tools
+662,94,Crypto x AI x Commerce,Ask a shopping agent for a recommendation and give it permission and guidance to purchase things on your behalf.,agents|payments|privacy,3,payments
+663,93,"A Case to Abandon ""Wallet""","Onboarding the next billion users with words.
+
+How the term ""wallet"" is psychologically limiting web3's growth potential, and a case for abandoning it.
+
+https://twitter.com/0xDesigner/status/1658851890803744768?s=20",identity,1,identity
+664,92,Wallet Wagers,"Challenge your friends to a fitness competition in your wallet.
+
+Connect and approve your fitness tracker, choose a metric to compete on (calories, steps, etc.), send money to an escrow, and the smart contract distributes the funds to the winner.",social,1,social
+665,91,Web3 App Store,A web3 app store that ranks by most connected wallets.,,0,tools
+666,87,Connect a Profile,"Bundle wallets across a single profile (DID) and connect to apps with it. When interacting with the blockchain, RainbowKit prompts you to choose the wallet you want to transact with.",identity,1,identity
+667,88,Onchain Tinder,A new business model for decentralized dating apps that requires a subscription upgrade to hide your swipes offchain.,,0,tools
+668,89,Amazon Subscribe and Earn,"A play off subscribe and save, everyday Amazon purchases earn a native token that can be redeemed for exclusive deals and digital items.",gating|rewards,2,gating
+669,90,Netflix Recommendations,Netflix recommendations based on your wallet contents.,,0,tools
+670,85,GPT Guided Tour,A GPT agent to answer questions during an app's guided tour.,agents,1,agents
+671,86,Proof of Work,Verifying work experience onchain to prevent fake or exaggerated work experience.,,0,tools
+672,84,Charitable Memecoin,A memecoin programmed to allocate a percent of your profits to charity during the swap.,trading,1,trading
+673,83,Swapping L1s on an L2,"Swapping L1 assets on an L2 chain (not swapping cross-chain assets).
+
+For instance, you can wrap two ERC-20 assets and swap using Polygon as the rails.",trading,1,trading
+674,82,Token Mention,Exposing wallet balance of a token when it's mentioned.,gating,1,gating
+675,81,"List Now, Mint Later",A way for creator minting platforms to enable artists to list their art and only pay gas if it sells.,art|payments,2,art
+676,80,Fixed Gas Subscription,"Pay a monthly subscription for guaranteed gas prices (with limitations, obviously).",payments,1,payments
+677,79,Unfollow Feedback,Let someone know why you're unfollowing them.,,0,tools
+678,78,Uniswap POS,Buy your coffee with the currency of your choice.,payments,1,payments
+679,77,Profile Sync,"Update your profile info on ENS (image, display name, bio, website, etc.) and push updates across other dapps.",identity,1,identity
+680,76,Split the Bill,"✦ Scan the QR code at your table to add your ens to the bill
+✦ Cover someone else's share
+✦ See who hasn't paid
+✦ Minimize fees by bundling everyone's share into a single transaction",identity,1,identity
+681,75,Sketchy Mint Protector,"A wallet that generates a temporary, single-use address for sketchy mints.",art,1,art
+682,74,Harvard NFT,Online courses gated by enrollment NFTs.,gating,1,gating
+683,73,Luxury Software,"In the near future, the most popular and sought after apps will be the ones you can't have.",,0,tools
+684,72,Request Money,You can send money to an ENS on Rainbow wallet. But what if you could request the way you do on Venmo?,identity,1,identity
+685,71,NFT as a Wallet,"There's an EIP floating around out there that proposes giving every NFT a smart contract account.
+
+In other words, your NFT would be able to hold NFTs.",,0,tools
+686,70,"Farcaster, Expanded","Decentralized social is a means, not an end. It only succeeds if the social protocol is a trojan horse for more products that you port your data across.",,0,tools
+687,69,Adidas Burn-to-Redeem,"pfps aren't dead. we just haven't started the burn-to-redeem trend yet.
+
+who knows? maybe Adidas will think of something spicy to kick it off.",identity,1,identity
+688,68,Token Messages,Message threads organized by token instead of by wallet.,gating|messaging,2,messaging
+689,67,Creator Autograph,"@itsd3von's idea built in to the wallet/marketplace.
+
+https://twitter.com/itsd3von/status/1649506787060592640?s=20",identity,1,identity
+690,66,Cover Art (Apr '22),Not me building a personal brand around “painted in the style of giovanni bellini” and comic sans.,art|identity|invest,3,art
+691,65,Onchain PHR,"Port your medical history across any device or record-keeping system, give and revoke access to healthcare providers.
+
+All controlled from your favorite wallet.",gating,1,gating
+692,64,Smokin'Sea,Onchain seed-to-sale tracking of the cannabis supply chain so you know precisely the quality of product you're consuming.,privacy,1,privacy
+693,63,Find My Ledger,Use Find My to track down your ledger after you get mugged.,,0,tools
+694,62,Ethereum Customer Service,GPT analyzes transaction data and explains in human-readable terms what happened and how to troubleshoot issues.,agents,1,agents
+695,61,Tax Warning,"Happy tax day, anon.",privacy,1,privacy
+696,60,Nouns Prop Builder Review,Review and tip prop builders.,,0,tools
+697,59,Noun O'Clock,BeReal but for Noun O'Clock,,0,tools
+698,58,Nouns PFP Merge,"Merge another pfp eyes trait with your Noun.
+
+And yes, you have to fully burn the pfp.",identity,1,identity
+699,57,Find My Nouns,Share your location with other Nouns holders.,,0,tools
+700,56,Proof of Philanthropy,Hold a token to memorialize a charitable donation and track use of funds on the blockchain.,gating,1,gating
+701,55,Nouns Flick to Vote,A tinder-like experience for Nouns proposals. Flick up to vote in favor. Pull down to vote against.,,0,tools
+702,54,Nouns Sponsored Gas,"Sponsored gas fees for all interactions with the Nouns protocol (bidding, settling, on-chain voting, etc.).
+
+Gas is funded by the treasury (up to a certain limit).",invest,1,invest
+703,53,Nouns Daily Spin,Win prizes funded by the Nouns treasury or donated by the community by spinning a prize wheel.,invest|social,2,invest
+704,52,Nouns Private Jet,A token-gated private jet for Nouns holders.,gating|privacy,2,gating
+705,51,Nouns Auction Notifications,"Auction notifications via email or XMTP opt-in.
+
+I wonder how much more competitive the auctions would be if you couldn't forget to re-bid.",trading,1,trading
+706,50,Nouns Dating App,A Nouns dating app that reveals your identity after a match.,identity,1,identity
+707,48,Door Key,Your door key as an ERC-721,privacy,1,privacy
+708,49,Instant Conversion,Buy any asset with any asset.,payments,1,payments
+709,47,Web3 Streaming,"Collect music while streaming, not stream music while collecting.",,0,tools
+710,46,Music Banner,Replace your profile banner with your favorite music NFT.,identity,1,identity
+711,45,AirPods Music NFT,"You guys know Apple is adding a screen to AirPods so you can show off your Music NFT collection, right?",,0,tools
+712,43,Royalty Badges,Identify which listings have creator royalties enabled.,invest,1,invest
+713,44,Reversible Transactions,"Metamask concept for reversible transactions, inspired by 
+@kaili_jenner's ERC 20R/721R.
+
+Designate a transaction as reversible and have it held in escrow for a small period after submitting.",,0,tools
+714,40,Non-Fungible Person,Your soulmate as a soulbound token.,gating|identity,2,identity
+715,41,Sell Your Browsing Data,Accept a bid on your personal data.,,0,tools
+716,42,Offer + Comment,Attach a comment to your OpenSea comment.,messaging|trading,2,trading
+717,37,Browser Notifications,New iOS updates that enable browser push notifications will be a big unlock for web3.,,0,tools
+718,38,Meeting Tokens,A limited number of tokens to spend for booking meetings.,,0,tools
+719,39,Accept Airdrop,Accept or decline airdrops you're eligible for.,rewards,1,rewards
+720,36,Metadata History,View an NFTs metadata changes over time.,,0,tools
+721,32,Utility Marketplace,"Joe Rogan asked ""Why would anyone buy an NFT? I can take a screenshot of the NFT and I have it.""
+
+We can poke fun. But it's a common and legitimate design problem.
+
+What if there was a marketplace that answered that question?",payments,1,payments
+722,33,Gamifying Creator Royalties,Problem solved.,invest,1,invest
+723,34,Etherscan Lite,A simple interface for transaction receipts.,,0,tools
+724,35,Token-Gated SNKRS,How much would you pay for a guaranteed hit on every SNKRS drop?,gating|payments,2,payments
+725,29,Pre-Paid Digital Cards,Load your native digital payments app with crypto.,payments,1,payments
+726,30,Blur Mobile,How it should be.,,0,tools
+727,31,Ubiquitous Wallet,Your wallet should meet you where you already are.,,0,tools
+728,26,Smart Shortcuts,Your favorite wallet supercharged with automations thanks to account abstraction.,,0,tools
+729,27,Wait and Save,Delay your transaction and save on gas.,,0,tools
+730,28,Highest Trait Floor,Understand the value of your jpeg based on its trait floors.,,0,tools
+731,25,Crypto Subscriptions,Account abstractions makes subscriptions possible.,,0,tools
+732,24,Conversational Wallet,The best wallet UI is no wallet UI.,wallet,1,wallet
+733,23,GPT News Summary,GPT summarizes headlines from your favorite news apps.,agents,1,agents
+734,21,Native Invitations,The worst part of token-gated events is never knowing they happened.,gating,1,gating
+735,22,Airplane Drop,Your frequent flyer miles as an ERC-20.,,0,tools
+736,18,Cash Out Method,"The key to improving the UX of onboarding isn't making a better onramp, it's making a better offramp.",payments|privacy,2,payments
+737,19,After Life,Designate a beneficiary for your wallet.,,0,tools
+738,20,Sponsored Gas,Brands paying gas for transactions is the new billboard.,,0,tools
+739,15,Wallet Permissions,Every wallet should have native permission management.,privacy,1,privacy
+740,16,Royalty Gating,Exclusive access for collectors that have made on-chain royalty payments when purchasing on secondary.,gating|invest|payments,3,payments
+741,17,Portable Followers,Decentralized social media means you can own and port your social networks across every platform.,social,1,social
+742,14,Twitter DOGE Payouts,Twitter creator rev-share paid out in DOGE.,payments,1,payments
+743,13,GPT-4 Dispute Mediator,"GPT-4 as a dispute mediator.
+
+This would be a huge unlock for decentralizing everyday services like Doordash, Uber, etc. 
+
+Sure, we're enabling an AI overlord, but it's better than on-chain voting for dispute handling.",agents,1,agents
+744,12,Thread Embed,"I've wasted hours of my life clicking in and out of comment notifications to see what they are in response to.
+
+What if you could see it embedded into the comment?",messaging,1,messaging
+745,11,Anon Rental,Rent an apartment as an anon with ZKProofs.,privacy,1,privacy
+746,10,Access Indicator,A universal indicator for when one of your NFTs unlocks token-gated access.,gating,1,gating
+747,9,Airdrop NFT,Trigger a wallet transaction via Airdrop.,rewards,1,rewards
+748,8,AvatarGPT,Bring your pfp to life by assigning it a personality on-chain.,identity,1,identity
+749,7,Gucci On-Chain,Scanning a physical Gucci tag reveals its on-chain provenance.,,0,tools
+750,6,Proof of Fanhood,An artist's NFT holders get exclusive or early access to token-gated ticket drops.,gating,1,gating
+751,5,Film Collecting,Collect scenes from your favorite films and series directly from the streaming platform.,,0,tools
+752,4,Twitter Top 8,"Twitter resurrects Myspace's Top 8, ranked by NFT artists you've collected.",,0,tools
+753,3,Burn Warning,Severe warning in your wallet for sending items to the burn address.,,0,tools
+754,2,WalletGPT,"Yesterday, OpenAI announced ChatGPT plugins that let's you connect third-party apps. What would you do if you could connect your wallet to ChatGPT?",,0,tools
+755,1,Media Provenance,Political images used by news outlets are minted by verified media sources to prove authenticity.,,0,tools

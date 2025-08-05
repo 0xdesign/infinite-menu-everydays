@@ -1,0 +1,251 @@
+{
+  "metrics": {
+    "totalItems": 100,
+    "walletDefaults": 37,
+    "newDefaults": 31,
+    "lowConfidence": 0,
+    "changedCount": 37
+  },
+  "distribution": {
+    "tools": 31,
+    "rewards": 4,
+    "payments": 10,
+    "privacy": 2,
+    "agents": 21,
+    "messaging": 9,
+    "trading": 19,
+    "social": 10,
+    "wallet": 3,
+    "art": 1,
+    "invest": 4,
+    "identity": 5,
+    "gating": 8,
+    "gaming": 3,
+    "infrastructure": 2,
+    "creators": 1
+  },
+  "changes": [
+    {
+      "title": "373 crash out",
+      "old": "none",
+      "new": "tools",
+      "confidence": "0.90"
+    },
+    {
+      "title": "370 fund wallet alternative",
+      "old": "none",
+      "new": "tools",
+      "confidence": "0.90"
+    },
+    {
+      "title": "364 question",
+      "old": "none",
+      "new": "tools",
+      "confidence": "0.90"
+    },
+    {
+      "title": "361 congestion",
+      "old": "none",
+      "new": "tools",
+      "confidence": "0.90"
+    },
+    {
+      "title": "348 quick question",
+      "old": "none",
+      "new": "tools",
+      "confidence": "0.90"
+    },
+    {
+      "title": "343 emotional return protocol",
+      "old": "none",
+      "new": "gaming,infrastructure",
+      "confidence": "0.80"
+    },
+    {
+      "title": "340 generate ui",
+      "old": "none",
+      "new": "tools",
+      "confidence": "0.90"
+    },
+    {
+      "title": "338 trial period",
+      "old": "none",
+      "new": "tools",
+      "confidence": "0.90"
+    },
+    {
+      "title": "334 email attachment",
+      "old": "none",
+      "new": "tools",
+      "confidence": "0.90"
+    },
+    {
+      "title": "330 reactionary pricing",
+      "old": "none",
+      "new": "tools",
+      "confidence": "0.80"
+    },
+    {
+      "title": "329 not comic sans",
+      "old": "none",
+      "new": "tools",
+      "confidence": "0.90"
+    },
+    {
+      "title": "327 headline coins",
+      "old": "none",
+      "new": "tools",
+      "confidence": "0.90"
+    },
+    {
+      "title": "324 font-fi",
+      "old": "none",
+      "new": "tools",
+      "confidence": "0.80"
+    },
+    {
+      "title": "323 graduate",
+      "old": "none",
+      "new": "tools",
+      "confidence": "0.90"
+    },
+    {
+      "title": "322 quit button",
+      "old": "none",
+      "new": "tools",
+      "confidence": "0.90"
+    },
+    {
+      "title": "321 tinder.fun",
+      "old": "none",
+      "new": "tools",
+      "confidence": "0.90"
+    },
+    {
+      "title": "319 crypto translate",
+      "old": "none",
+      "new": "tools",
+      "confidence": "0.90"
+    },
+    {
+      "title": "318 comicbase",
+      "old": "none",
+      "new": "tools",
+      "confidence": "0.90"
+    },
+    {
+      "title": "317 religion",
+      "old": "none",
+      "new": "tools",
+      "confidence": "0.90"
+    },
+    {
+      "title": "314 incoming",
+      "old": "none",
+      "new": "tools",
+      "confidence": "0.80"
+    },
+    {
+      "title": "313 battle screen",
+      "old": "none",
+      "new": "tools",
+      "confidence": "0.80"
+    },
+    {
+      "title": "311 dock",
+      "old": "none",
+      "new": "tools",
+      "confidence": "0.80"
+    },
+    {
+      "title": "310 share modal",
+      "old": "none",
+      "new": "social",
+      "confidence": "0.90"
+    },
+    {
+      "title": "307 HUD",
+      "old": "none",
+      "new": "gaming",
+      "confidence": "0.90"
+    },
+    {
+      "title": "299 trim",
+      "old": "none",
+      "new": "tools",
+      "confidence": "0.90"
+    },
+    {
+      "title": "295 cash out",
+      "old": "none",
+      "new": "tools",
+      "confidence": "0.90"
+    },
+    {
+      "title": "293 archetyper.fun",
+      "old": "none",
+      "new": "tools",
+      "confidence": "0.90"
+    },
+    {
+      "title": "292 worldvote",
+      "old": "none",
+      "new": "tools",
+      "confidence": "0.90"
+    },
+    {
+      "title": "290 vote",
+      "old": "none",
+      "new": "tools",
+      "confidence": "0.90"
+    },
+    {
+      "title": "289 look up",
+      "old": "none",
+      "new": "tools",
+      "confidence": "0.90"
+    },
+    {
+      "title": "288 onchain context",
+      "old": "none",
+      "new": "tools",
+      "confidence": "0.90"
+    },
+    {
+      "title": "287 failure",
+      "old": "none",
+      "new": "creators,infrastructure",
+      "confidence": "0.80"
+    },
+    {
+      "title": "286 details",
+      "old": "none",
+      "new": "tools",
+      "confidence": "0.90"
+    },
+    {
+      "title": "284 wallet-search.tsx",
+      "old": "none",
+      "new": "tools",
+      "confidence": "0.90"
+    },
+    {
+      "title": "281 composed code",
+      "old": "none",
+      "new": "tools",
+      "confidence": "0.90"
+    },
+    {
+      "title": "278 social commerce",
+      "old": "none",
+      "new": "social",
+      "confidence": "0.80"
+    },
+    {
+      "title": "277 music coin",
+      "old": "none",
+      "new": "gaming",
+      "confidence": "0.90"
+    }
+  ]
+}

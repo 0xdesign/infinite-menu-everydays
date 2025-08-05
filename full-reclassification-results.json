@@ -1,0 +1,877 @@
+{
+  "metrics": {
+    "totalItems": 706,
+    "changedCount": 502,
+    "lowConfidenceCount": 0
+  },
+  "distribution": {
+    "tools": 217,
+    "rewards": 39,
+    "payments": 97,
+    "privacy": 39,
+    "social": 119,
+    "agents": 54,
+    "messaging": 59,
+    "trading": 128,
+    "art": 54,
+    "creators": 125,
+    "invest": 26,
+    "identity": 64,
+    "gating": 76,
+    "infrastructure": 30,
+    "gaming": 34,
+    "defi": 12,
+    "data": 34
+  },
+  "updates": [
+    {
+      "id": 4,
+      "category": [
+        "tools"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 5,
+      "category": [
+        "rewards"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 6,
+      "category": [
+        "payments",
+        "privacy",
+        "social"
+      ],
+      "confidence_score": 0.6,
+      "needs_review": false
+    },
+    {
+      "id": 7,
+      "category": [
+        "tools"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 8,
+      "category": [
+        "agents",
+        "messaging",
+        "payments",
+        "trading"
+      ],
+      "confidence_score": 0.5,
+      "needs_review": false
+    },
+    {
+      "id": 9,
+      "category": [
+        "payments",
+        "rewards",
+        "trading"
+      ],
+      "confidence_score": 0.6,
+      "needs_review": false
+    },
+    {
+      "id": 10,
+      "category": [
+        "payments",
+        "trading"
+      ],
+      "confidence_score": 0.7999999999999999,
+      "needs_review": false
+    },
+    {
+      "id": 11,
+      "category": [
+        "social"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 12,
+      "category": [
+        "agents",
+        "messaging",
+        "trading"
+      ],
+      "confidence_score": 0.6,
+      "needs_review": false
+    },
+    {
+      "id": 13,
+      "category": [
+        "tools"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 14,
+      "category": [
+        "agents",
+        "payments"
+      ],
+      "confidence_score": 0.7999999999999999,
+      "needs_review": false
+    },
+    {
+      "id": 15,
+      "category": [
+        "agents"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 16,
+      "category": [
+        "tools"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 17,
+      "category": [
+        "agents"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 18,
+      "category": [
+        "agents",
+        "trading"
+      ],
+      "confidence_score": 0.7999999999999999,
+      "needs_review": false
+    },
+    {
+      "id": 19,
+      "category": [
+        "art",
+        "creators"
+      ],
+      "confidence_score": 0.7999999999999999,
+      "needs_review": false
+    },
+    {
+      "id": 20,
+      "category": [
+        "agents"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 21,
+      "category": [
+        "agents",
+        "trading"
+      ],
+      "confidence_score": 0.7999999999999999,
+      "needs_review": false
+    },
+    {
+      "id": 22,
+      "category": [
+        "agents",
+        "creators"
+      ],
+      "confidence_score": 0.7999999999999999,
+      "needs_review": false
+    },
+    {
+      "id": 23,
+      "category": [
+        "agents",
+        "invest"
+      ],
+      "confidence_score": 0.7999999999999999,
+      "needs_review": false
+    },
+    {
+      "id": 24,
+      "category": [
+        "agents",
+        "trading"
+      ],
+      "confidence_score": 0.7999999999999999,
+      "needs_review": false
+    },
+    {
+      "id": 25,
+      "category": [
+        "messaging",
+        "trading"
+      ],
+      "confidence_score": 0.7999999999999999,
+      "needs_review": false
+    },
+    {
+      "id": 26,
+      "category": [
+        "agents",
+        "invest"
+      ],
+      "confidence_score": 0.7999999999999999,
+      "needs_review": false
+    },
+    {
+      "id": 27,
+      "category": [
+        "agents",
+        "social"
+      ],
+      "confidence_score": 0.7999999999999999,
+      "needs_review": false
+    },
+    {
+      "id": 28,
+      "category": [
+        "identity",
+        "messaging"
+      ],
+      "confidence_score": 0.7999999999999999,
+      "needs_review": false
+    },
+    {
+      "id": 29,
+      "category": [
+        "tools"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 30,
+      "category": [
+        "gating"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 31,
+      "category": [
+        "infrastructure",
+        "messaging",
+        "social"
+      ],
+      "confidence_score": 0.6,
+      "needs_review": false
+    },
+    {
+      "id": 32,
+      "category": [
+        "identity",
+        "payments",
+        "trading"
+      ],
+      "confidence_score": 0.6,
+      "needs_review": false
+    },
+    {
+      "id": 33,
+      "category": [
+        "rewards",
+        "trading"
+      ],
+      "confidence_score": 0.7999999999999999,
+      "needs_review": false
+    },
+    {
+      "id": 34,
+      "category": [
+        "gaming"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 35,
+      "category": [
+        "defi",
+        "invest"
+      ],
+      "confidence_score": 0.7999999999999999,
+      "needs_review": false
+    },
+    {
+      "id": 36,
+      "category": [
+        "tools"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 37,
+      "category": [
+        "gating",
+        "privacy"
+      ],
+      "confidence_score": 0.7999999999999999,
+      "needs_review": false
+    },
+    {
+      "id": 38,
+      "category": [
+        "tools"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 39,
+      "category": [
+        "rewards",
+        "social"
+      ],
+      "confidence_score": 0.7999999999999999,
+      "needs_review": false
+    },
+    {
+      "id": 40,
+      "category": [
+        "payments",
+        "trading"
+      ],
+      "confidence_score": 0.7999999999999999,
+      "needs_review": false
+    },
+    {
+      "id": 41,
+      "category": [
+        "creators",
+        "identity"
+      ],
+      "confidence_score": 0.7999999999999999,
+      "needs_review": false
+    },
+    {
+      "id": 42,
+      "category": [
+        "tools"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 43,
+      "category": [
+        "data",
+        "trading"
+      ],
+      "confidence_score": 0.7999999999999999,
+      "needs_review": false
+    },
+    {
+      "id": 44,
+      "category": [
+        "trading"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 45,
+      "category": [
+        "gating"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 46,
+      "category": [
+        "tools"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 47,
+      "category": [
+        "tools"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 48,
+      "category": [
+        "agents"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 49,
+      "category": [
+        "tools"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 51,
+      "category": [
+        "social",
+        "trading"
+      ],
+      "confidence_score": 0.7999999999999999,
+      "needs_review": false
+    },
+    {
+      "id": 52,
+      "category": [
+        "trading"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 53,
+      "category": [
+        "tools"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 58,
+      "category": [
+        "tools"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 60,
+      "category": [
+        "tools"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 64,
+      "category": [
+        "gaming"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 65,
+      "category": [
+        "infrastructure",
+        "trading"
+      ],
+      "confidence_score": 0.7999999999999999,
+      "needs_review": false
+    },
+    {
+      "id": 66,
+      "category": [
+        "tools"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 67,
+      "category": [
+        "tools"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 68,
+      "category": [
+        "tools"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 69,
+      "category": [
+        "agents"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 71,
+      "category": [
+        "gating",
+        "trading"
+      ],
+      "confidence_score": 0.7999999999999999,
+      "needs_review": false
+    },
+    {
+      "id": 72,
+      "category": [
+        "tools"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 73,
+      "category": [
+        "tools"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 74,
+      "category": [
+        "gating",
+        "social"
+      ],
+      "confidence_score": 0.7999999999999999,
+      "needs_review": false
+    },
+    {
+      "id": 75,
+      "category": [
+        "tools"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 76,
+      "category": [
+        "social"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 77,
+      "category": [
+        "trading"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 78,
+      "category": [
+        "creators",
+        "payments"
+      ],
+      "confidence_score": 0.7999999999999999,
+      "needs_review": false
+    },
+    {
+      "id": 79,
+      "category": [
+        "gaming"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 80,
+      "category": [
+        "identity",
+        "rewards"
+      ],
+      "confidence_score": 0.7999999999999999,
+      "needs_review": false
+    },
+    {
+      "id": 81,
+      "category": [
+        "messaging"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 82,
+      "category": [
+        "gating",
+        "payments"
+      ],
+      "confidence_score": 0.7999999999999999,
+      "needs_review": false
+    },
+    {
+      "id": 83,
+      "category": [
+        "gating"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 84,
+      "category": [
+        "trading"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 85,
+      "category": [
+        "social"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 86,
+      "category": [
+        "invest"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 87,
+      "category": [
+        "tools"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 88,
+      "category": [
+        "trading"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 89,
+      "category": [
+        "trading"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 90,
+      "category": [
+        "messaging"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 91,
+      "category": [
+        "tools"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 92,
+      "category": [
+        "agents",
+        "creators",
+        "payments",
+        "trading"
+      ],
+      "confidence_score": 0.5,
+      "needs_review": false
+    },
+    {
+      "id": 93,
+      "category": [
+        "gaming"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 94,
+      "category": [
+        "trading"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 95,
+      "category": [
+        "social"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 96,
+      "category": [
+        "tools"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 97,
+      "category": [
+        "tools"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 98,
+      "category": [
+        "tools"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 99,
+      "category": [
+        "tools"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 100,
+      "category": [
+        "tools"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 101,
+      "category": [
+        "messaging"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 102,
+      "category": [
+        "tools"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 103,
+      "category": [
+        "messaging",
+        "social"
+      ],
+      "confidence_score": 0.7999999999999999,
+      "needs_review": false
+    },
+    {
+      "id": 104,
+      "category": [
+        "agents",
+        "identity"
+      ],
+      "confidence_score": 0.7999999999999999,
+      "needs_review": false
+    },
+    {
+      "id": 105,
+      "category": [
+        "tools"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 106,
+      "category": [
+        "agents"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 107,
+      "category": [
+        "agents",
+        "social"
+      ],
+      "confidence_score": 0.7999999999999999,
+      "needs_review": false
+    },
+    {
+      "id": 108,
+      "category": [
+        "agents"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 109,
+      "category": [
+        "social"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 110,
+      "category": [
+        "gaming"
+      ],
+      "confidence_score": 0.9,
+      "needs_review": false
+    },
+    {
+      "id": 111,
+      "category": [
+        "agents",
+        "trading"
+      ],
+      "confidence_score": 0.7999999999999999,
+      "needs_review": false
+    },
+    {
+      "id": 112,
+      "category": [
+        "gating",
+        "messaging",
+        "payments"
+      ],
+      "confidence_score": 0.6,
+      "needs_review": false
+    },
+    {
+      "id": 113,
+      "category": [
+        "creators",
+        "trading"
+      ],
+      "confidence_score": 0.7999999999999999,
+      "needs_review": false
+    }
+  ]
+}

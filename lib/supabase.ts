@@ -116,6 +116,25 @@ export async function fetchInfiniteMenuData(categories?: string[] | null, search
   return data.map(mapNFTToMenuItem);
 }
 
+// Define the new 15-category system order
+const CATEGORY_ORDER = [
+  'defi',
+  'payments', 
+  'trading',
+  'agents',
+  'gaming',
+  'creators',
+  'social',
+  'identity',
+  'messaging',
+  'gating',
+  'privacy',
+  'rewards',
+  'data',
+  'infrastructure',
+  'tools'
+];
+
 // Fetch all available categories
 export async function fetchCategories(): Promise<string[]> {
   const { data, error } = await supabase
@@ -136,7 +155,23 @@ export async function fetchCategories(): Promise<string[]> {
     }
   });
 
-  return Array.from(categoriesSet).sort();
+  // Sort categories by the defined order, with any unknown categories at the end
+  const categories = Array.from(categoriesSet);
+  return categories.sort((a, b) => {
+    const aIndex = CATEGORY_ORDER.indexOf(a);
+    const bIndex = CATEGORY_ORDER.indexOf(b);
+    
+    // If both are in the order, sort by order
+    if (aIndex !== -1 && bIndex !== -1) {
+      return aIndex - bIndex;
+    }
+    // If only a is in the order, it comes first
+    if (aIndex !== -1) return -1;
+    // If only b is in the order, it comes first
+    if (bIndex !== -1) return 1;
+    // Neither in order, sort alphabetically
+    return a.localeCompare(b);
+  });
 } 
 
 // Fetch available subcategories, optionally scoped to a primary category

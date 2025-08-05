@@ -1,0 +1,24 @@
+{
+  "distribution": {
+    "rewards": 29,
+    "payments": 73,
+    "privacy": 34,
+    "agents": 53,
+    "messaging": 49,
+    "trading": 89,
+    "social": 58,
+    "wallet": 18,
+    "art": 54,
+    "invest": 26,
+    "identity": 62,
+    "gating": 68
+  },
+  "metrics": {
+    "totalItems": 706,
+    "itemsWithCategories": 432,
+    "itemsWithMultiple": 138,
+    "avgCategoriesPerItem": 0.8682719546742209,
+    "uniqueCategories": 12
+  },
+  "timestamp": "2025-08-05T21:02:05.761Z"
+}
