@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "export:csv": "tsx scripts/exportCategories.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.50.2",

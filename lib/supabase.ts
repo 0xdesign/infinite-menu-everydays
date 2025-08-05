@@ -28,12 +28,14 @@ export interface NFTToken {
   embedding: number[] | null
   thumbnail_url: string | null
   category: string[] | null
+  primary_category?: string | null
+  subcat?: string | null
 }
 
 // Helper function to fetch NFT tokens
 export async function fetchNFTTokens(limit?: number) {
   let query = supabase
-    .from('nft_tokens')
+    .from('nft_tokens_filtered')
     .select('*')
     .order('created_at', { ascending: false })
   
@@ -54,7 +56,7 @@ export async function fetchNFTTokens(limit?: number) {
 // Helper function to fetch a single NFT token by ID
 export async function fetchNFTTokenById(id: number) {
   const { data, error } = await supabase
-    .from('nft_tokens')
+    .from('nft_tokens_filtered')
     .select('*')
     .eq('id', id)
     .single()
@@ -82,15 +84,21 @@ export function mapNFTToMenuItem(token: NFTToken) {
 }
 
 // Fetch infinite menu data with optional category and search filters
-export async function fetchInfiniteMenuData(category?: string | null, searchQuery?: string) {
+export async function fetchInfiniteMenuData(categories?: string[] | null, searchQuery?: string, subcat?: string | null) {
   let query = supabase
-    .from('nft_tokens')
+    .from('nft_tokens_filtered')
     .select('*')
     .order('id', { ascending: true });
 
   // Apply category filter if provided
-  if (category) {
-    query = query.contains('category', [category]);
+  if (categories && categories.length > 0) {
+    // Show items that match ANY of the selected categories for better exploration
+    query = query.overlaps('category', categories);
+  }
+
+  // Apply subcategory filter if provided
+  if (subcat) {
+    query = query.eq('subcat', subcat);
   }
 
   // Apply search filter if provided
@@ -111,7 +119,7 @@ export async function fetchInfiniteMenuData(category?: string | null, searchQuer
 // Fetch all available categories
 export async function fetchCategories(): Promise<string[]> {
   const { data, error } = await supabase
-    .from('nft_tokens')
+    .from('nft_tokens_filtered')
     .select('category')
     .not('category', 'is', null);
 
@@ -130,3 +138,27 @@ export async function fetchCategories(): Promise<string[]> {
 
   return Array.from(categoriesSet).sort();
 } 
+
+// Fetch available subcategories, optionally scoped to a primary category
+export async function fetchSubcategories(primaryCategory?: string | null): Promise<string[]> {
+  let query = supabase
+    .from('nft_tokens_filtered')
+    .select('subcat, primary_category')
+    .not('subcat', 'is', null);
+
+  if (primaryCategory) {
+    query = query.eq('primary_category', primaryCategory);
+  }
+
+  const { data, error } = await query;
+  if (error) {
+    console.error('Error fetching subcategories:', error);
+    return [];
+  }
+
+  const set = new Set<string>();
+  data.forEach(row => {
+    if (row.subcat) set.add(row.subcat);
+  });
+  return Array.from(set).sort();
+}

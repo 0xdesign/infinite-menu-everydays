@@ -174,3 +174,86 @@ The dynamic sphere implementation required four simple but interconnected change
 4. **Proportional drag zoom**: `camera = radius * (3.0 to 43.0)`
 
 This elegant solution perfectly replicates the original component's behavior at any scale with minimal code changes.
+
+## Texture Atlas Loading Issue Resolution
+
+### The Problem
+
+When loading 750+ items, the InfiniteMenu component displayed colored gradient squares instead of actual NFT images. The issue was particularly persistent on initial page load, and when isolating an item, the image shown differed from what was visible during drag.
+
+### Root Cause Analysis
+
+The component initialization occurred in this problematic sequence:
+1. React component mounts and creates InfiniteMenu instance
+2. WebGL context isn't immediately available (React's double-render in StrictMode)
+3. Component falls back to procedural colored square texture generation
+4. WebGL context becomes available and texture atlases load successfully
+5. Component remains stuck using fallback textures, never switching to loaded atlases
+
+### Failed Approaches
+
+1. **Modulo Fix**: Assumed vertex-to-item index mismatch, but shader already handled this correctly
+2. **Loading State Flag**: Added `texturesReady` to delay rendering, but fallback texture was already created
+3. **Multi-Atlas Shader**: Overcomplicated shader with texture switching logic
+4. **Complex Batching**: Attempted to render items in separate draw calls per atlas
+
+These approaches failed because they addressed symptoms rather than the core initialization race condition.
+
+### The Solution
+
+The fix required three key changes:
+
+1. **Deferred Texture Initialization**:
+   ```typescript
+   // Use setTimeout to ensure WebGL context is fully ready
+   setTimeout(() => {
+     if (this.gl) {
+       this.initTexture();
+     } else {
+       console.error('WebGL context not available after timeout');
+       this.initTextureFallback();
+     }
+   }, 0);
+   ```
+
+2. **Fallback State Tracking**:
+   ```typescript
+   private usingFallbackTexture: boolean = false;
+   ```
+
+3. **Runtime Texture Switching**:
+   ```typescript
+   // In render(): Switch from fallback to atlas textures when available
+   if (this.usingFallbackTexture && this.atlases.length > 0) {
+     console.log('Switching from fallback to atlas textures');
+     this.tex = this.atlases[0];
+     this.usingFallbackTexture = false;
+   }
+   ```
+
+4. **Fixed Shader Cell Calculation**:
+   ```glsl
+   // Always use modulo 256 for texture coordinate calculation
+   int atlasItemIndex = itemIndex % 256;
+   ```
+
+### Key Learnings
+
+1. **React StrictMode Double-Rendering**: In development, React StrictMode intentionally double-renders components to detect side effects. This can cause WebGL initialization timing issues.
+
+2. **WebGL Context Availability**: WebGL context may not be immediately available when a component mounts. Always verify context exists before texture operations.
+
+3. **State Persistence**: Once the component enters fallback mode, it needs explicit logic to transition out when resources become available.
+
+4. **Shader Limitations**: The current shader assumes all items fit within one 256-item atlas. Items beyond index 255 wrap around to show images from the beginning of the atlas.
+
+### Current Limitations
+
+- Only the first texture atlas is used, limiting proper display to the first 256 items
+- Items 256+ will show repeated images from the first atlas
+- Full multi-atlas support would require:
+  - Multiple texture units bound simultaneously
+  - Shader logic to select correct atlas based on item index
+  - Or batched rendering with different atlases per batch
+
+This solution ensures the component gracefully handles initialization race conditions and displays actual images instead of colored squares.
