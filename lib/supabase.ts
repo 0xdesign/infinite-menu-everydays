@@ -84,36 +84,20 @@ export function mapNFTToMenuItem(token: NFTToken) {
 }
 
 // Fetch infinite menu data with optional category and search filters
-export async function fetchInfiniteMenuData(categories?: string[] | null, searchQuery?: string, subcat?: string | null) {
-  let query = supabase
-    .from('nft_tokens_filtered')
-    .select('*')
-    .order('id', { ascending: true });
-
-  // Apply category filter if provided
-  if (categories && categories.length > 0) {
-    // Show items that match ANY of the selected categories for better exploration
-    query = query.overlaps('category', categories);
-  }
-
-  // Apply subcategory filter if provided
-  if (subcat) {
-    query = query.eq('subcat', subcat);
-  }
-
-  // Apply search filter if provided
-  if (searchQuery && searchQuery.trim()) {
-    query = query.or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
-  }
-
-  const { data, error } = await query;
+export async function fetchInfiniteMenuData(categories?: string[] | null, searchQuery?: string, _subcat?: string | null) {
+  // Use ranked RPC for accurate search and filtering
+  const { data, error } = await supabase
+    .rpc('rpc_search_nfts', {
+      q: searchQuery ?? '',
+      cats: categories && categories.length > 0 ? categories : null,
+    });
 
   if (error) {
     console.error('Error fetching NFT tokens:', error);
     return [];
   }
 
-  return data.map(mapNFTToMenuItem);
+  return (data || []).map(mapNFTToMenuItem);
 }
 
 // Define the new 15-category system order
