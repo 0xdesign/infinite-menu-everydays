@@ -112,7 +112,10 @@ export default function Home() {
       {/* Infinite Menu - only render when we have items */}
       {!isLoading && items.length > 0 && (
         <div className="w-full h-full">
-          <InfiniteMenu items={items} />
+          <InfiniteMenu 
+            items={items} 
+            initialFocusId={activeCategories.length === 0 && !searchQuery ? 755 : undefined}
+          />
         </div>
       )}
 

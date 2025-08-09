@@ -84,20 +84,76 @@ export function mapNFTToMenuItem(token: NFTToken) {
 }
 
 // Fetch infinite menu data with optional category and search filters
-export async function fetchInfiniteMenuData(categories?: string[] | null, searchQuery?: string, _subcat?: string | null) {
-  // Use ranked RPC for accurate search and filtering
-  const { data, error } = await supabase
-    .rpc('rpc_search_nfts', {
-      q: searchQuery ?? '',
-      cats: categories && categories.length > 0 ? categories : null,
-    });
+export async function fetchInfiniteMenuData(categories?: string[] | null, searchQuery?: string, subcat?: string | null) {
+  try {
+    const cats = categories && categories.length > 0 ? categories : null;
+    const q = (searchQuery ?? '').trim();
 
-  if (error) {
-    console.error('Error fetching NFT tokens:', error);
+    // For default view (no search query), use direct query to get all items
+    // This preserves the original behavior of showing all filtered items
+    if (!q) {
+      let query = supabase
+        .from('nft_tokens_filtered')
+        .select('*')
+        .order('id', { ascending: true });
+
+      // Apply subcategory filter if provided
+      if (subcat) {
+        query = query.eq('subcat', subcat);
+      }
+
+      // Apply category filter if provided
+      if (cats) {
+        query = query.overlaps('category', cats);
+      }
+
+      const { data, error } = await query;
+      if (error) {
+        console.error('Error fetching NFT tokens:', error);
+        return [];
+      }
+      return (data ?? []).map(mapNFTToMenuItem);
+    }
+
+    // For searches, use enhanced RPC with synonym expansion and fuzzy matching
+    // Try enhanced search first
+    const { data: enhancedData, error: enhancedError } = await supabase
+      .rpc('rpc_search_nfts_enhanced', { q, cats });
+
+    if (!enhancedError && enhancedData) {
+      return (enhancedData ?? []).map(mapNFTToMenuItem);
+    }
+
+    // Fall back to regular RPC search if enhanced is not available
+    if (enhancedError) {
+      console.log('Enhanced search not available, falling back to regular search');
+    }
+
+    const { data, error } = await supabase
+      .rpc('rpc_search_nfts', { q, cats });
+
+    if (error) {
+      console.error('Error fetching NFT tokens via rpc_search_nfts:', error);
+      // Graceful fallback to simple filter if RPC fails
+      let query = supabase
+        .from('nft_tokens_filtered')
+        .select('*')
+        .order('id', { ascending: true });
+      if (cats) query = query.overlaps('category', cats);
+      if (q) query = query.or(`title.ilike.%${q}%,description.ilike.%${q}%`);
+      const fallback = await query;
+      if (fallback.error) {
+        console.error('Fallback query failed:', fallback.error);
+        return [];
+      }
+      return (fallback.data ?? []).map(mapNFTToMenuItem);
+    }
+
+    return (data ?? []).map(mapNFTToMenuItem);
+  } catch (e) {
+    console.error('Unexpected error fetching NFT tokens:', e);
     return [];
   }
-
-  return (data || []).map(mapNFTToMenuItem);
 }
 
 // Define the new 15-category system order
