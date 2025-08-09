@@ -914,7 +914,8 @@ class InfiniteGridMenu {
     private items: MenuItem[],
     private onActiveItemChange: ActiveItemCallback,
     private onMovementChange: MovementChangeCallback,
-    onInit?: InitCallback
+    onInit?: InitCallback,
+    private initialFocusId?: number
   ) {
     this.dynamicPositions = new DynamicSpherePositions();
     this.init(onInit);
@@ -1096,6 +1097,11 @@ class InfiniteGridMenu {
     this.control = new ArcballControl(this.canvas, (deltaTime) =>
       this.onControlUpdate(deltaTime)
     );
+
+    // Set initial focus if specified
+    if (this.initialFocusId !== undefined) {
+      this.setInitialFocus(this.initialFocusId);
+    }
 
     // Set initial camera position at constant distance from sphere surface
     // Original: sphere radius 2.0, camera at 3.0 (1.0 unit from surface)
@@ -1876,6 +1882,43 @@ class InfiniteGridMenu {
     );
   }
 
+  private setInitialFocus(focusId: number): void {
+    // Find the item with matching ID
+    const itemIndex = this.items.findIndex(item => item.id === focusId);
+    if (itemIndex === -1) {
+      console.log(`Initial focus item ${focusId} not found`);
+      return;
+    }
+    
+    // Get the vertex position for this item
+    const vertexIndex = itemIndex % this.instancePositions.length;
+    const targetPos = this.instancePositions[vertexIndex];
+    
+    // Normalize the target position
+    const targetNormalized = vec3.normalize(vec3.create(), targetPos);
+    
+    // The front direction we want to align to (positive Z)
+    const frontDirection = vec3.fromValues(0, 0, 1);
+    
+    // Calculate rotation axis (cross product)
+    const axis = vec3.cross(vec3.create(), targetNormalized, frontDirection);
+    const axisLength = vec3.length(axis);
+    
+    // Calculate angle between vectors
+    const dotProduct = vec3.dot(targetNormalized, frontDirection);
+    const angle = Math.acos(Math.max(-1, Math.min(1, dotProduct)));
+    
+    // Only rotate if there's a meaningful angle
+    if (axisLength > 0.001 && angle > 0.001) {
+      vec3.normalize(axis, axis);
+      // Rotate in the opposite direction to bring target to front
+      quat.setAxisAngle(this.control.orientation, axis, -angle);
+      console.log(`Set initial focus to item ${itemIndex} (ID: ${focusId}) with rotation ${angle} radians`);
+    } else {
+      console.log(`Item ${itemIndex} (ID: ${focusId}) is already at front`);
+    }
+  }
+
   public dispose(): void {
     if (this.animationFrameId) {
       cancelAnimationFrame(this.animationFrameId);
@@ -1978,9 +2021,10 @@ const defaultItems: MenuItem[] = [
 
 interface InfiniteMenuProps {
   items?: MenuItem[];
+  initialFocusId?: number;
 }
 
-const InfiniteMenu = ({ items = [] }: InfiniteMenuProps) => {
+const InfiniteMenu = ({ items = [], initialFocusId }: InfiniteMenuProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const menuInstanceRef = useRef<InfiniteGridMenu | null>(null);
   const [activeItem, setActiveItem] = useState(items.length > 0 ? items[0] : null);
@@ -2012,7 +2056,8 @@ const InfiniteMenu = ({ items = [] }: InfiniteMenuProps) => {
       items.length ? items : defaultItems,
       handleActiveItem,
       setIsMoving,
-      (sk) => sk.run()
+      (sk) => sk.run(),
+      initialFocusId
     );
     
     menuInstanceRef.current = menuInstance;
