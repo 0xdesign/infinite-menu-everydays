@@ -778,6 +778,11 @@ interface MenuItem {
   link: string;
   title: string;
   description: string;
+  mintUrl?: string | null;
+  createdAt?: string | null;
+  categories?: string[];
+  network?: string | null;
+  collectionAddress?: string | null;
 }
 
 type ActiveItemCallback = (index: number) => void;
@@ -2022,13 +2027,14 @@ const defaultItems: MenuItem[] = [
 interface InfiniteMenuProps {
   items?: MenuItem[];
   initialFocusId?: number;
+  onItemFocus?: (item: MenuItem | null) => void;
 }
 
-const InfiniteMenu = ({ items = [], initialFocusId }: InfiniteMenuProps) => {
+const InfiniteMenu = ({ items = [], initialFocusId, onItemFocus }: InfiniteMenuProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const menuInstanceRef = useRef<InfiniteGridMenu | null>(null);
-  const [activeItem, setActiveItem] = useState(items.length > 0 ? items[0] : null);
-  const [isMoving, setIsMoving] = useState<boolean>(false);
+  const [, setActiveItem] = useState(items.length > 0 ? items[0] : null);
+  const [, setIsMoving] = useState<boolean>(false);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -2042,7 +2048,11 @@ const InfiniteMenu = ({ items = [], initialFocusId }: InfiniteMenuProps) => {
 
     const handleActiveItem = (index: number) => {
       const itemIndex = index % items.length;
-      setActiveItem(items[itemIndex]);
+      const item = items[itemIndex];
+      setActiveItem(item);
+      if (onItemFocus) {
+        onItemFocus(item);
+      }
     };
     
     // Dispose previous instance if it exists
@@ -2075,16 +2085,8 @@ const InfiniteMenu = ({ items = [], initialFocusId }: InfiniteMenuProps) => {
       menuInstance.dispose();
       menuInstanceRef.current = null;
     };
-  }, [items]);
+  }, [items, initialFocusId, onItemFocus]);
 
-  const handleButtonClick = () => {
-    if (!activeItem?.link) return;
-    if (activeItem.link.startsWith("http")) {
-      window.open(activeItem.link, "_blank");
-    } else {
-      console.log("Internal route:", activeItem.link);
-    }
-  };
 
   return (
     <div className="relative w-full h-full">
@@ -2094,84 +2096,7 @@ const InfiniteMenu = ({ items = [], initialFocusId }: InfiniteMenuProps) => {
         className="cursor-grab w-full h-full overflow-hidden relative outline-none active:cursor-grabbing"
       />
 
-      {activeItem && (
-        <>
-          <h2
-            className={`
-              select-none
-              absolute
-              font-black
-              text-4xl
-              md:text-5xl
-              lg:text-6xl
-              left-8
-              top-8
-              transition-all
-              ease-[cubic-bezier(0.25,0.1,0.25,1.0)]
-              ${
-                isMoving
-                  ? "opacity-0 pointer-events-none duration-[100ms]"
-                  : "opacity-100 pointer-events-auto duration-[500ms]"
-              }
-            `}
-          >
-            {activeItem.title}
-          </h2>
-
-          <p
-            className={`
-              select-none
-              absolute
-              max-w-md
-              text-lg
-              md:text-xl
-              text-gray-300
-              left-8
-              top-24
-              md:top-28
-              lg:top-32
-              transition-all
-              ease-[cubic-bezier(0.25,0.1,0.25,1.0)]
-              ${
-                isMoving
-                  ? "opacity-0 pointer-events-none duration-[100ms]"
-                  : "opacity-100 pointer-events-auto duration-[500ms]"
-              }
-            `}
-          >
-            {activeItem.description}
-          </p>
-
-          <div
-            onClick={handleButtonClick}
-            className={`
-              absolute
-              left-1/2
-              z-10
-              w-[60px]
-              h-[60px]
-              grid
-              place-items-center
-              bg-[#00ffff]
-              border-[5px]
-              border-black
-              rounded-full
-              cursor-pointer
-              transition-all
-              ease-[cubic-bezier(0.25,0.1,0.25,1.0)]
-              ${
-                isMoving
-                  ? "bottom-[-80px] opacity-0 pointer-events-none duration-[100ms] scale-0 -translate-x-1/2"
-                  : "bottom-[3.8em] opacity-100 pointer-events-auto duration-[500ms] scale-100 -translate-x-1/2"
-              }
-            `}
-          >
-            <p className="select-none relative text-[#060010] top-[2px] text-[26px]">
-              &#x2197;
-            </p>
-          </div>
-        </>
-      )}
+      {/* Item details are now shown in the right panel */}
     </div>
   );
 };

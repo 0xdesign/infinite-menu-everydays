@@ -80,6 +80,11 @@ export function mapNFTToMenuItem(token: NFTToken) {
     link: `/token/${token.id}`,
     title: token.title || token.token_id || `Token #${token.id}`,
     description: token.description || 'No description available',
+    mintUrl: token.mint_url || null,
+    createdAt: token.created_at || null,
+    categories: token.category || [],
+    network: token.network || null,
+    collectionAddress: token.collection_address || null,
   };
 }
 
