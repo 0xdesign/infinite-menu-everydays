@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { fetchInfiniteMenuData, fetchCategories } from '@/lib/supabase';
-import { Search, ExternalLink, Calendar, Hash, Globe } from 'lucide-react';
+import { Search, ExternalLink, Calendar, Hash, Globe, X } from 'lucide-react';
 
 const InfiniteMenu = dynamic(
   () => import('@/components/InfiniteMenu'),
@@ -99,15 +99,24 @@ export default function Home() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search NFTs by title, description, or category..."
-              className="w-full font-mono text-sm bg-white/10 border border-white/20 rounded-full px-4 py-3 pl-10 text-white placeholder-white/50 focus:outline-none focus:border-white/40 focus:bg-white/15"
+              className="w-full font-mono text-sm bg-white/10 border border-white/20 rounded-full px-4 py-3 pl-10 pr-24 text-white placeholder-white/50 focus:outline-none focus:border-white/40 focus:bg-white/15"
             />
-            {!isLoading && (
-              <div className="absolute right-3 top-1/2 -translate-y-1/2">
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="p-1 rounded-full hover:bg-white/10 transition-colors"
+                  aria-label="Clear search"
+                >
+                  <X className="w-4 h-4 text-white/60 hover:text-white" />
+                </button>
+              )}
+              {!isLoading && (
                 <span className="font-mono text-xs text-white/60">
                   {items.length} results
                 </span>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </header>
