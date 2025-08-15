@@ -24,37 +24,79 @@ npm run start
 # Run linting
 npm run lint
 
-# Run type checking
-npm run typecheck
+# Run type checking (no npm script, use directly)
+npx tsc --noEmit
+
+# Export categories to CSV
+npm run export:csv
 ```
 
 ## Architecture
 
-### Key Technologies
-- **Framework**: Next.js 15.3.4 with App Router (`/app` directory)
-- **Database**: Supabase for NFT token data storage
-- **3D Visualization**: Custom WebGL2 InfiniteMenu component
-- **Animation**: Framer Motion for UI animations
-- **Styling**: Tailwind CSS v4 with PostCSS
+### Core System Architecture
 
-### Project Structure
-- `/app` - Next.js app router pages and layouts
-- `/lib` - Shared utilities and Supabase client
-- `/components` - React components (InfiniteMenu will be added here)
-- `/public` - Static assets
+The application follows a client-server architecture with real-time data fetching:
 
-### Key Components
+1. **Data Layer** (Supabase)
+   - Primary table: `nft_tokens_filtered` (view with optimized data)
+   - Search RPCs: `rpc_search_nfts_enhanced` (with synonym expansion) and `rpc_search_nfts` (fallback)
+   - Category system: 15 predefined categories with subcategories
+   - Full-text search with trigram matching for fuzzy search
 
-1. **Supabase Integration** (`lib/supabase.ts`)
-   - Fetches NFT tokens from `infinite_menu_tokens` table
-   - Maps database schema to InfiniteMenu format
-   - Requires environment variables: `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+2. **Rendering Pipeline** (WebGL2)
+   - Dynamic sphere generation based on item count
+   - Texture atlas system (256 items per atlas, up to 3 atlases)
+   - Instance-based rendering for performance
+   - Custom shaders for spherical projection and item isolation
 
-2. **InfiniteMenu Component** (to be implemented)
-   - WebGL2-based 3D spherical menu
-   - Displays NFT tokens in interactive sphere
-   - Requires `gl-matrix` library (needs installation: `npm install gl-matrix`)
-   - Uses Canvas API with WebGL2 context
+3. **State Management**
+   - React hooks for category and search state
+   - Debounced search with 300ms delay
+   - Dynamic item loading based on filters
+
+### Key Implementation Details
+
+**InfiniteMenu Component** (`components/InfiniteMenu.tsx`)
+- WebGL2 context with fallback texture handling
+- Dynamic sphere radius scaling: `radius = 2.0 * sqrt(itemCount / 42)`
+- Camera positioning: Fixed distance from surface for isolation, proportional for exploration
+- Texture atlas loading with deferred initialization to handle React StrictMode
+- Mouse/touch interaction with velocity-based zooming
+
+**Supabase Integration** (`lib/supabase.ts`)
+- Hierarchical search fallback: Enhanced RPC → Regular RPC → Direct query
+- Category filtering with array overlap queries
+- Ordered category system for consistent UI presentation
+
+**Category System**
+- 15 primary categories: defi, payments, trading, agents, gaming, creators, social, identity, messaging, gating, privacy, rewards, data, infrastructure, tools
+- Subcategories dynamically fetched based on primary category selection
+- Multi-select category filtering with real-time updates
+
+## Environment Setup
+
+Required environment variables in `.env.local`:
+```
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+## Current Implementation Status
+
+- ✅ Supabase integration with NFT token fetching
+- ✅ InfiniteMenu WebGL component with dynamic scaling
+- ✅ Category filtering and search functionality
+- ✅ Texture atlas system for 750+ items
+- ✅ Enhanced search with synonym expansion and fuzzy matching
+- ✅ Responsive category bar with multi-select
+
+## Important Notes
+
+- The user is a non-technical product designer - explain technical concepts clearly
+- Build incrementally with verification at each step
+- Always use environment variables for sensitive data (Supabase keys)
+- Focus on addressing root causes, not symptoms when debugging
+- The WebGL component handles initialization race conditions with deferred texture loading
 
 ## Testing Requirements
 
@@ -64,37 +106,13 @@ Currently, no testing framework is set up. When implementing tests:
 3. Focus on real-world user scenarios
 4. Include integration tests for Supabase data fetching
 
-## Environment Setup
+## Database Migrations
 
-Create `.env.local` with:
-```
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-```
-
-## Development Workflow
-
-The project follows an incremental development approach:
-1. Complete one feature fully before moving to the next
-2. Test everything after implementation
-3. Use TypeScript's strict mode to catch errors early
-4. Run `npm run lint` and `npm run typecheck` before considering a feature complete
-
-## Current Status
-
-- Task 1 ✓: Supabase integration complete with NFT token fetching
-- Task 2 (in progress): Implementing InfiniteMenu WebGL component
-- Task 3 (pending): Integrating menu with Supabase data
-- Task 4 (pending): Styling and animations
-- Task 5 (pending): Performance optimization
-
-## Important Notes
-
-- The user is a non-technical product designer - explain technical concepts clearly
-- Build incrementally with verification at each step
-- The `gl-matrix` library needs to be installed for the InfiniteMenu component
-- Always use environment variables for sensitive data (Supabase keys)
-- Focus on addressing root causes, not symptoms when debugging
+Key migration scripts in `/scripts`:
+- `applyCategorizationMigration.ts` - Updates category system
+- `applyEnhancedSearch.ts` - Adds FTS and trigram search
+- `applyFilteredViewFix.ts` - Fixes filtered view performance
+- `buildAtlas.ts` - Generates texture atlases from NFT images
 
 ## Dynamic Sphere Implementation Learnings
 

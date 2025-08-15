@@ -84,7 +84,12 @@ export function mapNFTToMenuItem(token: NFTToken) {
 }
 
 // Fetch infinite menu data with optional category and search filters
-export async function fetchInfiniteMenuData(categories?: string[] | null, searchQuery?: string, subcat?: string | null) {
+export async function fetchInfiniteMenuData(
+  categories?: string[] | null,
+  searchQuery?: string,
+  subcat?: string | null,
+  limit?: number
+) {
   try {
     const cats = categories && categories.length > 0 ? categories : null;
     const q = (searchQuery ?? '').trim();
@@ -94,7 +99,9 @@ export async function fetchInfiniteMenuData(categories?: string[] | null, search
     if (!q) {
       let query = supabase
         .from('nft_tokens_filtered')
-        .select('*')
+        .select(
+          'id,title,description,image_url,thumbnail_url,category,primary_category,subcat'
+        )
         .order('id', { ascending: true });
 
       // Apply subcategory filter if provided
@@ -105,6 +112,10 @@ export async function fetchInfiniteMenuData(categories?: string[] | null, search
       // Apply category filter if provided
       if (cats) {
         query = query.overlaps('category', cats);
+      }
+
+      if (typeof limit === 'number' && limit > 0) {
+        query = query.limit(limit);
       }
 
       const { data, error } = await query;
@@ -137,7 +148,9 @@ export async function fetchInfiniteMenuData(categories?: string[] | null, search
       // Graceful fallback to simple filter if RPC fails
       let query = supabase
         .from('nft_tokens_filtered')
-        .select('*')
+        .select(
+          'id,title,description,image_url,thumbnail_url,category,primary_category,subcat'
+        )
         .order('id', { ascending: true });
       if (cats) query = query.overlaps('category', cats);
       if (q) query = query.or(`title.ilike.%${q}%,description.ilike.%${q}%`);
