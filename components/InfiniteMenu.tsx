@@ -544,8 +544,7 @@ function makeVertexArray(
 }
 
 function resizeCanvasToDisplaySize(canvas: HTMLCanvasElement): boolean {
-  // Start with DPR=1 for faster first paint; caller can bump later when idle
-  const dpr = (window as any).__INFINITE_MENU_DPR_OVERRIDE__ ?? Math.min(2, window.devicePixelRatio || 1);
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
   const displayWidth = Math.round(canvas.clientWidth * dpr);
   const displayHeight = Math.round(canvas.clientHeight * dpr);
   const needResize =
@@ -1305,8 +1304,7 @@ class InfiniteGridMenu {
     }
 
     const items = this.items;
-    // Use smaller tiles for the first pass; can rebuild at higher res later
-    const cellSize = (window as any).__INFINITE_MENU_ATLAS_CELL__ ?? 128;
+    const cellSize = 256; // keeps a good balance of quality/speed; adjust if needed
     const tilesPerRow = 16; // 16x16 grid => 256 items per atlas
     this.atlasSize = tilesPerRow;
 
@@ -1388,19 +1386,6 @@ class InfiniteGridMenu {
     const capacity = this.atlases.length * (tilesPerRow * tilesPerRow);
     if (capacity > 0) {
       this.DISC_INSTANCE_COUNT = Math.min(this.DISC_INSTANCE_COUNT, capacity);
-    }
-  }
-
-  // Upgrade rendering quality when the browser is idle or after interaction
-  public upgradeQualityIfNeeded(): void {
-    if (!(window as any).__INFINITE_MENU_QUALITY_BUMPED__) {
-      (window as any).__INFINITE_MENU_QUALITY_BUMPED__ = true;
-      // Increase DPR for crisper rendering
-      (window as any).__INFINITE_MENU_DPR_OVERRIDE__ = Math.min(2, window.devicePixelRatio || 1);
-      this.resize();
-      // Rebuild atlases at 256px cells
-      (window as any).__INFINITE_MENU_ATLAS_CELL__ = 256;
-      this.initDynamicAtlases();
     }
   }
   
@@ -2084,25 +2069,8 @@ const InfiniteMenu = ({ items = [], initialFocusId }: InfiniteMenuProps) => {
     window.addEventListener("resize", handleResize);
     handleResize();
 
-    // Schedule a quality bump when the browser is idle or after first interaction
-    const scheduleBump = () => {
-      if ('requestIdleCallback' in window) {
-        (window as any).requestIdleCallback(() => menuInstance.upgradeQualityIfNeeded(), { timeout: 1500 });
-      } else {
-        setTimeout(() => menuInstance.upgradeQualityIfNeeded(), 1500);
-      }
-    };
-    scheduleBump();
-
-    const onFirstPointer = () => {
-      menuInstance.upgradeQualityIfNeeded();
-      window.removeEventListener('pointerdown', onFirstPointer);
-    };
-    window.addEventListener('pointerdown', onFirstPointer, { once: true });
-
     return () => {
       window.removeEventListener("resize", handleResize);
-      window.removeEventListener('pointerdown', onFirstPointer);
       // Dispose WebGL resources on cleanup
       menuInstance.dispose();
       menuInstanceRef.current = null;
