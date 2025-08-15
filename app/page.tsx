@@ -18,7 +18,7 @@ const InfiniteMenu = dynamic(
 );
 
 interface MenuItem {
-  id: number;
+  id?: number;
   image: string;
   link: string;
   title: string;
