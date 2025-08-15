@@ -31,7 +31,6 @@ export default function Home() {
   const [activeCategories, setActiveCategories] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
-  const [hasLoadedFullSet, setHasLoadedFullSet] = useState(false);
 
   useEffect(() => {
     // Fetch categories on mount
@@ -41,34 +40,21 @@ export default function Home() {
   useEffect(() => {
     // Fetch items when categories or search changes
     setIsLoading(true);
-    setHasLoadedFullSet(false);
-
+    
     // Debounce search
     const timeoutId = setTimeout(() => {
-      const initialLimit = searchQuery ? undefined : 256; // quick first paint for default view
-      fetchInfiniteMenuData(activeCategories, searchQuery, undefined, initialLimit)
+      fetchInfiniteMenuData(activeCategories, searchQuery)
         .then((data) => {
+          console.log('Fetched items:', data.length, 'items for categories:', activeCategories.join(', ') || 'All', 'search:', searchQuery);
           setItems(data);
           setIsLoading(false);
-          // If we fetched a limited set, kick a background fetch for the full set
-          if (!searchQuery && initialLimit && data.length >= initialLimit) {
-            // background
-            fetchInfiniteMenuData(activeCategories, searchQuery)
-              .then((fullData) => {
-                setItems(fullData);
-                setHasLoadedFullSet(true);
-              })
-              .catch(() => void 0);
-          } else {
-            setHasLoadedFullSet(true);
-          }
         })
         .catch((error) => {
           console.error('Failed to fetch items:', error);
           setIsLoading(false);
         });
     }, searchQuery ? 300 : 0);
-
+    
     return () => clearTimeout(timeoutId);
   }, [activeCategories, searchQuery]);
 
