@@ -1345,14 +1345,24 @@ class InfiniteGridMenu {
               const x = (idx % tilesPerRow) * cellSize;
               const y = Math.floor(idx / tilesPerRow) * cellSize;
 
-              // cover-like draw to preserve aspect ratio
+              // Draw image to fill entire cell (crop to center)
               const iw = img.naturalWidth, ih = img.naturalHeight;
-              const r = Math.max(cellSize / iw, cellSize / ih);
-              const dw = Math.round(iw * r);
-              const dh = Math.round(ih * r);
-              const dx = x + Math.floor((cellSize - dw) / 2);
-              const dy = y + Math.floor((cellSize - dh) / 2);
-              ctx.drawImage(img, dx, dy, dw, dh);
+              const scale = Math.max(cellSize / iw, cellSize / ih);
+              const scaledW = iw * scale;
+              const scaledH = ih * scale;
+              
+              // Calculate source rectangle to crop from center
+              if (iw / ih > 1) {
+                // Wide image: crop horizontally
+                const cropW = (iw * cellSize) / scaledW;
+                const sx = (iw - cropW) / 2;
+                ctx.drawImage(img, sx, 0, cropW, ih, x, y, cellSize, cellSize);
+              } else {
+                // Tall image: crop vertically
+                const cropH = (ih * cellSize) / scaledH;
+                const sy = (ih - cropH) / 2;
+                ctx.drawImage(img, 0, sy, iw, cropH, x, y, cellSize, cellSize);
+              }
             } catch {}
             res();
           };

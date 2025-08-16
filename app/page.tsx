@@ -3,7 +3,9 @@
 import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { fetchInfiniteMenuData, fetchCategories } from '@/lib/supabase';
-import { Search, ExternalLink, Calendar, Hash, Globe, X } from 'lucide-react';
+import { Search, ExternalLink, Calendar, Hash, Globe, X, Filter } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 
 const InfiniteMenu = dynamic(
   () => import('@/components/InfiniteMenu'),
@@ -37,7 +39,11 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   const [focusedItem, setFocusedItem] = useState<MenuItem | null>(null);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  
+  // Responsive breakpoints
+  const isMobile = useMediaQuery('(max-width: 767px)');
 
   useEffect(() => {
     // Fetch categories on mount
@@ -87,6 +93,296 @@ export default function Home() {
     });
   };
 
+  // Mobile layout
+  if (isMobile) {
+    return (
+      <main className="relative w-screen h-screen overflow-hidden bg-black font-mono">
+        {/* Full-screen 3D Menu */}
+        <div className="absolute inset-0">
+          {isLoading && (
+            <div className="absolute inset-0 flex items-center justify-center z-10">
+              <div className="font-mono text-white text-xl">LOADING...</div>
+            </div>
+          )}
+
+          {!isLoading && items.length > 0 && (
+            <InfiniteMenu 
+              items={items} 
+              initialFocusId={activeCategories.length === 0 && !searchQuery ? 755 : undefined}
+              onItemFocus={setFocusedItem}
+            />
+          )}
+
+          {!isLoading && items.length === 0 && (
+            <div className="absolute inset-0 flex items-center justify-center z-10">
+              <div className="font-mono text-white text-center">
+                <p className="text-xl mb-2 uppercase">NO NFTS FOUND</p>
+                <p className="text-white/60 text-sm">
+                  {searchQuery ? 'TRY A DIFFERENT SEARCH' : 'NO ITEMS IN THIS CATEGORY'}
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Mobile FABs */}
+        <AnimatePresence>
+          {!isSearchOpen && !isFilterOpen && (
+            <>
+              {/* Filter FAB */}
+              <motion.button
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                exit={{ scale: 0 }}
+                onClick={() => setIsFilterOpen(true)}
+                className="fixed bottom-6 left-6 w-14 h-14 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center shadow-lg z-20 border border-white/20"
+              >
+                <Filter className="w-6 h-6 text-white" />
+              </motion.button>
+
+              {/* Search FAB */}
+              <motion.button
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                exit={{ scale: 0 }}
+                onClick={() => setIsSearchOpen(true)}
+                className="fixed bottom-6 right-6 w-14 h-14 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center shadow-lg z-20 border border-white/20"
+              >
+                <Search className="w-6 h-6 text-white" />
+              </motion.button>
+            </>
+          )}
+        </AnimatePresence>
+
+        {/* Mobile Search Sheet */}
+        <AnimatePresence>
+          {isSearchOpen && (
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+              className="fixed inset-x-0 bottom-0 bg-black/95 backdrop-blur-xl rounded-t-3xl z-30 max-h-[70vh] border-t border-white/10"
+            >
+              <div className="p-6">
+                {/* Drag handle */}
+                <button 
+                  onClick={() => setIsSearchOpen(false)}
+                  className="w-12 h-1 bg-white/20 rounded-full mx-auto mb-6 block"
+                />
+                
+                <div className="relative">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
+                  <input
+                    type="search"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="SEARCH NFTS"
+                    className="w-full bg-white/10 rounded-2xl px-12 py-4 text-white placeholder-white/40 font-mono text-sm uppercase tracking-wider border border-white/20 focus:outline-none focus:border-white/40"
+                    autoFocus
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery('')}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 p-1"
+                    >
+                      <X className="w-5 h-5 text-white/60" />
+                    </button>
+                  )}
+                </div>
+                
+                {!isLoading && (
+                  <div className="mt-4 font-mono text-xs text-white/60 uppercase tracking-wider text-center">
+                    {items.length} RESULTS
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Mobile Filter Drawer */}
+        <AnimatePresence>
+          {isFilterOpen && (
+            <>
+              {/* Backdrop */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setIsFilterOpen(false)}
+                className="fixed inset-0 bg-black/50 z-30"
+              />
+              
+              {/* Drawer */}
+              <motion.div
+                initial={{ x: '-100%' }}
+                animate={{ x: 0 }}
+                exit={{ x: '-100%' }}
+                transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+                className="fixed inset-y-0 left-0 w-[80vw] max-w-xs bg-black/95 backdrop-blur-xl z-40 border-r border-white/10"
+              >
+                <div className="p-6 h-full overflow-y-auto">
+                  <div className="flex items-center justify-between mb-8">
+                    <h3 className="font-mono text-xs uppercase tracking-[0.2em] text-white/40">
+                      FILTER
+                    </h3>
+                    <button
+                      onClick={() => setIsFilterOpen(false)}
+                      className="p-2 -mr-2"
+                    >
+                      <X className="w-5 h-5 text-white/60" />
+                    </button>
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <button
+                      onClick={() => {
+                        handleCategoryChange(null);
+                        setIsFilterOpen(false);
+                      }}
+                      className={`flex items-center w-full font-mono text-left py-3 transition-all duration-200 text-sm relative group ${
+                        activeCategories.length === 0
+                          ? 'text-white'
+                          : 'text-white/40'
+                      }`}
+                    >
+                      <span 
+                        className={`inline-block w-4 h-[1px] mr-4 transition-all duration-200 ${
+                          activeCategories.length === 0 ? 'bg-white' : 'bg-transparent'
+                        }`} 
+                      />
+                      <span className="uppercase tracking-[0.08em]">
+                        ALL
+                      </span>
+                    </button>
+                    
+                    {categories.map((category) => {
+                      const isActive = activeCategories.includes(category);
+                      return (
+                        <button
+                          key={category}
+                          onClick={() => {
+                            handleCategoryChange(category);
+                            if (!isActive) setIsFilterOpen(false);
+                          }}
+                          className={`flex items-center w-full font-mono text-left py-3 transition-all duration-200 text-sm relative group ${
+                            isActive
+                              ? 'text-white'
+                              : 'text-white/40'
+                          }`}
+                        >
+                          <span 
+                            className={`inline-block w-4 h-[1px] mr-4 transition-all duration-200 ${
+                              isActive ? 'bg-white' : 'bg-transparent'
+                            }`} 
+                          />
+                          <span className="uppercase tracking-[0.08em]">
+                            {category}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
+
+        {/* Mobile Item Details Sheet */}
+        <AnimatePresence>
+          {focusedItem && (
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              drag="y"
+              dragConstraints={{ top: 0 }}
+              dragElastic={0.2}
+              onDragEnd={(e, { velocity }) => {
+                if (velocity.y > 500) setFocusedItem(null);
+              }}
+              transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+              className="fixed inset-x-0 bottom-0 bg-black/95 backdrop-blur-xl rounded-t-3xl z-50 max-h-[80vh] border-t border-white/10"
+            >
+              {/* Drag handle */}
+              <div className="p-3">
+                <div className="w-12 h-1 bg-white/20 rounded-full mx-auto" />
+              </div>
+              
+              {/* Content */}
+              <div className="px-6 pb-6 overflow-y-auto">
+                <h2 className="font-mono text-lg uppercase tracking-wider mb-3">
+                  {focusedItem.title}
+                </h2>
+                
+                {/* Categories */}
+                {focusedItem.categories && focusedItem.categories.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {focusedItem.categories.map((cat, idx) => (
+                      <span 
+                        key={idx}
+                        className="px-3 py-1 bg-white/10 rounded-full font-mono text-xs uppercase tracking-wider text-white/80"
+                      >
+                        {cat}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                
+                {/* Date */}
+                <div className="flex items-center gap-2 font-mono text-xs text-white/60 mb-4">
+                  <Calendar className="w-3 h-3" />
+                  <time className="uppercase">{formatDate(focusedItem.createdAt)}</time>
+                </div>
+                
+                {/* Description */}
+                <p className="font-mono text-sm text-white/80 leading-relaxed mb-6">
+                  {focusedItem.description}
+                </p>
+                
+                {/* Metadata */}
+                {(focusedItem.network || focusedItem.collectionAddress) && (
+                  <div className="space-y-2 mb-6 py-4 border-t border-white/10">
+                    {focusedItem.network && (
+                      <div className="flex items-center gap-2 font-mono text-xs text-white/60">
+                        <Globe className="w-3 h-3" />
+                        <span className="uppercase">{focusedItem.network}</span>
+                      </div>
+                    )}
+                    {focusedItem.collectionAddress && (
+                      <div className="flex items-center gap-2 font-mono text-xs text-white/60">
+                        <Hash className="w-3 h-3" />
+                        <span className="truncate" title={focusedItem.collectionAddress}>
+                          {focusedItem.collectionAddress.slice(0, 8)}...{focusedItem.collectionAddress.slice(-6)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
+                
+                {/* CTA Button */}
+                {focusedItem.mintUrl && (
+                  <a 
+                    href={focusedItem.mintUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block w-full py-4 bg-white text-black rounded-2xl font-mono text-sm uppercase tracking-wider text-center"
+                  >
+                    VIEW ON MINT
+                    <ExternalLink className="inline-block w-4 h-4 ml-2" />
+                  </a>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </main>
+    );
+  }
+
+  // Desktop layout (existing)
   return (
     <main className="relative w-screen h-screen overflow-hidden bg-black font-mono">
       {/* Search Bar - Sticky Top */}
@@ -280,17 +576,6 @@ export default function Home() {
         )}
       </div>
 
-      {/* Mobile Menu Toggle - Hidden on Desktop */}
-      <button
-        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-        className="md:hidden fixed bottom-4 left-4 z-50 p-3 bg-white/10 backdrop-blur rounded-full"
-      >
-        <div className="w-6 h-6 flex flex-col justify-center gap-1">
-          <span className="block w-full h-0.5 bg-white"></span>
-          <span className="block w-full h-0.5 bg-white"></span>
-          <span className="block w-full h-0.5 bg-white"></span>
-        </div>
-      </button>
     </main>
   );
 }

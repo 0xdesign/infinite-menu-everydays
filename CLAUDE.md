@@ -135,18 +135,40 @@ The project follows an incremental development approach:
 ## Current Status
 
 - Task 1 ✓: Supabase integration complete with NFT token fetching
-- Task 2 (in progress): Implementing InfiniteMenu WebGL component
-- Task 3 (pending): Integrating menu with Supabase data
-- Task 4 (pending): Styling and animations
-- Task 5 (pending): Performance optimization
+- Task 2 ✓: InfiniteMenu WebGL component implemented with dynamic sphere scaling
+- Task 3 ✓: Menu integrated with Supabase data (750+ items)
+- Task 4 ✓: UI redesigned with three-column layout and minimal category filters
+- Task 5 ✓: Performance optimized with texture atlas loading and efficient rendering
+
+## Recent UI Updates
+
+### Three-Column Layout
+- **Left Sidebar (160px)**: Minimal category filters with typography-first design
+- **Center**: 3D InfiniteMenu sphere (main focus)
+- **Right Panel (320px)**: Focused item details with metadata and actions
+
+### Design Patterns
+- **Typography**: All clickable text buttons use UPPERCASE with 0.08em letter-spacing
+- **Active Indicators**: Horizontal line (16px × 1px) for selected categories
+- **Color System**: Active (100% white), Inactive (40% white), Hover (70% white)
+- **Transitions**: Consistent 200ms duration for smooth interactions
+- **Font**: Monospace throughout (font-mono)
+
+### Category Filters
+- Minimal text-based design without backgrounds
+- Horizontal line indicators for active states
+- All category names in uppercase
+- Reduced sidebar width for more sphere space
 
 ## Important Notes
 
 - The user is a non-technical product designer - explain technical concepts clearly
 - Build incrementally with verification at each step
-- The `gl-matrix` library needs to be installed for the InfiniteMenu component
+- The `gl-matrix` library is installed and working
+- The `lucide-react` library is used for icons
 - Always use environment variables for sensitive data (Supabase keys)
 - Focus on addressing root causes, not symptoms when debugging
+- Follow design patterns documented in `/docs/DESIGN_PATTERNS.md`
 - All clickable text buttons should follow the uppercase typography pattern for consistency
 
 ## Dynamic Sphere Implementation Learnings
