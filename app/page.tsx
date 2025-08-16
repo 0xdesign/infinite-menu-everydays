@@ -123,36 +123,49 @@ export default function Home() {
 
       {/* Three Column Layout */}
       <div className="flex h-[calc(100vh-73px)]">
-        {/* Categories Sidebar */}
-        <aside className="w-64 bg-black/90 backdrop-blur border-r border-white/10 p-4 overflow-y-auto">
-          <h3 className="font-mono text-xs uppercase tracking-wider text-white/60 mb-4">
+        {/* Minimal Categories Sidebar */}
+        <aside className="w-40 p-4 space-y-0.5">
+          <div className="font-mono text-[9px] uppercase tracking-[0.15em] text-white/40 mb-4 font-medium">
             Categories
-          </h3>
-          <div className="space-y-2">
-            <button
-              onClick={() => handleCategoryChange(null)}
-              className={`w-full font-mono text-xs px-3 py-2 rounded-full text-left transition-colors ${
-                activeCategories.length === 0
-                  ? 'bg-white text-black'
-                  : 'bg-white/10 text-white/80 hover:bg-white/20'
-              }`}
-            >
-              All Categories
-            </button>
-            {categories.map((category) => (
+          </div>
+          
+          <button
+            onClick={() => handleCategoryChange(null)}
+            className={`block w-full font-mono text-left py-2 px-1 transition-all duration-150 text-sm relative group ${
+              activeCategories.length === 0
+                ? 'text-white'
+                : 'text-white/50 hover:text-white/80'
+            }`}
+          >
+            <span className={`${activeCategories.length === 0 ? 'font-medium' : 'font-normal'}`}>
+              All
+            </span>
+            {activeCategories.length === 0 && (
+              <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 bg-white rounded-full" />
+            )}
+          </button>
+          
+          {categories.map((category) => {
+            const isActive = activeCategories.includes(category);
+            return (
               <button
                 key={category}
                 onClick={() => handleCategoryChange(category)}
-                className={`w-full font-mono text-xs px-3 py-2 rounded-full text-left transition-colors ${
-                  activeCategories.includes(category)
-                    ? 'bg-white text-black'
-                    : 'bg-white/10 text-white/80 hover:bg-white/20'
+                className={`block w-full font-mono text-left py-2 px-1 transition-all duration-150 text-sm relative group capitalize ${
+                  isActive
+                    ? 'text-white'
+                    : 'text-white/50 hover:text-white/80'
                 }`}
               >
-                {category}
+                <span className={`${isActive ? 'font-medium' : 'font-normal'}`}>
+                  {category}
+                </span>
+                {isActive && (
+                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 bg-white rounded-full" />
+                )}
               </button>
-            ))}
-          </div>
+            );
+          })}
         </aside>
 
         {/* Main Content - 3D Menu */}
@@ -188,7 +201,7 @@ export default function Home() {
 
         {/* Focused Item Details Panel */}
         {focusedItem && (
-          <aside className="w-80 bg-black/90 backdrop-blur border-l border-white/10 p-6 overflow-y-auto">
+          <aside className="w-80 bg-black/90 backdrop-blur border-l border-white/5 p-6 overflow-y-auto">
             <div className="space-y-6">
               {/* Header */}
               <header className="space-y-3">
