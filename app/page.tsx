@@ -131,17 +131,17 @@ export default function Home() {
           
           <button
             onClick={() => handleCategoryChange(null)}
-            className={`block w-full font-mono text-left py-2 px-1 transition-all duration-150 text-sm relative group ${
+            className={`block w-full font-mono text-left py-2 px-1 transition-all duration-150 text-xs relative group ${
               activeCategories.length === 0
-                ? 'text-white'
-                : 'text-white/50 hover:text-white/80'
+                ? 'text-white tracking-[0.08em]'
+                : 'text-white/60 hover:text-white/80 tracking-normal'
             }`}
           >
-            <span className={`${activeCategories.length === 0 ? 'font-medium' : 'font-normal'}`}>
-              All
+            <span className="uppercase font-normal">
+              ALL
             </span>
             {activeCategories.length === 0 && (
-              <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 bg-white rounded-full" />
+              <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[1px] h-3 bg-white" />
             )}
           </button>
           
@@ -151,17 +151,17 @@ export default function Home() {
               <button
                 key={category}
                 onClick={() => handleCategoryChange(category)}
-                className={`block w-full font-mono text-left py-2 px-1 transition-all duration-150 text-sm relative group capitalize ${
+                className={`block w-full font-mono text-left py-2 px-1 transition-all duration-150 text-xs relative group ${
                   isActive
-                    ? 'text-white'
-                    : 'text-white/50 hover:text-white/80'
+                    ? 'text-white tracking-[0.08em]'
+                    : 'text-white/60 hover:text-white/80 tracking-normal'
                 }`}
               >
-                <span className={`${isActive ? 'font-medium' : 'font-normal'}`}>
+                <span className="uppercase font-normal">
                   {category}
                 </span>
                 {isActive && (
-                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 bg-white rounded-full" />
+                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[1px] h-3 bg-white" />
                 )}
               </button>
             );
@@ -264,7 +264,7 @@ export default function Home() {
                     href={focusedItem.mintUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 font-mono text-sm bg-white text-black px-4 py-2 rounded-full hover:bg-white/90 transition-colors"
+                    className="inline-flex items-center gap-2 font-mono text-sm bg-white text-black px-4 py-2 rounded-full hover:bg-white/90 transition-colors uppercase"
                   >
                     Visit Mint
                     <ExternalLink className="w-4 h-4" />
