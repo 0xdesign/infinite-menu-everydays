@@ -131,18 +131,20 @@ export default function Home() {
           
           <button
             onClick={() => handleCategoryChange(null)}
-            className={`block w-full font-mono text-left py-2 px-1 transition-all duration-150 text-xs relative group ${
+            className={`flex items-center w-full font-mono text-left py-1.5 transition-all duration-200 text-xs relative group ${
               activeCategories.length === 0
-                ? 'text-white tracking-[0.08em]'
-                : 'text-white/60 hover:text-white/80 tracking-normal'
+                ? 'text-white'
+                : 'text-white/40 hover:text-white/70'
             }`}
           >
-            <span className="uppercase font-normal">
+            <span 
+              className={`inline-block w-4 h-[1px] mr-3 transition-all duration-200 ${
+                activeCategories.length === 0 ? 'bg-white' : 'bg-transparent'
+              }`} 
+            />
+            <span className="uppercase tracking-[0.08em] font-normal">
               ALL
             </span>
-            {activeCategories.length === 0 && (
-              <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[1px] h-3 bg-white" />
-            )}
           </button>
           
           {categories.map((category) => {
@@ -151,18 +153,20 @@ export default function Home() {
               <button
                 key={category}
                 onClick={() => handleCategoryChange(category)}
-                className={`block w-full font-mono text-left py-2 px-1 transition-all duration-150 text-xs relative group ${
+                className={`flex items-center w-full font-mono text-left py-1.5 transition-all duration-200 text-xs relative group ${
                   isActive
-                    ? 'text-white tracking-[0.08em]'
-                    : 'text-white/60 hover:text-white/80 tracking-normal'
+                    ? 'text-white'
+                    : 'text-white/40 hover:text-white/70'
                 }`}
               >
-                <span className="uppercase font-normal">
+                <span 
+                  className={`inline-block w-4 h-[1px] mr-3 transition-all duration-200 ${
+                    isActive ? 'bg-white' : 'bg-transparent'
+                  }`} 
+                />
+                <span className="uppercase tracking-[0.08em] font-normal">
                   {category}
                 </span>
-                {isActive && (
-                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[1px] h-3 bg-white" />
-                )}
               </button>
             );
           })}
@@ -264,7 +268,7 @@ export default function Home() {
                     href={focusedItem.mintUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 font-mono text-sm bg-white text-black px-4 py-2 rounded-full hover:bg-white/90 transition-colors uppercase"
+                    className="inline-flex items-center gap-2 font-mono text-xs bg-white text-black px-4 py-2 rounded-full hover:bg-white/90 transition-all duration-200 uppercase tracking-[0.08em]"
                   >
                     Visit Mint
                     <ExternalLink className="w-4 h-4" />
