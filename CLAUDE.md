@@ -56,6 +56,58 @@ npm run typecheck
    - Requires `gl-matrix` library (needs installation: `npm install gl-matrix`)
    - Uses Canvas API with WebGL2 context
 
+## Design System
+
+### Typography Pattern: Clickable Text Buttons
+
+**Core Principle**: ALL CLICKABLE TEXT BUTTONS MUST USE UPPERCASE
+
+This design pattern establishes that all clickable text elements in the interface should be rendered in uppercase to create a consistent, terminal-inspired aesthetic that immediately signals interactivity.
+
+#### Implementation
+
+```tsx
+// Category buttons (minimal sidebar)
+className="font-mono uppercase text-xs"
+
+// Action buttons (CTAs)
+className="font-mono uppercase text-sm"
+
+// Navigation links
+className="font-mono uppercase text-sm"
+```
+
+#### Active State Pattern
+
+For minimal interfaces, active states are indicated through:
+1. **Letter spacing expansion**: `tracking-[0.08em]` for active, `tracking-normal` for inactive
+2. **Ultra-thin line indicator**: 1px × 3h white line positioned absolutely on the left
+3. **Opacity changes**: `text-white` for active, `text-white/60` for inactive
+
+```tsx
+// Active state implementation
+className={`
+  font-mono uppercase text-xs transition-all duration-150
+  ${isActive 
+    ? 'text-white tracking-[0.08em]'      // Active: expanded spacing
+    : 'text-white/60 hover:text-white/80 tracking-normal'  // Inactive
+  }
+`}
+
+// Minimal active indicator
+{isActive && (
+  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[1px] h-3 bg-white" />
+)}
+```
+
+#### Rationale
+
+1. **Visual Hierarchy**: Uppercase text immediately distinguishes interactive from static elements
+2. **Terminal Aesthetic**: Complements monospace font and creates command-line interface feel
+3. **Consistency**: Creates predictable interaction patterns across the application
+4. **Accessibility**: Combined with hover states and focus indicators for WCAG compliance
+5. **Minimal Visual Weight**: Typography-first approach reduces need for heavy UI chrome
+
 ## Testing Requirements
 
 Currently, no testing framework is set up. When implementing tests:
@@ -83,18 +135,41 @@ The project follows an incremental development approach:
 ## Current Status
 
 - Task 1 ✓: Supabase integration complete with NFT token fetching
-- Task 2 (in progress): Implementing InfiniteMenu WebGL component
-- Task 3 (pending): Integrating menu with Supabase data
-- Task 4 (pending): Styling and animations
-- Task 5 (pending): Performance optimization
+- Task 2 ✓: InfiniteMenu WebGL component implemented with dynamic sphere scaling
+- Task 3 ✓: Menu integrated with Supabase data (750+ items)
+- Task 4 ✓: UI redesigned with three-column layout and minimal category filters
+- Task 5 ✓: Performance optimized with texture atlas loading and efficient rendering
+
+## Recent UI Updates
+
+### Three-Column Layout
+- **Left Sidebar (160px)**: Minimal category filters with typography-first design
+- **Center**: 3D InfiniteMenu sphere (main focus)
+- **Right Panel (320px)**: Focused item details with metadata and actions
+
+### Design Patterns
+- **Typography**: All clickable text buttons use UPPERCASE with 0.08em letter-spacing
+- **Active Indicators**: Horizontal line (16px × 1px) for selected categories
+- **Color System**: Active (100% white), Inactive (40% white), Hover (70% white)
+- **Transitions**: Consistent 200ms duration for smooth interactions
+- **Font**: Monospace throughout (font-mono)
+
+### Category Filters
+- Minimal text-based design without backgrounds
+- Horizontal line indicators for active states
+- All category names in uppercase
+- Reduced sidebar width for more sphere space
 
 ## Important Notes
 
 - The user is a non-technical product designer - explain technical concepts clearly
 - Build incrementally with verification at each step
-- The `gl-matrix` library needs to be installed for the InfiniteMenu component
+- The `gl-matrix` library is installed and working
+- The `lucide-react` library is used for icons
 - Always use environment variables for sensitive data (Supabase keys)
 - Focus on addressing root causes, not symptoms when debugging
+- Follow design patterns documented in `/docs/DESIGN_PATTERNS.md`
+- All clickable text buttons should follow the uppercase typography pattern for consistency
 
 ## Dynamic Sphere Implementation Learnings
 
@@ -174,6 +249,113 @@ The dynamic sphere implementation required four simple but interconnected change
 4. **Proportional drag zoom**: `camera = radius * (3.0 to 43.0)`
 
 This elegant solution perfectly replicates the original component's behavior at any scale with minimal code changes.
+
+## Design System: Clickable Text Button Pattern
+
+### Core Principle: ALL CAPS for Clickable Text
+
+All clickable text elements (buttons, links with text labels) must use uppercase typography to create a consistent, command-like interface that emphasizes actionability.
+
+### Typography Standards
+
+```css
+/* Base clickable text button classes */
+.clickable-text-button {
+  @apply font-mono uppercase font-normal;
+}
+```
+
+**Rationale:**
+1. **Monospace + ALL CAPS** creates terminal/command-line aesthetic
+2. **Consistency** - Users immediately recognize clickable elements
+3. **Hierarchy** - Distinguishes actionable from descriptive text
+4. **Accessibility** - Clear visual distinction for interactive elements
+
+### Active State Design Pattern
+
+For minimal category filters and similar navigation elements:
+
+```tsx
+// Pattern: Typography-based active states with minimal visual indicators
+className={`
+  font-mono uppercase text-xs transition-all duration-150
+  ${isActive 
+    ? 'text-white tracking-[0.08em]'      // Active: expanded letter spacing
+    : 'text-white/60 hover:text-white/80 tracking-normal'  // Inactive: condensed
+  }
+`}
+
+// Minimal line indicator
+{isActive && (
+  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[1px] h-3 bg-white" />
+)}
+```
+
+**Key Improvements Over Previous Design:**
+1. **Ultra-thin line** (1px instead of 0.5w) - more precise, less visual weight
+2. **Shorter height** (h-3 instead of h-4) - better proportion with text
+3. **Letter spacing expansion** - active items get subtle tracking increase
+4. **Typography-first approach** - relies primarily on text treatment
+
+### Implementation Examples
+
+#### 1. Minimal Category Filters (Sidebar)
+```tsx
+<button className="font-mono uppercase text-xs text-white tracking-[0.08em]">
+  <span>CATEGORY NAME</span>
+  {/* 1px active indicator line */}
+</button>
+```
+
+#### 2. Category Pills (Header)
+```tsx
+<button className="font-mono uppercase text-sm bg-white text-black px-4 py-2 rounded-full">
+  CATEGORY NAME
+</button>
+```
+
+#### 3. Action Links (CTAs)
+```tsx
+<a className="font-mono uppercase text-sm bg-white text-black px-4 py-2 rounded-full">
+  VISIT MINT
+</a>
+```
+
+### Design Decisions & Rationale
+
+#### Active Indicator Evolution
+- **Before:** 0.5w × 4h rounded bar
+- **After:** 1px × 3h precise line
+- **Why:** Reduces visual noise, improves precision, better scale with ALL CAPS text
+
+#### Letter Spacing as State Indicator
+- **Active:** `tracking-[0.08em]` (expanded)
+- **Inactive:** `tracking-normal` (default)
+- **Why:** Subtle typography change that enhances readability of active items
+
+#### Font Weight Consistency
+- **All clickable text:** `font-normal` 
+- **Why:** ALL CAPS monospace works better with normal weight; avoids heaviness
+
+### Accessibility Considerations
+
+1. **Clear Focus States:** All interactive elements maintain visible focus indicators
+2. **Color Contrast:** White text on black background exceeds WCAG AA standards
+3. **Hit Targets:** Minimum 44px touch targets maintained on all clickable elements
+4. **Keyboard Navigation:** Tab order follows logical flow
+
+### Implementation Checklist
+
+When adding new clickable text elements:
+- [ ] Use `font-mono` class
+- [ ] Add `uppercase` class  
+- [ ] Use `font-normal` weight
+- [ ] Include proper hover/focus states
+- [ ] Maintain consistent spacing and sizing
+- [ ] Test with keyboard navigation
+- [ ] Verify color contrast ratios
+
+This design pattern creates a cohesive, terminal-inspired interface that emphasizes clarity and actionability while maintaining the minimal aesthetic throughout the application.
 
 ## Texture Atlas Loading Issue Resolution
 
