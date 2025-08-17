@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import { fetchInfiniteMenuData, fetchCategories } from '@/lib/supabase';
-import { Search, ExternalLink, Calendar, Hash, Globe, X, Filter } from 'lucide-react';
+import { Search, ExternalLink, Calendar, Hash, Globe, X, Filter, Maximize2, Minimize2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 
@@ -41,6 +41,8 @@ export default function Home() {
   const [focusedItem, setFocusedItem] = useState<MenuItem | null>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showOverlay, setShowOverlay] = useState(true);
   
   // Responsive breakpoints
   const isMobile = useMediaQuery('(max-width: 767px)');
@@ -49,6 +51,78 @@ export default function Home() {
     // Fetch categories on mount
     fetchCategories().then(setCategories);
   }, []);
+
+  const toggleFullscreen = useCallback(async () => {
+    try {
+      if (!document.fullscreenElement) {
+        await document.documentElement.requestFullscreen();
+      } else {
+        await document.exitFullscreen();
+      }
+    } catch (error) {
+      console.error('Failed to toggle fullscreen:', error);
+      // Fallback: just toggle the state for pseudo-fullscreen
+      setIsFullscreen(prev => !prev);
+    }
+  }, []);
+
+  // Fullscreen API handlers
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+
+    const handleKeyPress = (e: KeyboardEvent) => {
+      // Press 'F' to toggle fullscreen
+      if (e.key === 'f' || e.key === 'F') {
+        // Don't trigger if user is typing in an input
+        if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+          return;
+        }
+        toggleFullscreen();
+      }
+      // ESC is handled by browser automatically
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('keydown', handleKeyPress);
+
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('keydown', handleKeyPress);
+    };
+  }, [toggleFullscreen]);
+
+  // Auto-hide overlay in fullscreen after inactivity
+  useEffect(() => {
+    if (!isFullscreen) {
+      setShowOverlay(true);
+      return;
+    }
+
+    let timeout: NodeJS.Timeout;
+    
+    const handleActivity = () => {
+      setShowOverlay(true);
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        setShowOverlay(false);
+      }, 3000);
+    };
+
+    // Show overlay on any mouse movement or touch
+    document.addEventListener('mousemove', handleActivity);
+    document.addEventListener('touchstart', handleActivity);
+    
+    // Initial timer
+    handleActivity();
+
+    return () => {
+      clearTimeout(timeout);
+      document.removeEventListener('mousemove', handleActivity);
+      document.removeEventListener('touchstart', handleActivity);
+    };
+  }, [isFullscreen]);
 
   useEffect(() => {
     // Fetch items when categories or search changes
@@ -385,10 +459,84 @@ export default function Home() {
   // Desktop layout (existing)
   return (
     <main className="relative w-screen h-screen overflow-hidden bg-black font-mono">
-      {/* Search Bar - Sticky Top */}
-      <header className="sticky top-0 z-50 bg-black/95 backdrop-blur border-b border-white/10">
-        <div className="px-6 py-4">
-          <div className="max-w-2xl mx-auto relative">
+      {/* Fullscreen Layout */}
+      {isFullscreen ? (
+        <>
+          {/* Full-screen 3D Menu */}
+          <div className="absolute inset-0">
+            {!isLoading && items.length > 0 && (
+              <InfiniteMenu 
+                items={items} 
+                initialFocusId={activeCategories.length === 0 && !searchQuery ? 755 : undefined}
+                onItemFocus={setFocusedItem}
+              />
+            )}
+          </div>
+
+          {/* Minimal Overlay Controls */}
+          <AnimatePresence>
+            {showOverlay && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="absolute inset-x-0 top-0 z-50"
+              >
+                {/* Top Bar */}
+                <div className="flex justify-between items-start p-6">
+                  {/* Empty left side for balance */}
+                  <div />
+                  
+                  {/* Exit Fullscreen Button */}
+                  <button
+                    onClick={toggleFullscreen}
+                    className="group flex items-center gap-2 px-4 py-2 bg-black/50 backdrop-blur-md rounded-full border border-white/10 hover:bg-white/10 transition-all duration-200"
+                    aria-label="Exit fullscreen"
+                  >
+                    <Minimize2 className="w-4 h-4 text-white/60 group-hover:text-white" />
+                    <span className="font-mono text-xs uppercase tracking-[0.08em] text-white/60 group-hover:text-white">
+                      EXIT
+                    </span>
+                  </button>
+                </div>
+
+                {/* Bottom Info - Only when item is focused */}
+                {focusedItem && (
+                  <motion.div
+                    initial={{ y: 100, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: 100, opacity: 0 }}
+                    className="absolute bottom-0 left-0 p-6"
+                  >
+                    <div className="bg-black/50 backdrop-blur-md rounded-2xl border border-white/10 p-4 max-w-md">
+                      <h3 className="font-mono text-sm uppercase tracking-wider text-white mb-1">
+                        {focusedItem.title}
+                      </h3>
+                      {focusedItem.categories && focusedItem.categories.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                          {focusedItem.categories.slice(0, 3).map((cat, idx) => (
+                            <span key={idx} className="font-mono text-xs text-white/60">
+                              {cat}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </>
+      ) : (
+        <>
+          {/* Normal Layout */}
+          {/* Search Bar - Sticky Top */}
+          <header className="sticky top-0 z-50 bg-black/95 backdrop-blur border-b border-white/10">
+            <div className="px-6 py-4">
+              <div className="flex items-center gap-4">
+                <div className="flex-1 max-w-2xl mx-auto relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
             <input
               type="search"
@@ -414,8 +562,21 @@ export default function Home() {
               )}
             </div>
           </div>
+          
+          {/* Fullscreen Button */}
+          <button
+            onClick={toggleFullscreen}
+            className="group flex items-center gap-2 px-4 py-2 bg-white/10 rounded-full hover:bg-white/20 transition-all duration-200"
+            aria-label="Enter fullscreen"
+          >
+            <Maximize2 className="w-4 h-4 text-white/60 group-hover:text-white" />
+            <span className="font-mono text-xs uppercase tracking-[0.08em] text-white/60 group-hover:text-white">
+              FULLSCREEN
+            </span>
+          </button>
         </div>
-      </header>
+      </div>
+    </header>
 
       {/* Three Column Layout */}
       <div className="flex h-[calc(100vh-73px)]">
@@ -575,7 +736,8 @@ export default function Home() {
           </aside>
         )}
       </div>
-
+      </>
+    )}
     </main>
   );
 }
