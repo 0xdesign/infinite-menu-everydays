@@ -57,7 +57,7 @@ export default function MinimalBottomSheet({
     if (item) {
       setSnapPoint(0);
     }
-  }, [item?.id]);
+  }, [item]);
 
   // Auto-collapse when sphere is interacting
   useEffect(() => {

@@ -237,8 +237,9 @@ export default function Home() {
       <main className="relative w-screen h-screen overflow-hidden bg-black font-mono">
         {/* Top utility bar */}
         <TopUtilityBar
-          onSearchClick={() => setIsSearchOpen(true)}
+          onSearchChange={setSearchQuery}
           onFilterClick={() => setIsFilterOpen(true)}
+          searchQuery={searchQuery}
           forceHide={isBottomSheetExpanded}
         />
 
