@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Bottom Sheet Test</title>
+</head>
+<body>
+    <h1>Mobile Bottom Sheet Testing Guide</h1>
+    
+    <h2>Test Checklist:</h2>
+    
+    <h3>1. Default Position (Collapsed State)</h3>
+    <ul>
+        <li>✓ Bottom sheet visible at bottom of screen (80px height)</li>
+        <li>✓ Only shows NFT title, no description</li>
+        <li>✓ Single drag handle at top (no duplicates)</li>
+        <li>✓ No instructional text visible</li>
+    </ul>
+    
+    <h3>2. Touch/Drag Responsiveness</h3>
+    <ul>
+        <li>✓ Tap anywhere on collapsed sheet → expands to show full details</li>
+        <li>✓ Drag handle upward → expands sheet smoothly</li>
+        <li>✓ Drag handle downward when expanded → collapses sheet</li>
+        <li>✓ Sheet follows finger during drag</li>
+    </ul>
+    
+    <h3>3. Auto-Collapse Behavior</h3>
+    <ul>
+        <li>✓ Rotate sphere to new item → sheet auto-collapses</li>
+        <li>✓ New item title appears in collapsed state</li>
+        <li>✓ Previous expansion state not preserved</li>
+    </ul>
+    
+    <h3>4. Visual Design</h3>
+    <ul>
+        <li>✓ Dark translucent background (85% opacity)</li>
+        <li>✓ Backdrop blur effect</li>
+        <li>✓ Subtle top border (10% white)</li>
+        <li>✓ Ultra-minimal aesthetic</li>
+    </ul>
+    
+    <h3>5. Top Bar Coordination</h3>
+    <ul>
+        <li>✓ Top bar visible when sheet collapsed</li>
+        <li>✓ Top bar hides when sheet expanded</li>
+        <li>✓ Top bar auto-hides after 3 seconds of inactivity</li>
+    </ul>
+    
+    <h2>To Test:</h2>
+    <ol>
+        <li>Open <a href="http://localhost:3000">http://localhost:3000</a> on mobile device or browser mobile view</li>
+        <li>Verify each checklist item above</li>
+        <li>Report any issues found</li>
+    </ol>
+    
+    <h2>Key Implementation Details:</h2>
+    <ul>
+        <li>Component: <code>/components/mobile/UltraMinimalSheet.tsx</code></li>
+        <li>Collapsed height: 80px</li>
+        <li>Expanded height: 60-70% of screen</li>
+        <li>Uses react-modal-sheet library</li>
+        <li>Sheet.Backdrop component essential for touch handling</li>
+    </ul>
+</body>
+</html>

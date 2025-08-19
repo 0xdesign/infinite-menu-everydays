@@ -1345,24 +1345,39 @@ class InfiniteGridMenu {
               const x = (idx % tilesPerRow) * cellSize;
               const y = Math.floor(idx / tilesPerRow) * cellSize;
 
-              // Draw image to fill entire cell (crop to center)
-              const iw = img.naturalWidth, ih = img.naturalHeight;
-              const scale = Math.max(cellSize / iw, cellSize / ih);
-              const scaledW = iw * scale;
-              const scaledH = ih * scale;
+              // Clear cell with black background
+              ctx.fillStyle = 'black';
+              ctx.fillRect(x, y, cellSize, cellSize);
               
-              // Calculate source rectangle to crop from center
-              if (iw / ih > 1) {
-                // Wide image: crop horizontally
-                const cropW = (iw * cellSize) / scaledW;
-                const sx = (iw - cropW) / 2;
-                ctx.drawImage(img, sx, 0, cropW, ih, x, y, cellSize, cellSize);
-              } else {
-                // Tall image: crop vertically
-                const cropH = (ih * cellSize) / scaledH;
-                const sy = (ih - cropH) / 2;
-                ctx.drawImage(img, 0, sy, iw, cropH, x, y, cellSize, cellSize);
+              // Get image dimensions
+              const iw = img.naturalWidth || img.width;
+              const ih = img.naturalHeight || img.height;
+              
+              if (!iw || !ih) {
+                console.warn('Invalid image dimensions');
+                return;
               }
+              
+              // Calculate aspect-fit dimensions (no cropping)
+              const imageAspect = iw / ih;
+              let drawWidth, drawHeight;
+              
+              if (imageAspect > 1) {
+                // Wide image - fit to width
+                drawWidth = cellSize;
+                drawHeight = cellSize / imageAspect;
+              } else {
+                // Tall image - fit to height  
+                drawHeight = cellSize;
+                drawWidth = cellSize * imageAspect;
+              }
+              
+              // Center in cell
+              const dx = x + (cellSize - drawWidth) / 2;
+              const dy = y + (cellSize - drawHeight) / 2;
+              
+              // Draw entire image scaled to fit
+              ctx.drawImage(img, dx, dy, drawWidth, drawHeight);
             } catch {}
             res();
           };

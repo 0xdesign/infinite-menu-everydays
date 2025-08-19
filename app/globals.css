@@ -3,6 +3,18 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  
+  /* Custom design tokens */
+  --glass-bg: rgba(0, 0, 0, 0.8);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --surface-elevated: rgba(255, 255, 255, 0.05);
+  --surface-interactive: rgba(255, 255, 255, 0.1);
+  --surface-pressed: rgba(255, 255, 255, 0.2);
+  
+  /* Shadows for depth */
+  --shadow-subtle: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-strong: 0 8px 32px rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 0 20px rgba(255, 255, 255, 0.1);
 }
 
 @theme inline {
@@ -23,4 +35,113 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Enhanced glass morphism utilities */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+}
+
+.glass-subtle {
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Custom scrollbar for mobile sheets */
+.custom-scroll::-webkit-scrollbar {
+  width: 2px;
+}
+
+.custom-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 1px;
+}
+
+.custom-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Loading shimmer effect */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.1) 25%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0.1) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* Improved focus states */
+.focus-ring:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5);
+}
+
+/* Touch feedback */
+@media (hover: none) {
+  .touch-feedback:active {
+    transform: scale(0.98);
+    transition: transform 0.1s ease;
+  }
+}
+
+/* Typography improvements */
+.text-gradient {
+  background: linear-gradient(135deg, #ffffff 0%, rgba(255, 255, 255, 0.8) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Custom line-clamp utilities */
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Subtle pulse animation for expansion hint */
+@keyframes pulse-subtle {
+  0%, 100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 3s ease-in-out infinite;
+  animation-delay: 2s; /* Appears after 2 seconds for first-time users */
+}
+
+/* Minimal bottom sheet drag handle */
+[data-rsbs-header]:before {
+  width: 36px !important;
+  height: 4px !important;
+  background-color: rgba(255, 255, 255, 0.25) !important;
+  border-radius: 2px !important;
 }
