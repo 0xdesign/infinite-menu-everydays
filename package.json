@@ -13,12 +13,14 @@
     "@supabase/supabase-js": "^2.50.2",
     "@types/gl-matrix": "^2.4.5",
     "file-type": "^18.7.0",
-    "framer-motion": "^12.19.1",
+    "framer-motion": "^12.23.12",
     "gl-matrix": "^3.4.3",
     "lucide-react": "^0.539.0",
     "next": "15.3.4",
+    "phosphor-react": "^1.4.1",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "react-modal-sheet": "^4.4.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
