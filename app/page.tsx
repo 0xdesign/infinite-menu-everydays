@@ -115,7 +115,7 @@ export default function Home() {
         />
 
         {/* Main Content Area */}
-        <div className={`fixed left-0 right-0 bottom-0 ${searchQuery ? 'top-24' : 'top-16'}`}>
+        <div className="fixed top-16 left-0 right-0 bottom-0">
           {/* Filter Sidebar */}
           <FilterSidebar
             categories={categories}
@@ -124,7 +124,7 @@ export default function Home() {
           />
 
           {/* Center - 3D Menu */}
-          <div className={`fixed left-40 right-80 bottom-16 ${searchQuery ? 'top-24' : 'top-16'}`}>
+          <div className="fixed top-16 left-40 right-80 bottom-16">
             {!isLoading && items.length > 0 && (
               <InfiniteMenu 
                 items={items} 
@@ -170,6 +170,8 @@ export default function Home() {
         <MobileHeader
           onFilterClick={() => setIsMobileFilterOpen(true)}
           onSearchClick={() => setIsMobileSearchOpen(true)}
+          activeFilterCount={activeCategories.length}
+          hasSearchQuery={!!searchQuery}
         />
 
         {/* Mobile Main Content */}

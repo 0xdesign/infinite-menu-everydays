@@ -51,23 +51,6 @@ export default function FilterSidebar({
   return (
     <aside className="fixed left-0 top-16 bottom-0 w-40 bg-black border-r border-white/10 z-40 overflow-y-auto">
       <div className="p-6">
-        {/* Active filters count */}
-        {selectedCategories.length > 0 && (
-          <div className="mb-4 pb-3 border-b border-white/10">
-            <div className="flex items-center justify-between">
-              <span className="font-mono text-white/60 text-xs uppercase tracking-[0.08em]">
-                Filters ({selectedCategories.length})
-              </span>
-              <button
-                onClick={handleAllClick}
-                className="font-mono text-white/40 hover:text-white/60 text-xs uppercase tracking-[0.08em] transition-colors"
-              >
-                Clear
-              </button>
-            </div>
-          </div>
-        )}
-        
         <div className="space-y-3">
           {/* ALL button */}
           <button
