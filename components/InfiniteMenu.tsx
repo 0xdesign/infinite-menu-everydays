@@ -914,6 +914,16 @@ class InfiniteGridMenu {
   public smoothRotationVelocity = 0;
   public scaleFactor = 1.0;
 
+  // Pre-allocated resources for animation loop (performance optimization)
+  private animationTempPositions: vec3[] = [];
+  private animationTempMatrices: mat4[] = [];
+  private animationTempVec3: vec3 = vec3.create();
+  private animationTempMatrix1: mat4 = mat4.create();
+  private animationTempMatrix2: mat4 = mat4.create();
+  private animationTempMatrix3: mat4 = mat4.create();
+  private animationTempMatrix4: mat4 = mat4.create();
+  private animationTempMatrix5: mat4 = mat4.create();
+
   constructor(
     private canvas: HTMLCanvasElement,
     private items: MenuItem[],
@@ -1082,6 +1092,14 @@ class InfiniteGridMenu {
     this.SPHERE_RADIUS = this.dynamicPositions.calculateOptimalRadius(itemCount);
     this.instancePositions = this.dynamicPositions.generatePositions(itemCount, this.SPHERE_RADIUS);
     this.DISC_INSTANCE_COUNT = this.instancePositions.length;
+    
+    // Pre-allocate arrays for animation loop to avoid GC pressure
+    this.animationTempPositions = new Array(this.DISC_INSTANCE_COUNT);
+    this.animationTempMatrices = new Array(this.DISC_INSTANCE_COUNT);
+    for (let i = 0; i < this.DISC_INSTANCE_COUNT; i++) {
+      this.animationTempPositions[i] = vec3.create();
+      this.animationTempMatrices[i] = mat4.create();
+    }
     
     // Keep legacy geometry for compatibility
     this.icoGeo = new IcosahedronGeometry();
@@ -1601,42 +1619,48 @@ class InfiniteGridMenu {
     if (!this.gl) return;
     this.control.update(deltaTime, this.TARGET_FRAME_DURATION);
 
-    const positions = this.instancePositions.map((p) =>
-      vec3.transformQuat(vec3.create(), p, this.control.orientation)
-    );
+    // Transform positions using pre-allocated arrays
+    for (let i = 0; i < this.instancePositions.length; i++) {
+      vec3.transformQuat(
+        this.animationTempPositions[i], 
+        this.instancePositions[i], 
+        this.control.orientation
+      );
+    }
+    
     const scale = 0.25;
     const SCALE_INTENSITY = 0.6;
 
-    positions.forEach((p, ndx) => {
+    // Process each position using pre-allocated matrices
+    for (let ndx = 0; ndx < this.animationTempPositions.length; ndx++) {
+      const p = this.animationTempPositions[ndx];
       const s =
         (Math.abs(p[2]) / this.SPHERE_RADIUS) * SCALE_INTENSITY +
         (1 - SCALE_INTENSITY);
       const finalScale = s * scale;
-      const matrix = mat4.create();
-
-      mat4.multiply(
-        matrix,
-        matrix,
-        mat4.fromTranslation(mat4.create(), vec3.negate(vec3.create(), p))
-      );
-      mat4.multiply(
-        matrix,
-        matrix,
-        mat4.targetTo(mat4.create(), [0, 0, 0], p, [0, 1, 0])
-      );
-      mat4.multiply(
-        matrix,
-        matrix,
-        mat4.fromScaling(mat4.create(), [finalScale, finalScale, finalScale])
-      );
-      mat4.multiply(
-        matrix,
-        matrix,
-        mat4.fromTranslation(mat4.create(), [0, 0, -this.SPHERE_RADIUS])
-      );
+      
+      // Use pre-allocated matrix for this instance
+      const matrix = this.animationTempMatrices[ndx];
+      
+      // Reset matrix to identity first
+      mat4.identity(matrix);
+      
+      // Build transformation using pre-allocated temp matrices
+      vec3.negate(this.animationTempVec3, p);
+      mat4.fromTranslation(this.animationTempMatrix1, this.animationTempVec3);
+      mat4.multiply(matrix, matrix, this.animationTempMatrix1);
+      
+      mat4.targetTo(this.animationTempMatrix2, [0, 0, 0], p, [0, 1, 0]);
+      mat4.multiply(matrix, matrix, this.animationTempMatrix2);
+      
+      mat4.fromScaling(this.animationTempMatrix3, [finalScale, finalScale, finalScale]);
+      mat4.multiply(matrix, matrix, this.animationTempMatrix3);
+      
+      mat4.fromTranslation(this.animationTempMatrix4, [0, 0, -this.SPHERE_RADIUS]);
+      mat4.multiply(matrix, matrix, this.animationTempMatrix4);
 
       mat4.copy(this.discInstances.matrices[ndx], matrix);
-    });
+    }
 
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.discInstances.buffer);
     this.gl.bufferSubData(
@@ -1977,9 +2001,17 @@ class InfiniteGridMenu {
     this.instancePositions = this.dynamicPositions.generatePositions(newCount, newRadius);
     this.DISC_INSTANCE_COUNT = newCount;
     
-    // Log only when count changes
+    // Reallocate animation arrays if count changed
     if (oldCount !== newCount) {
       console.log(`🔄 Geometry updated: ${oldCount} → ${newCount} instances`);
+      
+      // Reallocate pre-allocated arrays for new item count
+      this.animationTempPositions = new Array(newCount);
+      this.animationTempMatrices = new Array(newCount);
+      for (let i = 0; i < newCount; i++) {
+        this.animationTempPositions[i] = vec3.create();
+        this.animationTempMatrices[i] = mat4.create();
+      }
     }
     
     // Update camera position at constant distance from sphere surface
