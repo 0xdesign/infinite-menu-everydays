@@ -834,6 +834,7 @@ class InfiniteGridMenu {
   private usingFallbackTexture: boolean = false;
   private control!: ArcballControl;
   private animationFrameId: number | null = null;
+  private currentFocusedIndex: number = -1;
   
   // High-res texture management
   private hiResTexture: WebGLTexture | null = null;
@@ -1844,18 +1845,20 @@ class InfiniteGridMenu {
       // Use modulo to match shader behavior
       const itemIndex = nearestVertexIndex % this.items.length;
       
-      // Debug: Log what's happening during snap
-      const item = this.items[itemIndex];
-      
-      // Find what the atlas.json says about this item
-      this.atlasMapping?.find(entry => entry.id === item?.id?.toString());
-      
-      // Simple diagnostic - only log key info
-      console.log(`🎯 Snap: vertex[${nearestVertexIndex}] → item[${itemIndex}] "${item?.title || 'unknown'}" (${this.items.length} items, ${this.DISC_INSTANCE_COUNT} vertices)`);
-      
-      this.onActiveItemChange(itemIndex);
-      // Load high-res texture for the active item
-      this.loadHighResTexture(itemIndex);
+      // Only update if the focused item has changed
+      if (itemIndex !== this.currentFocusedIndex) {
+        this.currentFocusedIndex = itemIndex;
+        
+        // Debug: Log what's happening during snap
+        const item = this.items[itemIndex];
+        console.log(`🎯 Snap: item[${itemIndex}] "${item?.title || 'unknown'}"`);
+        
+        // Notify parent component of the new focused item
+        this.onActiveItemChange(itemIndex);
+        
+        // Load high-res texture for the active item
+        this.loadHighResTexture(itemIndex);
+      }
       
       const snapDirection = vec3.normalize(
         vec3.create(),
@@ -1918,6 +1921,10 @@ class InfiniteGridMenu {
       console.log(`Initial focus item ${focusId} not found`);
       return;
     }
+    
+    // Set the current focused index and notify
+    this.currentFocusedIndex = itemIndex;
+    this.onActiveItemChange(itemIndex);
     
     // Get the vertex position for this item
     const vertexIndex = itemIndex % this.instancePositions.length;
