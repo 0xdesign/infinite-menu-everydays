@@ -1,15 +1,16 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { fetchInfiniteMenuData, fetchCategories } from '@/lib/supabase';
-import { MagnifyingGlass, Export, CalendarBlank, Hash, Globe, X, ArrowsOut, ArrowsIn } from 'phosphor-react';
+import { MagnifyingGlass, Export, CalendarBlank, Hash, Globe, X, ArrowsOut } from 'phosphor-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import MinimalBottomSheet from '@/components/mobile/MinimalBottomSheet';
 import TopUtilityBar from '@/components/mobile/TopUtilityBar';
 import SearchOverlay from '@/components/mobile/UltraMinimalSearch';
 import FilterPanel from '@/components/mobile/FilterPanel';
+import ImageFullscreenModal from '@/components/ImageFullscreenModal';
 
 const InfiniteMenu = dynamic(
   () => import('@/components/InfiniteMenu'),
@@ -45,8 +46,9 @@ export default function Home() {
   const [focusedItem, setFocusedItem] = useState<MenuItem | null>(null);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [showOverlay, setShowOverlay] = useState(true);
+  const [imageModalOpen, setImageModalOpen] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [viewportSize, setViewportSize] = useState({ width: 0, height: 0 });
   const [isSphereInteracting, setIsSphereInteracting] = useState(false);
   const [isBottomSheetExpanded, setIsBottomSheetExpanded] = useState(false);
   
@@ -58,77 +60,33 @@ export default function Home() {
     fetchCategories().then(setCategories);
   }, []);
 
-  const toggleFullscreen = useCallback(async () => {
-    try {
-      if (!document.fullscreenElement) {
-        await document.documentElement.requestFullscreen();
-      } else {
-        await document.exitFullscreen();
-      }
-    } catch (error) {
-      console.error('Failed to toggle fullscreen:', error);
-      // Fallback: just toggle the state for pseudo-fullscreen
-      setIsFullscreen(prev => !prev);
-    }
+  // Track viewport size for dynamic button container sizing
+  useEffect(() => {
+    const updateViewportSize = () => {
+      setViewportSize({
+        width: window.innerWidth,
+        height: window.innerHeight
+      });
+    };
+
+    updateViewportSize();
+    window.addEventListener('resize', updateViewportSize);
+    
+    return () => window.removeEventListener('resize', updateViewportSize);
   }, []);
 
-  // Fullscreen API handlers
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
-    };
-
-    const handleKeyPress = (e: KeyboardEvent) => {
-      // Press 'F' to toggle fullscreen
-      if (e.key === 'f' || e.key === 'F') {
-        // Don't trigger if user is typing in an input
-        if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
-          return;
-        }
-        toggleFullscreen();
-      }
-      // ESC is handled by browser automatically
-    };
-
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    document.addEventListener('keydown', handleKeyPress);
-
-    return () => {
-      document.removeEventListener('fullscreenchange', handleFullscreenChange);
-      document.removeEventListener('keydown', handleKeyPress);
-    };
-  }, [toggleFullscreen]);
-
-  // Auto-hide overlay in fullscreen after inactivity
-  useEffect(() => {
-    if (!isFullscreen) {
-      setShowOverlay(true);
-      return;
-    }
-
-    let timeout: NodeJS.Timeout;
+  // Calculate focused NFT container size based on 3D sphere mathematics
+  const getFocusedImageSize = () => {
+    // Based on 3D analysis: focused item occupies ~37% of viewport height
+    // Angular diameter ≈ 0.4898 radians, viewport FOV varies with sphere size
+    // Using 37% as optimal ratio from mathematical analysis
+    const containerSize = Math.round(viewportSize.height * 0.37);
     
-    const handleActivity = () => {
-      setShowOverlay(true);
-      clearTimeout(timeout);
-      timeout = setTimeout(() => {
-        setShowOverlay(false);
-      }, 3000);
-    };
+    // Clamp between reasonable bounds
+    return Math.max(200, Math.min(containerSize, 500));
+  };
 
-    // Show overlay on any mouse movement or touch
-    document.addEventListener('mousemove', handleActivity);
-    document.addEventListener('touchstart', handleActivity);
-    
-    // Initial timer
-    handleActivity();
 
-    return () => {
-      clearTimeout(timeout);
-      document.removeEventListener('mousemove', handleActivity);
-      document.removeEventListener('touchstart', handleActivity);
-    };
-  }, [isFullscreen]);
 
   useEffect(() => {
     // Fetch items when categories or search changes
@@ -273,8 +231,36 @@ export default function Home() {
               items={items} 
               initialFocusId={activeCategories.length === 0 && !searchQuery ? 755 : undefined}
               onItemFocus={setFocusedItem}
+              onDragStateChange={setIsDragging}
             />
           )}
+
+          {/* Fullscreen Button Overlay for Mobile */}
+          <AnimatePresence>
+            {focusedItem && !isDragging && !isBottomSheetExpanded && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.15, ease: [0.2, 0, 0, 1] }}
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+                style={{ 
+                  width: `${getFocusedImageSize()}px`,
+                  height: `${getFocusedImageSize()}px`,
+                  border: '2px solid blue',
+                  borderRadius: '50%'
+                }}
+              >
+                <button
+                  onClick={() => setImageModalOpen(true)}
+                  className="pointer-events-auto absolute top-1 right-1 w-11 h-11 bg-black/50 backdrop-blur-sm rounded-lg flex items-center justify-center text-white active:bg-black/70 active:scale-95 transition-all duration-150"
+                  aria-label={`View ${focusedItem.title} in fullscreen`}
+                >
+                  <ArrowsOut className="w-[18px] h-[18px] text-white" weight="regular" />
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {!isLoading && items.length === 0 && (
             <div className="absolute inset-0 flex items-center justify-center z-10">
@@ -297,86 +283,20 @@ export default function Home() {
           onExpandedChange={setIsBottomSheetExpanded}
         />
 
+        {/* Image Fullscreen Modal */}
+        <ImageFullscreenModal
+          isOpen={imageModalOpen}
+          onClose={() => setImageModalOpen(false)}
+          item={focusedItem}
+        />
+
       </main>
     );
   }
 
-  // Desktop layout (existing)
+  // Desktop layout
   return (
     <main className="relative w-screen h-screen overflow-hidden bg-black font-mono">
-      {/* Fullscreen Layout */}
-      {isFullscreen ? (
-        <>
-          {/* Full-screen 3D Menu */}
-          <div className="absolute inset-0">
-            {!isLoading && items.length > 0 && (
-              <InfiniteMenu 
-                items={items} 
-                initialFocusId={activeCategories.length === 0 && !searchQuery ? 755 : undefined}
-                onItemFocus={setFocusedItem}
-              />
-            )}
-          </div>
-
-          {/* Minimal Overlay Controls */}
-          <AnimatePresence>
-            {showOverlay && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
-                className="absolute inset-x-0 top-0 z-50"
-              >
-                {/* Top Bar */}
-                <div className="flex justify-between items-start p-6">
-                  {/* Empty left side for balance */}
-                  <div />
-                  
-                  {/* Exit Fullscreen Button */}
-                  <button
-                    onClick={toggleFullscreen}
-                    className="group flex items-center gap-2 px-4 py-2 bg-black/50 backdrop-blur-md rounded-full border border-white/10 hover:bg-white/10 transition-all duration-200"
-                    aria-label="Exit fullscreen"
-                  >
-                    <ArrowsIn className="w-4 h-4 text-white/60 group-hover:text-white" />
-                    <span className="font-mono text-xs uppercase tracking-[0.08em] text-white/60 group-hover:text-white">
-                      EXIT
-                    </span>
-                  </button>
-                </div>
-
-                {/* Bottom Info - Only when item is focused */}
-                {focusedItem && (
-                  <motion.div
-                    initial={{ y: 100, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    exit={{ y: 100, opacity: 0 }}
-                    className="absolute bottom-0 left-0 p-6"
-                  >
-                    <div className="bg-black/50 backdrop-blur-md rounded-2xl border border-white/10 p-4 max-w-md">
-                      <h3 className="font-mono text-sm uppercase tracking-wider text-white mb-1">
-                        {focusedItem.title}
-                      </h3>
-                      {focusedItem.categories && focusedItem.categories.length > 0 && (
-                        <div className="flex flex-wrap gap-2">
-                          {focusedItem.categories.slice(0, 3).map((cat, idx) => (
-                            <span key={idx} className="font-mono text-xs text-white/60">
-                              {cat}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </motion.div>
-                )}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </>
-      ) : (
-        <>
-          {/* Normal Layout */}
           {/* Search Bar - Sticky Top */}
           <header className="sticky top-0 z-50 bg-black/95 backdrop-blur border-b border-white/10">
             <div className="px-6 py-4">
@@ -407,18 +327,6 @@ export default function Home() {
               )}
             </div>
           </div>
-          
-          {/* Fullscreen Button */}
-          <button
-            onClick={toggleFullscreen}
-            className="group flex items-center gap-2 px-4 py-2 bg-white/10 rounded-full hover:bg-white/20 transition-all duration-200"
-            aria-label="Enter fullscreen"
-          >
-            <ArrowsOut className="w-4 h-4 text-white/60 group-hover:text-white" />
-            <span className="font-mono text-xs uppercase tracking-[0.08em] text-white/60 group-hover:text-white">
-              FULLSCREEN
-            </span>
-          </button>
         </div>
       </div>
     </header>
@@ -489,8 +397,47 @@ export default function Home() {
               items={items} 
               initialFocusId={activeCategories.length === 0 && !searchQuery ? 755 : undefined}
               onItemFocus={setFocusedItem}
+              onDragStateChange={setIsDragging}
             />
           )}
+
+          {/* Fullscreen Button Overlay for Desktop */}
+          <AnimatePresence>
+            {focusedItem && !isDragging && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.15, ease: [0.2, 0, 0, 1] }}
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+                style={{ 
+                  width: `${getFocusedImageSize()}px`,
+                  height: `${getFocusedImageSize()}px`,
+                  border: '2px solid lime',
+                  borderRadius: '50%'
+                }}
+              >
+                <button
+                  onClick={() => setImageModalOpen(true)}
+                  className="pointer-events-auto absolute top-1 right-1 w-11 h-11 bg-black/40 backdrop-blur-sm rounded-lg flex items-center justify-center text-white/90 hover:bg-black/60 hover:scale-105 focus:bg-black/60 focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-transparent transition-all duration-200"
+                  aria-label={`View ${focusedItem.title} in fullscreen`}
+                  tabIndex={focusedItem && !isDragging ? 0 : -1}
+                >
+                  <ArrowsOut className="w-[18px] h-[18px] text-white" weight="regular" />
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+          
+          {/* Debug Info for Container Sizing */}
+          <div className="absolute top-4 left-4 z-50 bg-black/80 text-white p-2 text-xs">
+            <div>Platform: {isMobile ? 'Mobile' : 'Desktop'}</div>
+            <div>Viewport: {viewportSize.width} × {viewportSize.height}</div>
+            <div>Container Size: {getFocusedImageSize()}px</div>
+            <div>Focused: {focusedItem ? focusedItem.title.substring(0, 20) : 'None'}</div>
+            <div>Dragging: {isDragging ? 'Yes' : 'No'}</div>
+            <div className="text-yellow-300">37% of viewport height (3D math-based)</div>
+          </div>
 
           {/* Empty state */}
           {!isLoading && items.length === 0 && (
@@ -581,8 +528,13 @@ export default function Home() {
           </aside>
         )}
       </div>
-      </>
-    )}
+
+      {/* Image Fullscreen Modal */}
+      <ImageFullscreenModal
+        isOpen={imageModalOpen}
+        onClose={() => setImageModalOpen(false)}
+        item={focusedItem}
+      />
     </main>
   );
 }

@@ -1851,9 +1851,6 @@ class InfiniteGridMenu {
       // Find what the atlas.json says about this item
       this.atlasMapping?.find(entry => entry.id === item?.id?.toString());
       
-      // Simple diagnostic - only log key info
-      console.log(`🎯 Snap: vertex[${nearestVertexIndex}] → item[${itemIndex}] "${item?.title || 'unknown'}" (${this.items.length} items, ${this.DISC_INSTANCE_COUNT} vertices)`);
-      
       this.onActiveItemChange(itemIndex);
       // Load high-res texture for the active item
       this.loadHighResTexture(itemIndex);
@@ -2053,14 +2050,18 @@ interface InfiniteMenuProps {
   items?: MenuItem[];
   initialFocusId?: number;
   onItemFocus?: (item: MenuItem | null) => void;
+  onDragStateChange?: (isDragging: boolean) => void;
 }
 
-const InfiniteMenu = ({ items = [], initialFocusId, onItemFocus }: InfiniteMenuProps) => {
+const InfiniteMenu = ({ items = [], initialFocusId, onItemFocus, onDragStateChange }: InfiniteMenuProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const menuInstanceRef = useRef<InfiniteGridMenu | null>(null);
   const [, setActiveItem] = useState(items.length > 0 ? items[0] : null);
   const [, setIsMoving] = useState<boolean>(false);
 
+  // Track if we need to recreate due to prop changes (not items)
+  const prevPropsRef = useRef({ initialFocusId, onItemFocus, onDragStateChange });
+  
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas || items.length === 0) {
@@ -2071,6 +2072,21 @@ const InfiniteMenu = ({ items = [], initialFocusId, onItemFocus }: InfiniteMenuP
       return;
     };
 
+    // Check if non-item props changed
+    const propsChanged = 
+      prevPropsRef.current.initialFocusId !== initialFocusId ||
+      prevPropsRef.current.onItemFocus !== onItemFocus ||
+      prevPropsRef.current.onDragStateChange !== onDragStateChange;
+    
+    // If we have an instance and only items changed (not other props), just update
+    if (menuInstanceRef.current && !propsChanged) {
+      menuInstanceRef.current.updateItems(items);
+      return;
+    }
+    
+    // Update prev props ref
+    prevPropsRef.current = { initialFocusId, onItemFocus, onDragStateChange };
+
     const handleActiveItem = (index: number) => {
       const itemIndex = index % items.length;
       const item = items[itemIndex];
@@ -2079,8 +2095,15 @@ const InfiniteMenu = ({ items = [], initialFocusId, onItemFocus }: InfiniteMenuP
         onItemFocus(item);
       }
     };
+
+    const handleMovementChange = (isMoving: boolean) => {
+      setIsMoving(isMoving);
+      if (onDragStateChange) {
+        onDragStateChange(isMoving);
+      }
+    };
     
-    // Dispose previous instance if it exists
+    // Dispose previous instance if props changed
     if (menuInstanceRef.current) {
       menuInstanceRef.current.dispose();
     }
@@ -2090,7 +2113,7 @@ const InfiniteMenu = ({ items = [], initialFocusId, onItemFocus }: InfiniteMenuP
       canvas,
       items.length ? items : defaultItems,
       handleActiveItem,
-      setIsMoving,
+      handleMovementChange,
       (sk) => sk.run(),
       initialFocusId
     );
@@ -2110,7 +2133,7 @@ const InfiniteMenu = ({ items = [], initialFocusId, onItemFocus }: InfiniteMenuP
       menuInstance.dispose();
       menuInstanceRef.current = null;
     };
-  }, [items, initialFocusId, onItemFocus]);
+  }, [items, initialFocusId, onItemFocus, onDragStateChange]);
 
 
   return (
