@@ -618,28 +618,52 @@ class ArcballControl {
 
   private readonly EPSILON = 0.1;
   private readonly IDENTITY_QUAT = quat.create();
+  
+  // Store event handlers for cleanup
+  private pointerDownHandler: (e: PointerEvent) => void;
+  private pointerUpHandler: () => void;
+  private pointerLeaveHandler: () => void;
+  private pointerMoveHandler: (e: PointerEvent) => void;
 
   constructor(canvas: HTMLCanvasElement, updateCallback?: UpdateCallback) {
     this.canvas = canvas;
     this.updateCallback = updateCallback || (() => undefined);
 
-    canvas.addEventListener("pointerdown", (e: PointerEvent) => {
+    // Create bound event handlers
+    this.pointerDownHandler = (e: PointerEvent) => {
       vec2.set(this.pointerPos, e.clientX, e.clientY);
       vec2.copy(this.previousPointerPos, this.pointerPos);
       this.isPointerDown = true;
-    });
-    canvas.addEventListener("pointerup", () => {
+    };
+    
+    this.pointerUpHandler = () => {
       this.isPointerDown = false;
-    });
-    canvas.addEventListener("pointerleave", () => {
+    };
+    
+    this.pointerLeaveHandler = () => {
       this.isPointerDown = false;
-    });
-    canvas.addEventListener("pointermove", (e: PointerEvent) => {
+    };
+    
+    this.pointerMoveHandler = (e: PointerEvent) => {
       if (this.isPointerDown) {
         vec2.set(this.pointerPos, e.clientX, e.clientY);
       }
-    });
+    };
+
+    // Add event listeners
+    canvas.addEventListener("pointerdown", this.pointerDownHandler);
+    canvas.addEventListener("pointerup", this.pointerUpHandler);
+    canvas.addEventListener("pointerleave", this.pointerLeaveHandler);
+    canvas.addEventListener("pointermove", this.pointerMoveHandler);
     canvas.style.touchAction = "none";
+  }
+  
+  public dispose(): void {
+    // Remove all event listeners
+    this.canvas.removeEventListener("pointerdown", this.pointerDownHandler);
+    this.canvas.removeEventListener("pointerup", this.pointerUpHandler);
+    this.canvas.removeEventListener("pointerleave", this.pointerLeaveHandler);
+    this.canvas.removeEventListener("pointermove", this.pointerMoveHandler);
   }
 
   public update(deltaTime: number, targetFrameDuration = 16): void {
@@ -1950,6 +1974,12 @@ class InfiniteGridMenu {
     if (this.animationFrameId) {
       cancelAnimationFrame(this.animationFrameId);
     }
+    
+    // Dispose the ArcballControl to remove event listeners
+    if (this.control) {
+      this.control.dispose();
+    }
+    
     const gl = this.gl;
     if (!gl) return;
 

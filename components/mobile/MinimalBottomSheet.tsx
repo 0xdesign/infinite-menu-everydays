@@ -90,17 +90,17 @@ export default function MinimalBottomSheet({
           borderTop: '1px solid rgba(255, 255, 255, 0.1)'
         }}
       >
-        <Sheet.Header />
+        <Sheet.Header onTap={() => !isExpanded && setSnapPoint(1)} />
         
         {/* CRITICAL: No disableDrag, no onClick handlers that conflict with gestures */}
         <Sheet.Content>
           <div className="text-white font-mono">
-            {/* Title - always visible, click for desktop testing */}
+            {/* Title - always visible, tap/click to expand */}
             <div 
               className="px-4 pb-3 pt-1"
               onClick={() => {
-                // Only for desktop testing - won't interfere on actual mobile
-                if (!isExpanded && window.matchMedia('(pointer: coarse)').matches === false) {
+                // Tap/click to expand on both mobile and desktop
+                if (!isExpanded) {
                   setSnapPoint(1);
                 }
               }}
