@@ -2053,9 +2053,10 @@ interface InfiniteMenuProps {
   items?: MenuItem[];
   initialFocusId?: number;
   onItemFocus?: (item: MenuItem | null) => void;
+  onDragStateChange?: (isDragging: boolean) => void;
 }
 
-const InfiniteMenu = ({ items = [], initialFocusId, onItemFocus }: InfiniteMenuProps) => {
+const InfiniteMenu = ({ items = [], initialFocusId, onItemFocus, onDragStateChange }: InfiniteMenuProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const menuInstanceRef = useRef<InfiniteGridMenu | null>(null);
   const [, setActiveItem] = useState(items.length > 0 ? items[0] : null);
@@ -2079,6 +2080,13 @@ const InfiniteMenu = ({ items = [], initialFocusId, onItemFocus }: InfiniteMenuP
         onItemFocus(item);
       }
     };
+
+    const handleMovementChange = (isMoving: boolean) => {
+      setIsMoving(isMoving);
+      if (onDragStateChange) {
+        onDragStateChange(isMoving);
+      }
+    };
     
     // Dispose previous instance if it exists
     if (menuInstanceRef.current) {
@@ -2090,7 +2098,7 @@ const InfiniteMenu = ({ items = [], initialFocusId, onItemFocus }: InfiniteMenuP
       canvas,
       items.length ? items : defaultItems,
       handleActiveItem,
-      setIsMoving,
+      handleMovementChange,
       (sk) => sk.run(),
       initialFocusId
     );
@@ -2110,7 +2118,7 @@ const InfiniteMenu = ({ items = [], initialFocusId, onItemFocus }: InfiniteMenuP
       menuInstance.dispose();
       menuInstanceRef.current = null;
     };
-  }, [items, initialFocusId, onItemFocus]);
+  }, [items, initialFocusId, onItemFocus, onDragStateChange]);
 
 
   return (
