@@ -24,97 +24,51 @@ npm run start
 # Run linting
 npm run lint
 
-# Run type checking
-npm run typecheck
+# Type checking (no dedicated script, use directly)
+npx tsc --noEmit
+
+# Export categories to CSV
+npm run export:csv
 ```
 
 ## Architecture
 
-### Key Technologies
-- **Framework**: Next.js 15.3.4 with App Router (`/app` directory)
-- **Database**: Supabase for NFT token data storage
-- **3D Visualization**: Custom WebGL2 InfiniteMenu component
-- **Animation**: Framer Motion for UI animations
-- **Styling**: Tailwind CSS v4 with PostCSS
+### Core Architecture Flow
 
-### Project Structure
-- `/app` - Next.js app router pages and layouts
-- `/lib` - Shared utilities and Supabase client
-- `/components` - React components (InfiniteMenu will be added here)
-- `/public` - Static assets
+1. **Data Layer** (`lib/supabase.ts`)
+   - Connects to Supabase using environment variables (REQUIRED: see Environment Setup)
+   - Fetches from `nft_tokens_filtered` view (optimized subset of data)
+   - Supports category filtering and search via RPC functions
+   - Maps NFTToken interface to MenuItem format for the 3D menu
 
-### Key Components
+2. **3D Visualization** (`components/InfiniteMenu.tsx`)
+   - WebGL2-based spherical menu with ~2000 lines of custom implementation
+   - Dynamic sphere scaling based on item count (sqrt(itemCount/42) * 2.0)
+   - Pre-allocated matrices for animation loop (performance critical)
+   - Texture atlas system for loading 750+ images efficiently
+   - Camera positioning: maintains 1.0 unit distance from sphere surface
 
-1. **Supabase Integration** (`lib/supabase.ts`)
-   - Fetches NFT tokens from `infinite_menu_tokens` table
-   - Maps database schema to InfiniteMenu format
-   - Requires environment variables: `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+3. **UI Layer** (`app/page.tsx`)
+   - Three-column layout: categories sidebar (160px) | 3D sphere | details panel (320px)
+   - Debounced search (300ms) to prevent excessive API calls
+   - Category multi-select with immediate filtering
+   - Typography-first design with uppercase clickable elements
 
-2. **InfiniteMenu Component** (to be implemented)
-   - WebGL2-based 3D spherical menu
-   - Displays NFT tokens in interactive sphere
-   - Requires `gl-matrix` library (needs installation: `npm install gl-matrix`)
-   - Uses Canvas API with WebGL2 context
+### Database Schema
 
-## Design System
+The app queries `nft_tokens_filtered` view with these key fields:
+- `id`, `token_id`, `title`, `description`
+- `image_url`, `thumbnail_url` (Supabase Storage URLs)
+- `category[]` (array of categories)
+- `primary_category`, `subcat` (categorization fields)
+- `mint_url`, `network`, `collection_address` (blockchain metadata)
 
-### Typography Pattern: Clickable Text Buttons
+### Performance Optimizations
 
-**Core Principle**: ALL CLICKABLE TEXT BUTTONS MUST USE UPPERCASE
-
-This design pattern establishes that all clickable text elements in the interface should be rendered in uppercase to create a consistent, terminal-inspired aesthetic that immediately signals interactivity.
-
-#### Implementation
-
-```tsx
-// Category buttons (minimal sidebar)
-className="font-mono uppercase text-xs"
-
-// Action buttons (CTAs)
-className="font-mono uppercase text-sm"
-
-// Navigation links
-className="font-mono uppercase text-sm"
-```
-
-#### Active State Pattern
-
-For minimal interfaces, active states are indicated through:
-1. **Letter spacing expansion**: `tracking-[0.08em]` for active, `tracking-normal` for inactive
-2. **Ultra-thin line indicator**: 1px × 3h white line positioned absolutely on the left
-3. **Opacity changes**: `text-white` for active, `text-white/60` for inactive
-
-```tsx
-// Active state implementation
-className={`
-  font-mono uppercase text-xs transition-all duration-150
-  ${isActive 
-    ? 'text-white tracking-[0.08em]'      // Active: expanded spacing
-    : 'text-white/60 hover:text-white/80 tracking-normal'  // Inactive
-  }
-`}
-
-// Minimal active indicator
-{isActive && (
-  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[1px] h-3 bg-white" />
-)}
-```
-
-#### Rationale
-
-1. **Visual Hierarchy**: Uppercase text immediately distinguishes interactive from static elements
-2. **Terminal Aesthetic**: Complements monospace font and creates command-line interface feel
-3. **Consistency**: Creates predictable interaction patterns across the application
-4. **Accessibility**: Combined with hover states and focus indicators for WCAG compliance
-5. **Minimal Visual Weight**: Typography-first approach reduces need for heavy UI chrome
-
-## Testing Requirements
-
-Currently, no testing framework is set up. When implementing tests:
-1. Install a testing framework (e.g., Jest + React Testing Library or Vitest)
-2. Follow TDD approach: write tests first, then implement, then verify
-3. Focus on real-world user scenarios
-4. Include integration tests for Supabase data fetching
+1. **Memory Management**: Pre-allocated arrays in animation loop prevent GC pressure
+2. **Texture Atlases**: Groups 256 images per atlas to reduce draw calls
+3. **Dynamic Geometry**: Adjusts sphere radius and instance count based on filtered items
+4. **Deferred Loading**: Handles React StrictMode double-render with WebGL context
 
 ## Environment Setup
 
@@ -124,41 +78,93 @@ NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
-## Development Workflow
-
-The project follows an incremental development approach:
-1. Complete one feature fully before moving to the next
-2. Test everything after implementation
-3. Use TypeScript's strict mode to catch errors early
-4. Run `npm run lint` and `npm run typecheck` before considering a feature complete
+**CRITICAL**: Never commit credentials. The app will throw an error if these are missing.
 
 ## Current Status
 
-- Task 1 ✓: Supabase integration complete with NFT token fetching
-- Task 2 ✓: InfiniteMenu WebGL component implemented with dynamic sphere scaling
-- Task 3 ✓: Menu integrated with Supabase data (750+ items)
-- Task 4 ✓: UI redesigned with three-column layout and minimal category filters
-- Task 5 ✓: Performance optimized with texture atlas loading and efficient rendering
+- ✅ Task 1: Supabase integration complete with NFT token fetching
+- ✅ Task 2: InfiniteMenu WebGL component implemented with dynamic sphere scaling
+- ✅ Task 3: Menu integrated with Supabase data (750+ items)
+- ✅ Task 4: UI redesigned with three-column layout and minimal category filters
+- ✅ Task 5: Performance optimized with texture atlas loading and efficient rendering
+- ✅ Task 6: Complete UI redesign matching Figma specifications (January 2025)
 
-## Recent UI Updates
+## Recent UI Updates (January 2025)
 
-### Three-Column Layout
-- **Left Sidebar (160px)**: Minimal category filters with typography-first design
-- **Center**: 3D InfiniteMenu sphere (main focus)
-- **Right Panel (320px)**: Focused item details with metadata and actions
+### Complete Redesign Based on Figma Specifications
 
-### Design Patterns
-- **Typography**: All clickable text buttons use UPPERCASE with 0.08em letter-spacing
-- **Active Indicators**: Horizontal line (16px × 1px) for selected categories
-- **Color System**: Active (100% white), Inactive (40% white), Hover (70% white)
-- **Transitions**: Consistent 200ms duration for smooth interactions
-- **Font**: Monospace throughout (font-mono)
+The entire interface has been redesigned to match the provided Figma designs with both desktop and mobile layouts.
 
-### Category Filters
-- Minimal text-based design without backgrounds
-- Horizontal line indicators for active states
-- All category names in uppercase
-- Reduced sidebar width for more sphere space
+### Desktop Layout (768px+)
+- **Top Navigation Bar**: 
+  - "DESIGN EVERYDAYS" title (left)
+  - Expandable search bar (center) - collapses to pill when not in use
+  - "ABOUT" link placeholder (right)
+- **Left Sidebar (160px)**: Minimal text-only filter buttons with active indicators
+- **Center**: 3D InfiniteMenu sphere (dynamic sizing)
+- **Right Panel (320px)**: Metadata panel with item details
+- **Bottom Controls**: Results count (left) and expand button (center)
+
+### Mobile Layout (<768px)
+- **Mobile Header**: FILTER and SEARCH pill buttons
+- **Full-width sphere**: Takes entire viewport
+- **Bottom Sheet**: Draggable metadata panel
+  - Collapsed: 80px showing title/date
+  - Expanded: 50% or full height with complete metadata
+  - Touch gestures: tap, drag, velocity-based animations
+- **Mobile Modals**: Full-screen filter and search interfaces
+
+### Component Architecture
+```
+components/
+  TopNav.tsx           # Desktop navigation with expandable search
+  FilterSidebar.tsx    # Minimal category filters (desktop)
+  MetadataPanel.tsx    # Right sidebar metadata (desktop)
+  BottomControls.tsx   # Results count + expand button
+  MobileHeader.tsx     # Mobile filter/search buttons
+  BottomSheet.tsx      # Draggable mobile metadata
+  MobileFilterModal.tsx # Full-screen filter UI (mobile)
+  MobileSearchModal.tsx # Full-screen search UI (mobile)
+  ImageModal.tsx       # Full-width image viewer (shared)
+```
+
+### Design System Updates
+- **Typography**: All clickable elements use UPPERCASE monospace
+- **Active States**: Horizontal line indicators (1px × 3h) for filters
+- **Color Palette**: 
+  - Active: 100% white
+  - Inactive: 60% white
+  - Hover: 80% white
+  - Background: Pure black (#000)
+- **Transitions**: 200ms cubic-bezier(0.4, 0, 0.2, 1)
+- **Responsive Breakpoint**: Single breakpoint at 768px (md:)
+
+### Category Filter Design
+- Text-only buttons without backgrounds
+- Active state: Full white with horizontal line indicator
+- Inactive state: 60% opacity white
+- Categories ordered: ALL, PAYMENTS, TRADING, AGENTS, SOCIAL, IDENTITY, MESSAGING, GATING, PRIVACY, REWARDS, ART, INVEST, WALLET
+
+### Mobile Gestures Implementation
+- **Touch Start**: Records initial position and height
+- **Touch Move**: Updates sheet height with bounds checking
+- **Touch End**: Calculates velocity for snap animations
+- **Snap Points**: Collapsed (80px), Half (50% vh), Full (90% vh)
+- **Velocity Threshold**: 0.5px/ms for fast swipe detection
+
+### Metadata Panel Features
+- Item title and publication date
+- Category tags (up to 3 displayed)
+- Full description text
+- Network information (ZORA-MAINNET, etc.)
+- Collection address with block explorer links
+- "VIEW ORIGINAL" button linking to mint URL
+
+### Search & Filter Behavior
+- **Search**: 300ms debounce, expandable bar, real-time filtering
+- **Filters**: Multi-select categories, "ALL" clears selection
+- **Results**: Live count display in bottom controls
+- **Clear Actions**: X button in search (when text present)
 
 ## Important Notes
 

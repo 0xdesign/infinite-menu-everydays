@@ -618,52 +618,28 @@ class ArcballControl {
 
   private readonly EPSILON = 0.1;
   private readonly IDENTITY_QUAT = quat.create();
-  
-  // Store event handlers for cleanup
-  private pointerDownHandler: (e: PointerEvent) => void;
-  private pointerUpHandler: () => void;
-  private pointerLeaveHandler: () => void;
-  private pointerMoveHandler: (e: PointerEvent) => void;
 
   constructor(canvas: HTMLCanvasElement, updateCallback?: UpdateCallback) {
     this.canvas = canvas;
     this.updateCallback = updateCallback || (() => undefined);
 
-    // Create bound event handlers
-    this.pointerDownHandler = (e: PointerEvent) => {
+    canvas.addEventListener("pointerdown", (e: PointerEvent) => {
       vec2.set(this.pointerPos, e.clientX, e.clientY);
       vec2.copy(this.previousPointerPos, this.pointerPos);
       this.isPointerDown = true;
-    };
-    
-    this.pointerUpHandler = () => {
+    });
+    canvas.addEventListener("pointerup", () => {
       this.isPointerDown = false;
-    };
-    
-    this.pointerLeaveHandler = () => {
+    });
+    canvas.addEventListener("pointerleave", () => {
       this.isPointerDown = false;
-    };
-    
-    this.pointerMoveHandler = (e: PointerEvent) => {
+    });
+    canvas.addEventListener("pointermove", (e: PointerEvent) => {
       if (this.isPointerDown) {
         vec2.set(this.pointerPos, e.clientX, e.clientY);
       }
-    };
-
-    // Add event listeners
-    canvas.addEventListener("pointerdown", this.pointerDownHandler);
-    canvas.addEventListener("pointerup", this.pointerUpHandler);
-    canvas.addEventListener("pointerleave", this.pointerLeaveHandler);
-    canvas.addEventListener("pointermove", this.pointerMoveHandler);
+    });
     canvas.style.touchAction = "none";
-  }
-  
-  public dispose(): void {
-    // Remove all event listeners
-    this.canvas.removeEventListener("pointerdown", this.pointerDownHandler);
-    this.canvas.removeEventListener("pointerup", this.pointerUpHandler);
-    this.canvas.removeEventListener("pointerleave", this.pointerLeaveHandler);
-    this.canvas.removeEventListener("pointermove", this.pointerMoveHandler);
   }
 
   public update(deltaTime: number, targetFrameDuration = 16): void {
@@ -858,6 +834,7 @@ class InfiniteGridMenu {
   private usingFallbackTexture: boolean = false;
   private control!: ArcballControl;
   private animationFrameId: number | null = null;
+  private currentFocusedIndex: number = -1;
   
   // High-res texture management
   private hiResTexture: WebGLTexture | null = null;
@@ -937,6 +914,16 @@ class InfiniteGridMenu {
 
   public smoothRotationVelocity = 0;
   public scaleFactor = 1.0;
+
+  // Pre-allocated resources for animation loop (performance optimization)
+  private animationTempPositions: vec3[] = [];
+  private animationTempMatrices: mat4[] = [];
+  private animationTempVec3: vec3 = vec3.create();
+  private animationTempMatrix1: mat4 = mat4.create();
+  private animationTempMatrix2: mat4 = mat4.create();
+  private animationTempMatrix3: mat4 = mat4.create();
+  private animationTempMatrix4: mat4 = mat4.create();
+  private animationTempMatrix5: mat4 = mat4.create();
 
   constructor(
     private canvas: HTMLCanvasElement,
@@ -1106,6 +1093,14 @@ class InfiniteGridMenu {
     this.SPHERE_RADIUS = this.dynamicPositions.calculateOptimalRadius(itemCount);
     this.instancePositions = this.dynamicPositions.generatePositions(itemCount, this.SPHERE_RADIUS);
     this.DISC_INSTANCE_COUNT = this.instancePositions.length;
+    
+    // Pre-allocate arrays for animation loop to avoid GC pressure
+    this.animationTempPositions = new Array(this.DISC_INSTANCE_COUNT);
+    this.animationTempMatrices = new Array(this.DISC_INSTANCE_COUNT);
+    for (let i = 0; i < this.DISC_INSTANCE_COUNT; i++) {
+      this.animationTempPositions[i] = vec3.create();
+      this.animationTempMatrices[i] = mat4.create();
+    }
     
     // Keep legacy geometry for compatibility
     this.icoGeo = new IcosahedronGeometry();
@@ -1369,39 +1364,14 @@ class InfiniteGridMenu {
               const x = (idx % tilesPerRow) * cellSize;
               const y = Math.floor(idx / tilesPerRow) * cellSize;
 
-              // Clear cell with black background
-              ctx.fillStyle = 'black';
-              ctx.fillRect(x, y, cellSize, cellSize);
-              
-              // Get image dimensions
-              const iw = img.naturalWidth || img.width;
-              const ih = img.naturalHeight || img.height;
-              
-              if (!iw || !ih) {
-                console.warn('Invalid image dimensions');
-                return;
-              }
-              
-              // Calculate aspect-fit dimensions (no cropping)
-              const imageAspect = iw / ih;
-              let drawWidth, drawHeight;
-              
-              if (imageAspect > 1) {
-                // Wide image - fit to width
-                drawWidth = cellSize;
-                drawHeight = cellSize / imageAspect;
-              } else {
-                // Tall image - fit to height  
-                drawHeight = cellSize;
-                drawWidth = cellSize * imageAspect;
-              }
-              
-              // Center in cell
-              const dx = x + (cellSize - drawWidth) / 2;
-              const dy = y + (cellSize - drawHeight) / 2;
-              
-              // Draw entire image scaled to fit
-              ctx.drawImage(img, dx, dy, drawWidth, drawHeight);
+              // cover-like draw to preserve aspect ratio
+              const iw = img.naturalWidth, ih = img.naturalHeight;
+              const r = Math.max(cellSize / iw, cellSize / ih);
+              const dw = Math.round(iw * r);
+              const dh = Math.round(ih * r);
+              const dx = x + Math.floor((cellSize - dw) / 2);
+              const dy = y + Math.floor((cellSize - dh) / 2);
+              ctx.drawImage(img, dx, dy, dw, dh);
             } catch {}
             res();
           };
@@ -1650,42 +1620,48 @@ class InfiniteGridMenu {
     if (!this.gl) return;
     this.control.update(deltaTime, this.TARGET_FRAME_DURATION);
 
-    const positions = this.instancePositions.map((p) =>
-      vec3.transformQuat(vec3.create(), p, this.control.orientation)
-    );
+    // Transform positions using pre-allocated arrays
+    for (let i = 0; i < this.instancePositions.length; i++) {
+      vec3.transformQuat(
+        this.animationTempPositions[i], 
+        this.instancePositions[i], 
+        this.control.orientation
+      );
+    }
+    
     const scale = 0.25;
     const SCALE_INTENSITY = 0.6;
 
-    positions.forEach((p, ndx) => {
+    // Process each position using pre-allocated matrices
+    for (let ndx = 0; ndx < this.animationTempPositions.length; ndx++) {
+      const p = this.animationTempPositions[ndx];
       const s =
         (Math.abs(p[2]) / this.SPHERE_RADIUS) * SCALE_INTENSITY +
         (1 - SCALE_INTENSITY);
       const finalScale = s * scale;
-      const matrix = mat4.create();
-
-      mat4.multiply(
-        matrix,
-        matrix,
-        mat4.fromTranslation(mat4.create(), vec3.negate(vec3.create(), p))
-      );
-      mat4.multiply(
-        matrix,
-        matrix,
-        mat4.targetTo(mat4.create(), [0, 0, 0], p, [0, 1, 0])
-      );
-      mat4.multiply(
-        matrix,
-        matrix,
-        mat4.fromScaling(mat4.create(), [finalScale, finalScale, finalScale])
-      );
-      mat4.multiply(
-        matrix,
-        matrix,
-        mat4.fromTranslation(mat4.create(), [0, 0, -this.SPHERE_RADIUS])
-      );
+      
+      // Use pre-allocated matrix for this instance
+      const matrix = this.animationTempMatrices[ndx];
+      
+      // Reset matrix to identity first
+      mat4.identity(matrix);
+      
+      // Build transformation using pre-allocated temp matrices
+      vec3.negate(this.animationTempVec3, p);
+      mat4.fromTranslation(this.animationTempMatrix1, this.animationTempVec3);
+      mat4.multiply(matrix, matrix, this.animationTempMatrix1);
+      
+      mat4.targetTo(this.animationTempMatrix2, [0, 0, 0], p, [0, 1, 0]);
+      mat4.multiply(matrix, matrix, this.animationTempMatrix2);
+      
+      mat4.fromScaling(this.animationTempMatrix3, [finalScale, finalScale, finalScale]);
+      mat4.multiply(matrix, matrix, this.animationTempMatrix3);
+      
+      mat4.fromTranslation(this.animationTempMatrix4, [0, 0, -this.SPHERE_RADIUS]);
+      mat4.multiply(matrix, matrix, this.animationTempMatrix4);
 
       mat4.copy(this.discInstances.matrices[ndx], matrix);
-    });
+    }
 
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.discInstances.buffer);
     this.gl.bufferSubData(
@@ -1869,15 +1845,20 @@ class InfiniteGridMenu {
       // Use modulo to match shader behavior
       const itemIndex = nearestVertexIndex % this.items.length;
       
-      // Debug: Log what's happening during snap
-      const item = this.items[itemIndex];
-      
-      // Find what the atlas.json says about this item
-      this.atlasMapping?.find(entry => entry.id === item?.id?.toString());
-      
-      this.onActiveItemChange(itemIndex);
-      // Load high-res texture for the active item
-      this.loadHighResTexture(itemIndex);
+      // Only update if the focused item has changed
+      if (itemIndex !== this.currentFocusedIndex) {
+        this.currentFocusedIndex = itemIndex;
+        
+        // Debug: Log what's happening during snap
+        const item = this.items[itemIndex];
+        console.log(`🎯 Snap: item[${itemIndex}] "${item?.title || 'unknown'}"`);
+        
+        // Notify parent component of the new focused item
+        this.onActiveItemChange(itemIndex);
+        
+        // Load high-res texture for the active item
+        this.loadHighResTexture(itemIndex);
+      }
       
       const snapDirection = vec3.normalize(
         vec3.create(),
@@ -1941,6 +1922,10 @@ class InfiniteGridMenu {
       return;
     }
     
+    // Set the current focused index and notify
+    this.currentFocusedIndex = itemIndex;
+    this.onActiveItemChange(itemIndex);
+    
     // Get the vertex position for this item
     const vertexIndex = itemIndex % this.instancePositions.length;
     const targetPos = this.instancePositions[vertexIndex];
@@ -1974,12 +1959,6 @@ class InfiniteGridMenu {
     if (this.animationFrameId) {
       cancelAnimationFrame(this.animationFrameId);
     }
-    
-    // Dispose the ArcballControl to remove event listeners
-    if (this.control) {
-      this.control.dispose();
-    }
-    
     const gl = this.gl;
     if (!gl) return;
 
@@ -2029,9 +2008,17 @@ class InfiniteGridMenu {
     this.instancePositions = this.dynamicPositions.generatePositions(newCount, newRadius);
     this.DISC_INSTANCE_COUNT = newCount;
     
-    // Log only when count changes
+    // Reallocate animation arrays if count changed
     if (oldCount !== newCount) {
       console.log(`🔄 Geometry updated: ${oldCount} → ${newCount} instances`);
+      
+      // Reallocate pre-allocated arrays for new item count
+      this.animationTempPositions = new Array(newCount);
+      this.animationTempMatrices = new Array(newCount);
+      for (let i = 0; i < newCount; i++) {
+        this.animationTempPositions[i] = vec3.create();
+        this.animationTempMatrices[i] = mat4.create();
+      }
     }
     
     // Update camera position at constant distance from sphere surface
@@ -2080,18 +2067,14 @@ interface InfiniteMenuProps {
   items?: MenuItem[];
   initialFocusId?: number;
   onItemFocus?: (item: MenuItem | null) => void;
-  onDragStateChange?: (isDragging: boolean) => void;
 }
 
-const InfiniteMenu = ({ items = [], initialFocusId, onItemFocus, onDragStateChange }: InfiniteMenuProps) => {
+const InfiniteMenu = ({ items = [], initialFocusId, onItemFocus }: InfiniteMenuProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const menuInstanceRef = useRef<InfiniteGridMenu | null>(null);
   const [, setActiveItem] = useState(items.length > 0 ? items[0] : null);
   const [, setIsMoving] = useState<boolean>(false);
 
-  // Track if we need to recreate due to prop changes (not items)
-  const prevPropsRef = useRef({ initialFocusId, onItemFocus, onDragStateChange });
-  
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas || items.length === 0) {
@@ -2102,21 +2085,6 @@ const InfiniteMenu = ({ items = [], initialFocusId, onItemFocus, onDragStateChan
       return;
     };
 
-    // Check if non-item props changed
-    const propsChanged = 
-      prevPropsRef.current.initialFocusId !== initialFocusId ||
-      prevPropsRef.current.onItemFocus !== onItemFocus ||
-      prevPropsRef.current.onDragStateChange !== onDragStateChange;
-    
-    // If we have an instance and only items changed (not other props), just update
-    if (menuInstanceRef.current && !propsChanged) {
-      menuInstanceRef.current.updateItems(items);
-      return;
-    }
-    
-    // Update prev props ref
-    prevPropsRef.current = { initialFocusId, onItemFocus, onDragStateChange };
-
     const handleActiveItem = (index: number) => {
       const itemIndex = index % items.length;
       const item = items[itemIndex];
@@ -2125,15 +2093,8 @@ const InfiniteMenu = ({ items = [], initialFocusId, onItemFocus, onDragStateChan
         onItemFocus(item);
       }
     };
-
-    const handleMovementChange = (isMoving: boolean) => {
-      setIsMoving(isMoving);
-      if (onDragStateChange) {
-        onDragStateChange(isMoving);
-      }
-    };
     
-    // Dispose previous instance if props changed
+    // Dispose previous instance if it exists
     if (menuInstanceRef.current) {
       menuInstanceRef.current.dispose();
     }
@@ -2143,7 +2104,7 @@ const InfiniteMenu = ({ items = [], initialFocusId, onItemFocus, onDragStateChan
       canvas,
       items.length ? items : defaultItems,
       handleActiveItem,
-      handleMovementChange,
+      setIsMoving,
       (sk) => sk.run(),
       initialFocusId
     );
@@ -2163,7 +2124,7 @@ const InfiniteMenu = ({ items = [], initialFocusId, onItemFocus, onDragStateChan
       menuInstance.dispose();
       menuInstanceRef.current = null;
     };
-  }, [items, initialFocusId, onItemFocus, onDragStateChange]);
+  }, [items, initialFocusId, onItemFocus]);
 
 
   return (
