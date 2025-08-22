@@ -43,7 +43,9 @@ export default function Home() {
   const [categories, setCategories] = useState<string[]>([]);
   const [activeCategories, setActiveCategories] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [submittedQuery, setSubmittedQuery] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
+  const [showSlowLoadingMessage, setShowSlowLoadingMessage] = useState(false);
   const [focusedItem, setFocusedItem] = useState<MenuItem | null>(null);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
@@ -55,21 +57,38 @@ export default function Home() {
 
   useEffect(() => {
     setIsLoading(true);
+    setShowSlowLoadingMessage(false);
     
     const timeoutId = setTimeout(() => {
       fetchInfiniteMenuData(activeCategories, searchQuery)
         .then((data) => {
           setItems(data);
           setIsLoading(false);
+          setShowSlowLoadingMessage(false);
         })
         .catch((error) => {
           console.error('Failed to fetch items:', error);
           setIsLoading(false);
+          setShowSlowLoadingMessage(false);
         });
     }, searchQuery ? 300 : 0);
     
     return () => clearTimeout(timeoutId);
   }, [activeCategories, searchQuery]);
+
+  // Show slow loading message after 2 seconds
+  useEffect(() => {
+    if (!isLoading) {
+      setShowSlowLoadingMessage(false);
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setShowSlowLoadingMessage(true);
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [isLoading]);
 
   const handleCategoryToggle = useCallback((category: string) => {
     setActiveCategories((prev) => {
@@ -81,7 +100,15 @@ export default function Home() {
 
   const handleSearchChange = useCallback((value: string) => {
     setSearchQuery(value);
+    // If clearing search, also clear submitted state
+    if (!value) {
+      setSubmittedQuery('');
+    }
   }, []);
+
+  const handleSearchSubmit = useCallback(() => {
+    setSubmittedQuery(searchQuery);
+  }, [searchQuery]);
 
   const handleExpandClick = useCallback(() => {
     setIsImageModalOpen(true);
@@ -102,6 +129,7 @@ export default function Home() {
     collection_address: focusedItem.collectionAddress || undefined,
     token_id: String(focusedItem.id || ''),
     network: focusedItem.network || undefined,
+    created_at: focusedItem.createdAt || undefined,
   } : null;
 
   return (
@@ -146,8 +174,15 @@ export default function Home() {
 
             {isLoading && (
               <div className="h-full flex items-center justify-center">
-                <p className="font-mono text-white text-xs uppercase tracking-[0.08em]">
-                  Loading...
+                <p className={`font-mono text-white text-xs ${
+                  showSlowLoadingMessage 
+                    ? 'normal-case tracking-normal' 
+                    : 'uppercase tracking-[0.08em]'
+                }`}>
+                  {showSlowLoadingMessage 
+                    ? 'almost done loading. sorry for the AI backend slop.'
+                    : 'LOADING...'
+                  }
                 </p>
               </div>
             )}
@@ -197,8 +232,15 @@ export default function Home() {
 
           {isLoading && (
             <div className="h-full flex items-center justify-center">
-              <p className="font-mono text-white text-xs uppercase tracking-[0.08em]">
-                Loading...
+              <p className={`font-mono text-white text-xs ${
+                showSlowLoadingMessage 
+                  ? 'normal-case tracking-normal' 
+                  : 'uppercase tracking-[0.08em]'
+              }`}>
+                {showSlowLoadingMessage 
+                  ? 'almost done loading. sorry for the backend AI slop.'
+                  : 'LOADING...'
+                }
               </p>
             </div>
           )}
@@ -236,7 +278,9 @@ export default function Home() {
         <MobileSearchModal
           isOpen={isMobileSearchOpen}
           searchQuery={searchQuery}
+          submittedQuery={submittedQuery}
           onSearchChange={handleSearchChange}
+          onSearchSubmit={handleSearchSubmit}
           onClose={() => setIsMobileSearchOpen(false)}
         />
       </div>

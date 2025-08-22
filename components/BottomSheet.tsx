@@ -13,6 +13,7 @@ interface BottomSheetProps {
     mint_url?: string;
     collection_address?: string;
     network?: string;
+    created_at?: string;
   } | null;
   onExpandImage?: () => void;
 }
@@ -120,11 +121,22 @@ export default function BottomSheet({ selectedItem, onExpandImage }: BottomSheet
     return `${address.slice(0, 6)}...${address.slice(-6)}`;
   };
 
-  const date = new Date().toLocaleDateString('en-US', { 
-    month: 'short', 
-    day: 'numeric', 
-    year: 'numeric' 
-  }).toUpperCase();
+  // Format mint date with robust parsing
+  let date = 'DATE UNKNOWN';
+  if (selectedItem.created_at && selectedItem.created_at !== '') {
+    try {
+      const parsedDate = new Date(selectedItem.created_at);
+      if (!isNaN(parsedDate.getTime())) {
+        date = parsedDate.toLocaleDateString('en-US', { 
+          month: 'short', 
+          day: 'numeric', 
+          year: 'numeric' 
+        }).toUpperCase();
+      }
+    } catch {
+      console.warn('Invalid date format:', selectedItem.created_at);
+    }
+  }
 
   return (
     <div

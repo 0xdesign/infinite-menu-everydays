@@ -13,6 +13,7 @@ interface MetadataPanelProps {
     collection_address?: string;
     token_id?: string;
     network?: string;
+    created_at?: string;
   } | null;
 }
 
@@ -27,12 +28,22 @@ export default function MetadataPanel({ selectedItem }: MetadataPanelProps) {
     );
   }
 
-  // Format date (using current date as placeholder since we don't have date in data)
-  const date = new Date().toLocaleDateString('en-US', { 
-    month: 'short', 
-    day: 'numeric', 
-    year: 'numeric' 
-  }).toUpperCase();
+  // Format mint date with robust parsing
+  let date = 'DATE UNKNOWN';
+  if (selectedItem.created_at && selectedItem.created_at !== '') {
+    try {
+      const parsedDate = new Date(selectedItem.created_at);
+      if (!isNaN(parsedDate.getTime())) {
+        date = parsedDate.toLocaleDateString('en-US', { 
+          month: 'short', 
+          day: 'numeric', 
+          year: 'numeric' 
+        }).toUpperCase();
+      }
+    } catch {
+      console.warn('Invalid date format:', selectedItem.created_at);
+    }
+  }
 
   // Format hash for display
   const formatHash = (address?: string) => {
