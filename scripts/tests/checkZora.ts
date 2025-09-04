@@ -3,7 +3,7 @@
 // Check Zora collections on Ethereum and Zora networks via public RPC (no API keys),
 // compare with DB contents, and write missing items with metadata to JSON.
 
-import { supabase } from '../lib/supabase'
+import { supabase } from '../../lib/supabase'
 
 const COLLECTIONS = [
   {
