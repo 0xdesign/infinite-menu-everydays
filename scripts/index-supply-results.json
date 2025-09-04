@@ -1,0 +1,16 @@
+[
+  {
+    "collection": "0x5908eb01497b5d8e53c339ea0186050d487c8d0c",
+    "chain": "Ethereum Mainnet",
+    "directLogsResponse": {
+      "message": "sql parser error: Unterminated encoded string literal at Line: 11, Column 25"
+    }
+  },
+  {
+    "collection": "0x5abf0c04ab7196e2bdd19313b479baebd9f7791b",
+    "chain": "Zora Mainnet",
+    "directLogsResponse": {
+      "message": "sql parser error: Unterminated encoded string literal at Line: 11, Column 25"
+    }
+  }
+]
