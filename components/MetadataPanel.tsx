@@ -1,6 +1,7 @@
 'use client';
 
 import { ExternalLink } from 'lucide-react';
+import { formatMintDate, formatHash, getBlockExplorerUrl } from '@/lib/format';
 
 interface MetadataPanelProps {
   selectedItem: {
@@ -28,40 +29,7 @@ export default function MetadataPanel({ selectedItem }: MetadataPanelProps) {
     );
   }
 
-  // Format mint date with robust parsing
-  let date = 'DATE UNKNOWN';
-  if (selectedItem.created_at && selectedItem.created_at !== '') {
-    try {
-      const parsedDate = new Date(selectedItem.created_at);
-      if (!isNaN(parsedDate.getTime())) {
-        date = parsedDate.toLocaleDateString('en-US', { 
-          month: 'short', 
-          day: 'numeric', 
-          year: 'numeric' 
-        }).toUpperCase();
-      }
-    } catch {
-      console.warn('Invalid date format:', selectedItem.created_at);
-    }
-  }
-
-  // Format hash for display
-  const formatHash = (address?: string) => {
-    if (!address) return '';
-    if (address.length <= 12) return address;
-    return `${address.slice(0, 6)}...${address.slice(-6)}`;
-  };
-
-  // Construct block explorer URL
-  const getBlockExplorerUrl = (address?: string, network?: string) => {
-    if (!address) return '#';
-    
-    const baseUrl = network?.toLowerCase().includes('mainnet') 
-      ? 'https://etherscan.io/address/'
-      : 'https://goerli.etherscan.io/address/';
-    
-    return baseUrl + address;
-  };
+  const date = formatMintDate(selectedItem.created_at);
 
   return (
     <aside className="fixed right-0 top-16 bottom-0 w-80 bg-black border-l border-white/10 z-40 overflow-y-auto">
@@ -121,7 +89,7 @@ export default function MetadataPanel({ selectedItem }: MetadataPanelProps) {
               <span className="font-mono text-white/60 text-xs">
                 #
               </span>
-              <span className="font-mono text-white/60 group-hover:text-white text-xs transition-colors">
+              <span className="font-mono font-normal uppercase text-white/60 group-hover:text-white text-xs transition-colors">
                 {formatHash(selectedItem.collection_address)}
               </span>
               <ExternalLink size={12} className="text-white/40 group-hover:text-white/60 transition-colors" />
@@ -136,7 +104,7 @@ export default function MetadataPanel({ selectedItem }: MetadataPanelProps) {
               href={selectedItem.mint_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="block w-full py-3 px-4 bg-white text-black font-mono uppercase text-xs tracking-[0.08em] text-center hover:bg-white/90 transition-colors"
+              className="block w-full py-3 px-4 bg-white text-black font-mono font-normal uppercase text-xs tracking-[0.08em] text-center hover:bg-white/90 transition-colors"
             >
               VIEW ORIGINAL
             </a>

@@ -120,16 +120,16 @@ export default function Home() {
 
   // Map focused item for components
   const selectedItem = focusedItem ? {
-    id: String(focusedItem.id || ''),
+    id: String(focusedItem.id ?? ''),
     title: focusedItem.title,
     description: focusedItem.description,
     category: focusedItem.categories,
     image_url: focusedItem.image,
     mint_url: focusedItem.mintUrl || undefined,
     collection_address: focusedItem.collectionAddress || undefined,
-    token_id: String(focusedItem.id || ''),
+    token_id: String(focusedItem.id ?? ''),
     network: focusedItem.network || undefined,
-    created_at: focusedItem.createdAt || undefined,
+    created_at: focusedItem.createdAt ?? undefined,
   } : null;
 
   return (

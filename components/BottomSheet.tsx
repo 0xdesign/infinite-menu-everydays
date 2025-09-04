@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, TouchEvent } from 'react';
 import { ExternalLink, Maximize2 } from 'lucide-react';
+import { formatMintDate, formatHash } from '@/lib/format';
 
 interface BottomSheetProps {
   selectedItem: {
@@ -115,28 +116,7 @@ export default function BottomSheet({ selectedItem, onExpandImage }: BottomSheet
 
   if (!selectedItem) return null;
 
-  const formatHash = (address?: string) => {
-    if (!address) return '';
-    if (address.length <= 12) return address;
-    return `${address.slice(0, 6)}...${address.slice(-6)}`;
-  };
-
-  // Format mint date with robust parsing
-  let date = 'DATE UNKNOWN';
-  if (selectedItem.created_at && selectedItem.created_at !== '') {
-    try {
-      const parsedDate = new Date(selectedItem.created_at);
-      if (!isNaN(parsedDate.getTime())) {
-        date = parsedDate.toLocaleDateString('en-US', { 
-          month: 'short', 
-          day: 'numeric', 
-          year: 'numeric' 
-        }).toUpperCase();
-      }
-    } catch {
-      console.warn('Invalid date format:', selectedItem.created_at);
-    }
-  }
+  const date = formatMintDate(selectedItem.created_at);
 
   return (
     <div
@@ -221,7 +201,7 @@ export default function BottomSheet({ selectedItem, onExpandImage }: BottomSheet
                   href={selectedItem.mint_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex-1 py-3 px-4 bg-white text-black font-mono uppercase text-xs tracking-[0.08em] text-center"
+                  className="flex-1 py-3 px-4 bg-white text-black font-mono font-normal uppercase text-xs tracking-[0.08em] text-center"
                 >
                   VIEW ORIGINAL
                 </a>

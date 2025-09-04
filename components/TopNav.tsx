@@ -124,7 +124,7 @@ export default function TopNav({ searchQuery, onSearchChange }: TopNavProps) {
         {/* About Link - Right Column */}
         <div className="flex items-center justify-end">
           <button 
-            className="font-mono text-white/60 hover:text-white uppercase text-sm tracking-[0.08em] transition-colors"
+            className="font-mono font-normal uppercase text-sm tracking-normal text-white/60 hover:text-white/80 transition-colors"
             onClick={() => console.log('About page - coming soon')}
           >
             ABOUT
