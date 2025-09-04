@@ -3,7 +3,7 @@
 // Check Zora collections on Ethereum and Zora networks via public RPC (no API keys),
 // compare with DB contents, and write missing items with metadata to JSON.
 
-import { supabase } from '../lib/supabase'
+import { supabase } from '../../lib/supabase'
 
 const COLLECTIONS = [
   {
@@ -204,8 +204,8 @@ async function main() {
     all.push(...missing)
   }
   const fs = await import('fs')
-  fs.writeFileSync('scripts/missing-zora.json', JSON.stringify(all, null, 2))
-  console.log(`Wrote ${all.length} missing item(s) to scripts/missing-zora.json`)
+  fs.writeFileSync('data/missing-zora.json', JSON.stringify(all, null, 2))
+  console.log(`Wrote ${all.length} missing item(s) to data/missing-zora.json`)
 
   if (all.length) {
     console.log('Inserting missing items into database...')

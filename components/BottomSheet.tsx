@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, TouchEvent } from 'react';
 import { ExternalLink, Maximize2 } from 'lucide-react';
+import { formatMintDate, formatHash } from '@/lib/format';
 
 interface BottomSheetProps {
   selectedItem: {
@@ -13,6 +14,7 @@ interface BottomSheetProps {
     mint_url?: string;
     collection_address?: string;
     network?: string;
+    created_at?: string;
   } | null;
   onExpandImage?: () => void;
 }
@@ -114,17 +116,7 @@ export default function BottomSheet({ selectedItem, onExpandImage }: BottomSheet
 
   if (!selectedItem) return null;
 
-  const formatHash = (address?: string) => {
-    if (!address) return '';
-    if (address.length <= 12) return address;
-    return `${address.slice(0, 6)}...${address.slice(-6)}`;
-  };
-
-  const date = new Date().toLocaleDateString('en-US', { 
-    month: 'short', 
-    day: 'numeric', 
-    year: 'numeric' 
-  }).toUpperCase();
+  const date = formatMintDate(selectedItem.created_at);
 
   return (
     <div
@@ -209,7 +201,7 @@ export default function BottomSheet({ selectedItem, onExpandImage }: BottomSheet
                   href={selectedItem.mint_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex-1 py-3 px-4 bg-white text-black font-mono uppercase text-xs tracking-[0.08em] text-center"
+                  className="flex-1 py-3 px-4 bg-white text-black font-mono font-normal uppercase text-xs tracking-[0.08em] text-center"
                 >
                   VIEW ORIGINAL
                 </a>

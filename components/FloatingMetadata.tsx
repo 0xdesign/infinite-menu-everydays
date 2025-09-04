@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { formatMintDate } from '@/lib/format';
 import { 
   X, 
   Heart, 
@@ -60,14 +61,8 @@ export default function FloatingMetadata({
   }, [onExpand]);
 
   const formatDate = (dateString: string | null | undefined) => {
-    if (!dateString) return 'Unknown date';
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) return 'Unknown date';
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
+    const formatted = formatMintDate(dateString);
+    return formatted === 'DATE UNKNOWN' ? 'Unknown date' : formatted;
   };
 
   if (!item) return null;

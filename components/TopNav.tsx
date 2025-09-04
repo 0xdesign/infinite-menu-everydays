@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
-import { Search, X } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { Search, X, ArrowRight } from 'lucide-react';
 
 interface TopNavProps {
   searchQuery: string;
@@ -9,111 +9,122 @@ interface TopNavProps {
 }
 
 export default function TopNav({ searchQuery, onSearchChange }: TopNavProps) {
-  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
+  const [submittedQuery, setSubmittedQuery] = useState('');
   const searchInputRef = useRef<HTMLInputElement>(null);
-
-  // Keep search expanded if there's a query
-  useEffect(() => {
-    if (searchQuery) {
-      setIsSearchExpanded(true);
-    }
-  }, [searchQuery]);
-
-  useEffect(() => {
-    if (isSearchExpanded && searchInputRef.current) {
-      searchInputRef.current.focus();
-    }
-  }, [isSearchExpanded]);
-
-  const handleSearchClick = () => {
-    setIsSearchExpanded(true);
-  };
-
-  const handleSearchBlur = () => {
-    // Only collapse if there's no search query
-    if (!searchQuery) {
-      setIsSearchExpanded(false);
-    }
-  };
 
   const handleClearSearch = () => {
     onSearchChange('');
-    // Keep the search bar expanded and focused after clearing
-    if (searchInputRef.current) {
-      searchInputRef.current.focus();
+    setSubmittedQuery('');
+    searchInputRef.current?.focus();
+  };
+
+  const handleSubmitSearch = () => {
+    if (searchQuery) {
+      setSubmittedQuery(searchQuery);
+      searchInputRef.current?.blur();
     }
+  };
+
+  const handleSearchFocus = () => {
+    setIsFocused(true);
+  };
+
+  const handleSearchBlur = () => {
+    setIsFocused(false);
   };
 
   return (
     <nav className="fixed top-0 left-0 right-0 h-16 bg-black border-b border-white/10 z-50">
-      <div className="h-full px-6 flex items-center justify-between">
-        {/* Logo/Title */}
+      <div className="h-full px-6 grid grid-cols-3 items-center">
+        {/* Logo/Title - Left Column */}
         <div className="flex items-center">
           <h1 className="font-mono text-white uppercase text-sm tracking-[0.08em]">
             DESIGN EVERYDAYS
           </h1>
         </div>
 
-        {/* Center Search */}
-        <div className="flex-1 flex justify-center mx-8">
-          <div 
-            className={`
-              relative flex items-center bg-white/10 rounded-full
-              transition-all duration-300 ease-out
-              ${isSearchExpanded || searchQuery ? 'w-full max-w-md' : 'w-32'}
-            `}
-          >
-            <button
-              onClick={handleSearchClick}
-              className="absolute left-3 text-white/60 hover:text-white transition-colors"
-              aria-label="Search"
-            >
-              <Search size={16} />
-            </button>
-            
-            <input
-              ref={searchInputRef}
-              type="text"
-              value={searchQuery}
-              onChange={(e) => onSearchChange(e.target.value)}
-              onBlur={handleSearchBlur}
-              placeholder="SEARCH"
+        {/* Center Search - Middle Column */}
+        <div className="flex justify-center">
+          <div className="relative w-full max-w-md">
+            <div 
               className={`
-                w-full bg-transparent text-white placeholder-white/40
-                font-mono text-xs uppercase tracking-[0.08em]
-                pl-10 ${searchQuery ? 'pr-10' : 'pr-4'} py-2 outline-none
-                ${isSearchExpanded || searchQuery ? 'opacity-100' : 'opacity-0 pointer-events-none'}
-                transition-opacity duration-200
+                relative flex items-center rounded-full overflow-hidden
+                transition-all duration-200
+                ${isFocused || searchQuery 
+                  ? 'bg-white/8 border border-white/10' 
+                  : 'bg-white/5 border border-transparent'
+                }
               `}
-            />
+            >
+              <Search 
+                size={16} 
+                className={`
+                  absolute left-4 transition-colors duration-200
+                  ${isFocused || searchQuery ? 'text-white' : 'text-white/40'}
+                `}
+              />
+              
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={searchQuery}
+                onChange={(e) => onSearchChange(e.target.value)}
+                onFocus={handleSearchFocus}
+                onBlur={handleSearchBlur}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && searchQuery) {
+                    e.preventDefault();
+                    handleSubmitSearch();
+                  }
+                }}
+                placeholder="SEARCH"
+                className={`
+                  w-full bg-transparent text-white placeholder-white/40
+                  font-mono text-xs uppercase tracking-[0.08em]
+                  pl-10 ${searchQuery ? 'pr-12' : 'pr-10'} py-3 outline-none
+                  transition-all duration-200
+                  focus-visible:ring-1 focus-visible:ring-white/20 focus-visible:ring-offset-1 focus-visible:ring-offset-black
+                `}
+              />
 
-            {/* Clear button - shows when there's search text */}
-            {searchQuery && (
-              <button
-                onClick={handleClearSearch}
-                className="absolute right-3 text-white/60 hover:text-white transition-colors"
-                aria-label="Clear search"
-              >
-                <X size={14} />
-              </button>
-            )}
-            
-            {/* Collapsed state - only show if not expanded and no query */}
-            {!isSearchExpanded && !searchQuery && (
-              <span 
-                className="font-mono text-xs text-white/60 uppercase tracking-[0.08em] pl-10 pr-4 py-2 cursor-pointer"
-                onClick={handleSearchClick}
-              >
-                SEARCH
-              </span>
-            )}
+              {/* Smart button toggle: Arrow for submit, Clear for active search */}
+              {searchQuery && (
+                searchQuery !== submittedQuery ? (
+                  /* Submit button with arrow icon */
+                  <button
+                    onClick={handleSubmitSearch}
+                    className="absolute right-3 transition-all duration-200 opacity-100 translate-x-0"
+                    aria-label="Submit search"
+                  >
+                    <ArrowRight 
+                      size={14} 
+                      className="text-white/60 hover:text-white transition-colors"
+                    />
+                  </button>
+                ) : (
+                  /* Clear button */
+                  <button
+                    onClick={handleClearSearch}
+                    className="absolute right-3 transition-all duration-200 opacity-100 translate-x-0"
+                    aria-label="Clear search"
+                  >
+                    <X 
+                      size={14} 
+                      className="text-white/60 hover:text-white transition-colors"
+                    />
+                  </button>
+                )
+              )}
+            </div>
+
           </div>
         </div>
 
-        {/* About Link */}
-        <div className="flex items-center">
+        {/* About Link - Right Column */}
+        <div className="flex items-center justify-end">
           <button 
-            className="font-mono text-white/60 hover:text-white uppercase text-sm tracking-[0.08em] transition-colors"
+            className="font-mono font-normal uppercase text-sm tracking-normal text-white/60 hover:text-white/80 transition-colors"
             onClick={() => console.log('About page - coming soon')}
           >
             ABOUT
