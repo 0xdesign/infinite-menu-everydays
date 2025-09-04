@@ -204,8 +204,8 @@ async function main() {
     all.push(...missing)
   }
   const fs = await import('fs')
-  fs.writeFileSync('scripts/missing-zora.json', JSON.stringify(all, null, 2))
-  console.log(`Wrote ${all.length} missing item(s) to scripts/missing-zora.json`)
+  fs.writeFileSync('data/missing-zora.json', JSON.stringify(all, null, 2))
+  console.log(`Wrote ${all.length} missing item(s) to data/missing-zora.json`)
 
   if (all.length) {
     console.log('Inserting missing items into database...')
