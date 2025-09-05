@@ -118,14 +118,9 @@ void main() {
     atlasColor = texture(uTex, st);
   }
   
-  // High-res texture overlay
-  float itemIndexFloat = float(itemIndex);
-  float useHighRes = step(0.5, 1.0 - abs(itemIndexFloat - uHighId)) * step(0.0, uHighId);
-  
-  vec2 hiResSt = vec2(vUvs.x, 1.0 - vUvs.y);
-  vec4 hiResColor = texture(uHighTex, hiResSt);
-  
-  outColor = mix(atlasColor, hiResColor, useHighRes);
+  // Hi-res overlay disabled - we're using the same image URLs for atlas and hi-res now
+  // This prevents image swapping when items snap into focus
+  outColor = atlasColor;
   outColor.a *= vAlpha;
 }
 `;
@@ -1362,7 +1357,7 @@ class InfiniteGridMenu {
         mappingData[index * 4 + 3] = 1; // A channel
         
         if (index < 5) {
-          // console.log(`Item ${index} (ID ${item.id}): maps to atlas position ${absolutePosition} (atlas ${atlasEntry.atlas}, pos ${positionInAtlas})`);
+          console.log(`Item ${index} (ID ${item.id}): maps to atlas position ${absolutePosition} (atlas ${atlasEntry.atlas}, pos ${positionInAtlas})`);
         }
       } else {
         // Item not in atlas - will use modulo fallback in shader
@@ -1981,8 +1976,11 @@ class InfiniteGridMenu {
     
     // Don't regenerate atlases - just update the position mapping
     // The master atlas contains all items, we just need to map the filtered items to their positions
-    if (this.atlasMapping) {
+    if (this.atlasMapping && this.atlasMapping.length > 0) {
+      console.log(`Updating position map for ${newItems.length} filtered items`);
       this.buildAtlasPositionMap();
+    } else {
+      console.warn('Atlas mapping not available, items may show incorrect images');
     }
 
     // Don't eager-load hi-res, let it load only when truly focused
