@@ -3,14 +3,14 @@
 interface MobileHeaderProps {
   onFilterClick: () => void;
   onSearchClick: () => void;
-  activeFilterCount?: number;
+  activeCategory?: string | null;
   hasSearchQuery?: boolean;
 }
 
 export default function MobileHeader({ 
   onFilterClick, 
   onSearchClick, 
-  activeFilterCount = 0,
+  activeCategory = null,
   hasSearchQuery = false 
 }: MobileHeaderProps) {
   return (
@@ -20,14 +20,14 @@ export default function MobileHeader({
         <button
           onClick={onFilterClick}
           className={`px-4 py-2 rounded-full transition-colors ${
-            activeFilterCount > 0 
+            activeCategory 
               ? 'bg-white text-black' 
               : 'bg-white/10 hover:bg-white/20 text-white'
           }`}
           aria-label="Open filters"
         >
           <span className="font-mono text-xs uppercase tracking-[0.08em]">
-            FILTER{activeFilterCount > 0 && ` (${activeFilterCount})`}
+            {activeCategory ? activeCategory.toUpperCase() : 'FILTER'}
           </span>
         </button>
 

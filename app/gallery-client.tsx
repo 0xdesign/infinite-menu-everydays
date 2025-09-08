@@ -200,7 +200,7 @@ export default function GalleryClient({ initialData }: GalleryClientProps) {
         <MobileHeader
           onFilterClick={() => setIsMobileFilterOpen(true)}
           onSearchClick={() => setIsMobileSearchOpen(true)}
-          activeFilterCount={activeCategory ? 1 : 0}
+          activeCategory={activeCategory}
           hasSearchQuery={!!searchQuery}
         />
 

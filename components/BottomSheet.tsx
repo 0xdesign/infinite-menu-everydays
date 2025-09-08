@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, TouchEvent } from 'react';
-import { ExternalLink, Maximize2 } from 'lucide-react';
+import { ExternalLink, Maximize2, X, ChevronDown } from 'lucide-react';
 import { formatMintDate, formatHash } from '@/lib/format';
 
 interface BottomSheetProps {
@@ -21,17 +21,21 @@ interface BottomSheetProps {
 
 const COLLAPSED_HEIGHT = 80;
 const HALF_HEIGHT_RATIO = 0.5;
-const VELOCITY_THRESHOLD = 0.5;
+const VELOCITY_THRESHOLD = 0.3; // Reduced for easier closing
+const DRAG_CLOSE_THRESHOLD = 0.4; // Close if dragged down 40% from any position
 
 export default function BottomSheet({ selectedItem, onExpandImage }: BottomSheetProps) {
   const [height, setHeight] = useState(COLLAPSED_HEIGHT);
   const [isDragging, setIsDragging] = useState(false);
+  const [showCloseHint, setShowCloseHint] = useState(false);
+  const [lastTapTime, setLastTapTime] = useState(0);
   const sheetRef = useRef<HTMLDivElement>(null);
   const startY = useRef(0);
   const startHeight = useRef(0);
   const lastY = useRef(0);
   const lastTime = useRef(0);
   const velocity = useRef(0);
+  const dragDistance = useRef(0);
 
   useEffect(() => {
     // Reset height when item changes
@@ -55,6 +59,7 @@ export default function BottomSheet({ selectedItem, onExpandImage }: BottomSheet
     
     const touch = e.touches[0];
     const deltaY = startY.current - touch.clientY;
+    dragDistance.current = deltaY;
     const newHeight = Math.max(
       COLLAPSED_HEIGHT,
       Math.min(window.innerHeight * 0.9, startHeight.current + deltaY)
@@ -67,6 +72,10 @@ export default function BottomSheet({ selectedItem, onExpandImage }: BottomSheet
       velocity.current = (touch.clientY - lastY.current) / timeDelta;
     }
     
+    // Show close hint if dragging down significantly
+    const dragDownRatio = (startHeight.current - newHeight) / (startHeight.current - COLLAPSED_HEIGHT);
+    setShowCloseHint(dragDownRatio > DRAG_CLOSE_THRESHOLD && startHeight.current > COLLAPSED_HEIGHT);
+    
     lastY.current = touch.clientY;
     lastTime.current = now;
     
@@ -76,10 +85,18 @@ export default function BottomSheet({ selectedItem, onExpandImage }: BottomSheet
   const handleTouchEnd = () => {
     if (!isDragging) return;
     setIsDragging(false);
+    setShowCloseHint(false);
     
     const windowHeight = window.innerHeight;
     const halfHeight = windowHeight * HALF_HEIGHT_RATIO;
     const fullHeight = windowHeight * 0.9;
+    
+    // Check if dragged down significantly from any position
+    const dragDownRatio = (startHeight.current - height) / (startHeight.current - COLLAPSED_HEIGHT);
+    if (dragDownRatio > DRAG_CLOSE_THRESHOLD && startHeight.current > COLLAPSED_HEIGHT) {
+      setHeight(COLLAPSED_HEIGHT);
+      return;
+    }
     
     // Determine target height based on velocity and position
     let targetHeight = height;
@@ -90,8 +107,14 @@ export default function BottomSheet({ selectedItem, onExpandImage }: BottomSheet
         // Swiping down - collapse
         targetHeight = COLLAPSED_HEIGHT;
       } else {
-        // Swiping up - expand
-        targetHeight = fullHeight;
+        // Swiping up - expand to next state
+        if (startHeight.current === COLLAPSED_HEIGHT) {
+          targetHeight = halfHeight;
+        } else if (startHeight.current === halfHeight) {
+          targetHeight = fullHeight;
+        } else {
+          targetHeight = fullHeight;
+        }
       }
     } else {
       // Slow drag - snap to nearest state
@@ -109,34 +132,95 @@ export default function BottomSheet({ selectedItem, onExpandImage }: BottomSheet
   };
 
   const handleTap = () => {
-    if (height === COLLAPSED_HEIGHT) {
-      setHeight(window.innerHeight * HALF_HEIGHT_RATIO);
+    const now = Date.now();
+    const timeSinceLastTap = now - lastTapTime;
+    setLastTapTime(now);
+    
+    // Double tap detection
+    if (timeSinceLastTap < 300) {
+      // Double tap - cycle through states
+      const windowHeight = window.innerHeight;
+      const halfHeight = windowHeight * HALF_HEIGHT_RATIO;
+      const fullHeight = windowHeight * 0.9;
+      
+      if (height === COLLAPSED_HEIGHT) {
+        setHeight(halfHeight);
+      } else if (height === halfHeight) {
+        setHeight(fullHeight);
+      } else {
+        setHeight(COLLAPSED_HEIGHT);
+      }
+    } else {
+      // Single tap - only expand from collapsed
+      if (height === COLLAPSED_HEIGHT) {
+        setHeight(window.innerHeight * HALF_HEIGHT_RATIO);
+      }
     }
+  };
+
+  const handleClose = () => {
+    setHeight(COLLAPSED_HEIGHT);
+    setShowCloseHint(false);
   };
 
   if (!selectedItem) return null;
 
   const date = formatMintDate(selectedItem.created_at);
+  const isExpanded = height > COLLAPSED_HEIGHT;
 
   return (
-    <div
-      ref={sheetRef}
-      className="fixed bottom-0 left-0 right-0 bg-black border-t border-white/10 z-50 md:hidden transition-none"
-      style={{ 
-        height: `${height}px`,
-        transition: isDragging ? 'none' : 'height 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-      }}
-    >
-      {/* Drag Handle */}
+    <>
+      {/* Tap-outside-to-close overlay */}
+      {isExpanded && (
+        <div 
+          className="fixed inset-0 z-40 md:hidden"
+          onClick={handleClose}
+          style={{ 
+            backgroundColor: 'rgba(0, 0, 0, 0.2)',
+            transition: 'opacity 0.3s ease-out',
+            opacity: isDragging ? 0 : 1
+          }}
+        />
+      )}
+      
+      <div
+        ref={sheetRef}
+        className="fixed bottom-0 left-0 right-0 bg-black border-t border-white/10 z-50 md:hidden transition-none"
+        style={{ 
+          height: `${height}px`,
+          transition: isDragging ? 'none' : 'height 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+        }}
+      >
+      {/* Drag Handle - Enlarged touch target */}
       <div 
-        className="absolute top-0 left-0 right-0 h-6 flex justify-center items-center cursor-grab active:cursor-grabbing"
+        className="absolute top-0 left-0 right-0 h-11 flex flex-col justify-center items-center cursor-grab active:cursor-grabbing"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
         onClick={handleTap}
       >
-        <div className="w-12 h-1 bg-white/30 rounded-full" />
+        {/* Visual feedback when dragging to close */}
+        {showCloseHint && (
+          <div className="absolute top-2 flex flex-col items-center animate-pulse">
+            <ChevronDown size={16} className="text-white/60" />
+            <span className="text-[10px] text-white/60 uppercase tracking-wider mt-1">Release to close</span>
+          </div>
+        )}
+        
+        {/* Larger, more visible drag handle */}
+        <div className="w-16 h-1.5 bg-white/40 rounded-full mt-3" />
       </div>
+
+      {/* Close button when expanded */}
+      {isExpanded && (
+        <button
+          onClick={handleClose}
+          className="absolute top-3 right-4 p-2 text-white/60 hover:text-white transition-colors z-10"
+          aria-label="Close panel"
+        >
+          <X size={20} />
+        </button>
+      )}
 
       {/* Content */}
       <div className="pt-8 px-4 pb-4 h-full overflow-y-auto">
@@ -221,5 +305,6 @@ export default function BottomSheet({ selectedItem, onExpandImage }: BottomSheet
         )}
       </div>
     </div>
+    </>
   );
 }
