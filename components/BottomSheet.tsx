@@ -207,8 +207,8 @@ export default function BottomSheet({ selectedItem, onExpandImage }: BottomSheet
           </div>
         )}
         
-        {/* Larger, more visible drag handle */}
-        <div className="w-16 h-1.5 bg-white/40 rounded-full mt-3" />
+        {/* Drag handle - original visual design */}
+        <div className="w-12 h-1 bg-white/30 rounded-full" />
       </div>
 
       {/* Close button when expanded */}
