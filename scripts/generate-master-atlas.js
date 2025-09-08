@@ -11,19 +11,20 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 );
 
-// Configuration
+// Configuration - 256x256 tiles on 4096x4096 for both desktop and mobile
 const DESKTOP_CONFIG = {
-  tileSize: 256,
-  tilesPerRow: 16,
+  tileSize: 256,  // Optimal size for quality vs atlas count
+  tilesPerRow: 16,  // 4096 / 256 = 16
   atlasSize: 4096,
-  itemsPerAtlas: 256
+  itemsPerAtlas: 256  // 16 * 16 = 256
 };
 
+// Use same config for mobile to avoid complexity
 const MOBILE_CONFIG = {
-  tileSize: 128,
-  tilesPerRow: 8,
-  atlasSize: 1024,
-  itemsPerAtlas: 64
+  tileSize: 256,  // Same as desktop for consistency
+  tilesPerRow: 16,  // 4096 / 256 = 16
+  atlasSize: 4096,
+  itemsPerAtlas: 256  // 16 * 16 = 256
 };
 
 async function fetchAllItems() {

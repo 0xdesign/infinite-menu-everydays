@@ -118,9 +118,15 @@ void main() {
     atlasColor = texture(uTex, st);
   }
   
-  // Hi-res overlay disabled - we're using the same image URLs for atlas and hi-res now
-  // This prevents image swapping when items snap into focus
-  outColor = atlasColor;
+  // High-res texture overlay - only apply to the focused item
+  float itemIndexFloat = float(itemIndex);
+  float useHighRes = step(0.5, 1.0 - abs(itemIndexFloat - uHighId)) * step(0.0, uHighId);
+  
+  vec2 hiResSt = vec2(vUvs.x, 1.0 - vUvs.y);
+  vec4 hiResColor = texture(uHighTex, hiResSt);
+  
+  // Mix atlas and hi-res based on whether this is the focused item
+  outColor = mix(atlasColor, hiResColor, useHighRes);
   outColor.a *= vAlpha;
 }
 `;
@@ -837,6 +843,7 @@ class InfiniteGridMenu {
   private tex: WebGLTexture | null = null;
   private atlases: WebGLTexture[] = [];
   private atlasMapping: AtlasMapping[] = [];
+  private atlasMappingMap: Map<string, AtlasMapping> = new Map(); // O(1) lookup
   private atlasPositionMapTexture: WebGLTexture | null = null; // Texture containing position mappings
   private usingFallbackTexture: boolean = false;
   private atlasesLoaded: boolean = false;
@@ -1146,7 +1153,7 @@ class InfiniteGridMenu {
         const nearestIndex = this.findNearestVertexIndex();
         const itemIndex = nearestIndex % this.items.length;
         this.currentFocusedIndex = itemIndex;
-        this.loadHighResTexture(itemIndex, true);
+        this.loadHighResTexture(itemIndex);
       }
     }
 
@@ -1174,7 +1181,6 @@ class InfiniteGridMenu {
   
   private async loadStaticMasterAtlas(): Promise<void> {
     if (!this.gl) return;
-    const gl = this.gl;
     
     try {
       // Detect mobile and use appropriate atlas
@@ -1188,8 +1194,14 @@ class InfiniteGridMenu {
       }
       this.atlasMapping = await mappingResponse.json();
       
-      // Determine how many atlases exist (based on 256 items per atlas)
-      const itemsPerAtlas = isMobile ? 64 : 256;
+      // Build Map for O(1) lookups
+      this.atlasMappingMap.clear();
+      this.atlasMapping.forEach(entry => {
+        this.atlasMappingMap.set(entry.id, entry);
+      });
+      
+      // Determine how many atlases exist (based on new tile sizes)
+      const itemsPerAtlas = 256;  // 16x16 = 256 for both desktop and mobile
       const atlasCount = Math.ceil(this.atlasMapping.length / itemsPerAtlas);
       
       // Load all atlas textures
@@ -1206,8 +1218,8 @@ class InfiniteGridMenu {
         this.usingFallbackTexture = false;
       }
       
-      // Set atlas size
-      this.atlasSize = isMobile ? 8 : 16;
+      // Set atlas size (tiles per row: 256px tiles on 4096px atlas = 16 for both desktop and mobile)
+      this.atlasSize = 16; // Always 16x16 = 256 tiles per atlas
       
       // Build position mapping for current items
       this.buildAtlasPositionMap();
@@ -1280,8 +1292,8 @@ class InfiniteGridMenu {
     
     // Simple fallback - create colored squares
     const itemCount = Math.max(1, this.items.length);
-    // For compatibility with pre-built atlases, use 16x16 grid
-    // This means we can only show first 256 items in fallback
+    // For fallback, use 16x16 grid matching our new atlas layout
+    // This means we can show first 256 items in fallback
     this.atlasSize = 16;
     const maxItems = Math.min(itemCount, 256);
     const cellSize = 256;
@@ -1336,8 +1348,8 @@ class InfiniteGridMenu {
     this.items.forEach((item, index) => {
       if (index >= maxItems) return;
       
-      // Find this item's entry in the atlas mapping
-      const atlasEntry = this.atlasMapping.find(entry => entry.id === item.id?.toString());
+      // Find this item's entry in the atlas mapping (O(1) lookup)
+      const atlasEntry = this.atlasMappingMap.get(item.id?.toString() || '');
       
       if (atlasEntry) {
         // Calculate absolute position across all atlases
@@ -1378,47 +1390,18 @@ class InfiniteGridMenu {
     this.atlasPositionMapTexture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, this.atlasPositionMapTexture);
     
-    // Check if floating point textures are supported
-    const ext = gl.getExtension('EXT_color_buffer_float');
-    if (ext) {
-      gl.texImage2D(
-        gl.TEXTURE_2D,
-        0,
-        gl.RGBA32F, // Use floating point texture
-        maxItems,
-        1, // 1D texture (width x 1)
-        0,
-        gl.RGBA,
-        gl.FLOAT,
-        mappingData
-      );
-    } else {
-      // Fallback: Convert to 8-bit texture
-      const byteData = new Uint8Array(maxItems * 4);
-      for (let i = 0; i < maxItems; i++) {
-        const position = mappingData[i * 4] * 1024.0;
-        if (position >= 0) {
-          byteData[i * 4] = Math.floor(position / 256); // High byte
-          byteData[i * 4 + 1] = position % 256; // Low byte
-        } else {
-          byteData[i * 4] = 255; // Invalid marker
-          byteData[i * 4 + 1] = 255;
-        }
-        byteData[i * 4 + 2] = 0;
-        byteData[i * 4 + 3] = 255;
-      }
-      gl.texImage2D(
-        gl.TEXTURE_2D,
-        0,
-        gl.RGBA,
-        maxItems,
-        1,
-        0,
-        gl.RGBA,
-        gl.UNSIGNED_BYTE,
-        byteData
-      );
-    }
+    // Always use float texture in WebGL2 - we can sample from float textures without extensions
+    gl.texImage2D(
+      gl.TEXTURE_2D,
+      0,
+      gl.RGBA32F, // Use floating point texture
+      maxItems,
+      1, // 1D texture (width x 1)
+      0,
+      gl.RGBA,
+      gl.FLOAT,
+      mappingData
+    );
     
     // Set texture parameters - no filtering needed for data texture
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
@@ -1429,71 +1412,10 @@ class InfiniteGridMenu {
     // console.log(`Atlas position map texture created for ${maxItems} items`);
   }
   
-  private async loadHighResTexture(index: number, immediate: boolean = false): Promise<void> {
-    if (!this.gl || this.hiResIndex === index || this.hiResLoading) return;
-    
-    const item = this.items[index];
-    if (!item?.imageHighRes) return;
-    
-    // Clear any pending timer
-    if (this.hiResLoadTimer) {
-      clearTimeout(this.hiResLoadTimer);
-      this.hiResLoadTimer = null;
-    }
-    
-    // If not immediate, delay loading to ensure item is truly focused
-    if (!immediate) {
-      this.hiResLoadTimer = window.setTimeout(() => {
-        this.loadHighResTexture(index, true);
-      }, 50); // Small delay to ensure item is at rest
-      return;
-    }
-    
-    this.hiResLoading = true;
-    const gl = this.gl;
-    
-    try {
-      // Load the high-res image
-      const img = new Image();
-      img.crossOrigin = "anonymous";
-      
-      await new Promise<void>((resolve, reject) => {
-        img.onload = () => resolve();
-        img.onerror = () => reject(new Error('Failed to load high-res image'));
-        img.src = item.imageHighRes!;
-      });
-      
-      // Clean up old texture if exists
-      if (this.hiResTexture) {
-        gl.deleteTexture(this.hiResTexture);
-      }
-      
-      // Create and setup new texture
-      this.hiResTexture = createAndSetupTexture(
-        gl,
-        gl.LINEAR,
-        gl.LINEAR,
-        gl.CLAMP_TO_EDGE,
-        gl.CLAMP_TO_EDGE
-      );
-      
-      gl.bindTexture(gl.TEXTURE_2D, this.hiResTexture);
-      gl.texImage2D(
-        gl.TEXTURE_2D,
-        0,
-        gl.RGBA,
-        gl.RGBA,
-        gl.UNSIGNED_BYTE,
-        img
-      );
-      
-      this.hiResIndex = index;
-      // Loaded high-res texture for item ${index}
-    } catch (error) {
-      console.error('Failed to load high-res texture:', error);
-    } finally {
-      this.hiResLoading = false;
-    }
+  private async loadHighResTexture(index: number): Promise<void> {
+    // DISABLED: Hi-res overlay system to prevent image swapping
+    // All images now come from the hardcoded atlas only
+    return;
   }
 
   private initDiscInstances(count: number): void {
@@ -1861,7 +1783,7 @@ class InfiniteGridMenu {
     this.onActiveItemChange(itemIndex);
     
     // Load high-res texture immediately for initial focus
-    this.loadHighResTexture(itemIndex, true);
+    this.loadHighResTexture(itemIndex);
     
     // Get the vertex position for this item
     const vertexIndex = itemIndex % this.instancePositions.length;
@@ -2009,35 +1931,23 @@ const InfiniteMenu = ({ items = [], initialFocusId, onItemFocus }: InfiniteMenuP
   const [, setIsMoving] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
+  // Mount WebGL instance once
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas || items.length === 0) {
-      if (menuInstanceRef.current) {
-        menuInstanceRef.current.dispose();
-        menuInstanceRef.current = null;
-      }
-      return;
-    };
+    if (!canvas || menuInstanceRef.current) return;
 
     const handleActiveItem = (index: number) => {
-      const itemIndex = index % items.length;
-      const item = items[itemIndex];
+      const itemIndex = index % (items.length || 1);
+      const item = (items.length ? items : defaultItems)[itemIndex];
       setActiveItem(item);
-      if (onItemFocus) {
-        onItemFocus(item);
-      }
+      onItemFocus?.(item);
     };
-    
-    // Dispose previous instance if it exists
-    if (menuInstanceRef.current) {
-      menuInstanceRef.current.dispose();
-    }
 
     // Show loading state
     setIsLoading(true);
     
-    // Create new instance with atlas loaded callback
-    const menuInstance = new InfiniteGridMenu(
+    // Create instance once with atlas loaded callback
+    const inst = new InfiniteGridMenu(
       canvas,
       items.length ? items : defaultItems,
       handleActiveItem,
@@ -2050,22 +1960,25 @@ const InfiniteMenu = ({ items = [], initialFocusId, onItemFocus }: InfiniteMenuP
       }
     );
     
-    menuInstanceRef.current = menuInstance;
+    menuInstanceRef.current = inst;
 
-    const handleResize = () => {
-      menuInstance.resize();
-    };
-
-    window.addEventListener("resize", handleResize);
-    handleResize();
+    const onResize = () => inst.resize();
+    window.addEventListener("resize", onResize);
+    onResize();
 
     return () => {
-      window.removeEventListener("resize", handleResize);
-      // Dispose WebGL resources on cleanup
-      menuInstance.dispose();
+      window.removeEventListener("resize", onResize);
+      inst.dispose();
       menuInstanceRef.current = null;
     };
-  }, [items, initialFocusId, onItemFocus]);
+  }, []); // No dependencies - mount once
+
+  // Update items only (no dispose/recreate)
+  useEffect(() => {
+    if (menuInstanceRef.current) {
+      menuInstanceRef.current.updateItems(items.length ? items : defaultItems);
+    }
+  }, [items]);
 
 
   return (
