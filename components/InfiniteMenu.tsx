@@ -1380,86 +1380,89 @@ class InfiniteGridMenu {
     const atlasPromises: Promise<WebGLTexture>[] = [];
     for (let a = 0; a < buildCount; a++) {
       const chunk = chunks[a];
-      atlasPromises.push(new Promise<WebGLTexture>(async (resolve, reject) => {
-        // Check abort signal at start of each atlas creation
-        if (signal?.aborted) {
-          reject(new Error('Atlas creation aborted'));
-          return;
-        }
-        const canvas = document.createElement('canvas');
-        canvas.width = atlasSize; // Use calculated atlas size
-        canvas.height = atlasSize;
-        const ctx = canvas.getContext('2d')!;
-
-        // Optional background
-        ctx.fillStyle = '#000';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        // Draw thumbnails into the grid in array order
-        // On mobile, load images in smaller batches to prevent memory exhaustion
-        const batchSize = isMobile ? 8 : chunk.length; // Load 8 at a time on mobile
-        for (let i = 0; i < chunk.length; i += batchSize) {
-          // Check abort signal before each batch
+      atlasPromises.push(new Promise<WebGLTexture>((resolve, reject) => {
+        // Use async IIFE to avoid async executor
+        (async () => {
+          // Check abort signal at start of each atlas creation
           if (signal?.aborted) {
-            reject(new Error('Atlas creation aborted during image loading'));
+            reject(new Error('Atlas creation aborted'));
             return;
           }
-          
-          const batch = chunk.slice(i, Math.min(i + batchSize, chunk.length));
-          await Promise.all(batch.map((item, batchIdx) => new Promise<void>((res) => {
-            const idx = i + batchIdx;
-            const img = new Image();
-            img.crossOrigin = 'anonymous';
-            img.onload = () => {
-              try {
-                const x = (idx % tilesPerRow) * cellSize;
-                const y = Math.floor(idx / tilesPerRow) * cellSize;
+          const canvas = document.createElement('canvas');
+          canvas.width = atlasSize; // Use calculated atlas size
+          canvas.height = atlasSize;
+          const ctx = canvas.getContext('2d')!;
 
-                // cover-like draw to preserve aspect ratio
-                const iw = img.naturalWidth, ih = img.naturalHeight;
-                const r = Math.max(cellSize / iw, cellSize / ih);
-                const dw = Math.round(iw * r);
-                const dh = Math.round(ih * r);
-                const dx = x + Math.floor((cellSize - dw) / 2);
-                const dy = y + Math.floor((cellSize - dh) / 2);
-                ctx.drawImage(img, dx, dy, dw, dh);
-              } catch (e) {
-                console.error('Failed to draw image:', e);
-              }
-              res();
-            };
-            img.onerror = () => res(); // draw nothing on error
-            img.src = item.image; // use thumbnail-sized URL
-          })));
-        }
+          // Optional background
+          ctx.fillStyle = '#000';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        try {
-          const texture = createAndSetupTexture(
-            gl,
-            gl.LINEAR,
-            gl.LINEAR,
-            gl.CLAMP_TO_EDGE,
-            gl.CLAMP_TO_EDGE
-          );
-          gl.bindTexture(gl.TEXTURE_2D, texture);
-          gl.texImage2D(
-            gl.TEXTURE_2D,
-            0,
-            gl.RGBA,
-            gl.RGBA,
-            gl.UNSIGNED_BYTE,
-            canvas
-          );
-          gl.generateMipmap(gl.TEXTURE_2D);
-          resolve(texture);
-        } catch (e) {
-          console.error('Failed to create texture atlas:', e);
-          // Return a dummy 1x1 texture on failure
-          const fallbackTexture = gl.createTexture();
-          gl.bindTexture(gl.TEXTURE_2D, fallbackTexture);
-          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 0, 255]));
-          resolve(fallbackTexture!);
-        }
+          // Draw thumbnails into the grid in array order
+          // On mobile, load images in smaller batches to prevent memory exhaustion
+          const batchSize = isMobile ? 8 : chunk.length; // Load 8 at a time on mobile
+          for (let i = 0; i < chunk.length; i += batchSize) {
+            // Check abort signal before each batch
+            if (signal?.aborted) {
+              reject(new Error('Atlas creation aborted during image loading'));
+              return;
+            }
+            
+            const batch = chunk.slice(i, Math.min(i + batchSize, chunk.length));
+            await Promise.all(batch.map((item, batchIdx) => new Promise<void>((res) => {
+              const idx = i + batchIdx;
+              const img = new Image();
+              img.crossOrigin = 'anonymous';
+              img.onload = () => {
+                try {
+                  const x = (idx % tilesPerRow) * cellSize;
+                  const y = Math.floor(idx / tilesPerRow) * cellSize;
+
+                  // cover-like draw to preserve aspect ratio
+                  const iw = img.naturalWidth, ih = img.naturalHeight;
+                  const r = Math.max(cellSize / iw, cellSize / ih);
+                  const dw = Math.round(iw * r);
+                  const dh = Math.round(ih * r);
+                  const dx = x + Math.floor((cellSize - dw) / 2);
+                  const dy = y + Math.floor((cellSize - dh) / 2);
+                  ctx.drawImage(img, dx, dy, dw, dh);
+                } catch (e) {
+                  console.error('Failed to draw image:', e);
+                }
+                res();
+              };
+              img.onerror = () => res(); // draw nothing on error
+              img.src = item.image; // use thumbnail-sized URL
+            })));
+          }
+
+          try {
+            const texture = createAndSetupTexture(
+              gl,
+              gl.LINEAR,
+              gl.LINEAR,
+              gl.CLAMP_TO_EDGE,
+              gl.CLAMP_TO_EDGE
+            );
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+            gl.texImage2D(
+              gl.TEXTURE_2D,
+              0,
+              gl.RGBA,
+              gl.RGBA,
+              gl.UNSIGNED_BYTE,
+              canvas
+            );
+            gl.generateMipmap(gl.TEXTURE_2D);
+            resolve(texture);
+          } catch (e) {
+            console.error('Failed to create texture atlas:', e);
+            // Return a dummy 1x1 texture on failure
+            const fallbackTexture = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, fallbackTexture);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 0, 255]));
+            resolve(fallbackTexture!);
+          }
+        })().catch(reject);
       }));
     }
 

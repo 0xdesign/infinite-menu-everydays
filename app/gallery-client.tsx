@@ -54,13 +54,23 @@ export default function GalleryClient({ initialData }: GalleryClientProps) {
   const [categories] = useState<string[]>(initialData.categories);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState<string>('');
   const [submittedQuery, setSubmittedQuery] = useState<string>('');
   const [focusedItem, setFocusedItem] = useState<MenuItem | null>(null);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
 
-  // Filter items based on categories and search
+  // Debounce search query for performance
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300);
+    
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Filter items based on categories and debounced search
   useEffect(() => {
     let filtered = allItems;
     
@@ -71,9 +81,9 @@ export default function GalleryClient({ initialData }: GalleryClientProps) {
       );
     }
     
-    // Apply search filter
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
+    // Apply search filter using debounced query
+    if (debouncedSearchQuery.trim()) {
+      const query = debouncedSearchQuery.toLowerCase();
       filtered = filtered.filter(item => 
         item.title?.toLowerCase().includes(query) ||
         item.description?.toLowerCase().includes(query)
@@ -81,7 +91,7 @@ export default function GalleryClient({ initialData }: GalleryClientProps) {
     }
     
     setFilteredItems(filtered);
-  }, [allItems, activeCategory, searchQuery]);
+  }, [allItems, activeCategory, debouncedSearchQuery]);
 
   const handleCategoryToggle = useCallback((category: string) => {
     setActiveCategory((prev) => {
