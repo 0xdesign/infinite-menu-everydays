@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "category": "wallet",
+  "atlasSize": 16,
+  "cellSize": 256,
+  "numAtlases": 1,
+  "totalItems": 127,
+  "atlases": [
+    {
+      "index": 0,
+      "url": "/atlases/wallet/atlas-0.jpg",
+      "itemCount": 127
+    }
+  ]
+}

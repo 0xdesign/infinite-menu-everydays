@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Category Atlas Test</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            background: #000;
+            color: #0f0;
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #0f0;
+        }
+        .success { color: #0f0; }
+        .error { color: #f00; }
+        button {
+            background: #0f0;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            margin: 10px;
+            cursor: pointer;
+            font-family: monospace;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+    <h1>Category-Specific Atlas Test</h1>
+    
+    <div id="results"></div>
+    
+    <button onclick="testAllCategories()">Test All Categories</button>
+    <button onclick="testCategorySwitch()">Test Category Switching</button>
+    
+    <script>
+        const resultsDiv = document.getElementById('results');
+        const categories = ['all', 'agents', 'art', 'gating', 'identity', 'invest', 
+                          'messaging', 'payments', 'privacy', 'rewards', 'social', 
+                          'trading', 'wallet'];
+        
+        function addResult(message, isSuccess = true) {
+            const div = document.createElement('div');
+            div.className = `test-result ${isSuccess ? 'success' : 'error'}`;
+            div.textContent = message;
+            resultsDiv.appendChild(div);
+        }
+        
+        function clearResults() {
+            resultsDiv.innerHTML = '';
+        }
+        
+        async function testCategory(category) {
+            try {
+                // Test metadata
+                const metadataResponse = await fetch(`/atlases/${category}/metadata.json`);
+                if (!metadataResponse.ok) {
+                    throw new Error(`Metadata not found for ${category}`);
+                }
+                const metadata = await metadataResponse.json();
+                
+                // Test mapping
+                const mappingResponse = await fetch(`/atlases/${category}/mapping.json`);
+                if (!mappingResponse.ok) {
+                    throw new Error(`Mapping not found for ${category}`);
+                }
+                const mapping = await mappingResponse.json();
+                
+                // Test first atlas
+                const atlasResponse = await fetch(`/atlases/${category}/atlas-0.jpg`);
+                if (!atlasResponse.ok) {
+                    throw new Error(`Atlas-0 not found for ${category}`);
+                }
+                
+                const size = parseInt(atlasResponse.headers.get('content-length'));
+                const sizeMB = (size / 1024 / 1024).toFixed(2);
+                
+                addResult(`✓ ${category}: ${metadata.totalItems} items, ${metadata.numAtlases} atlas(es), ${sizeMB}MB`);
+                
+                return {
+                    category,
+                    success: true,
+                    itemCount: metadata.totalItems,
+                    atlasCount: metadata.numAtlases,
+                    mappingCount: Object.keys(mapping).length
+                };
+            } catch (error) {
+                addResult(`✗ ${category}: ${error.message}`, false);
+                return { category, success: false, error: error.message };
+            }
+        }
+        
+        async function testAllCategories() {
+            clearResults();
+            addResult('Testing all category atlases...');
+            
+            for (const category of categories) {
+                await testCategory(category);
+            }
+            
+            addResult('Test complete!');
+        }
+        
+        async function testCategorySwitch() {
+            clearResults();
+            addResult('Testing category switching simulation...');
+            
+            // Simulate switching from ALL to AGENTS
+            const allResult = await testCategory('all');
+            const agentsResult = await testCategory('agents');
+            
+            if (allResult.success && agentsResult.success) {
+                addResult(`Switching from ALL (${allResult.itemCount} items) to AGENTS (${agentsResult.itemCount} items)`);
+                
+                // Verify mapping counts match item counts
+                if (allResult.mappingCount === allResult.itemCount) {
+                    addResult('✓ ALL mapping count matches item count');
+                } else {
+                    addResult(`✗ ALL mapping mismatch: ${allResult.mappingCount} vs ${allResult.itemCount}`, false);
+                }
+                
+                if (agentsResult.mappingCount === agentsResult.itemCount) {
+                    addResult('✓ AGENTS mapping count matches item count');
+                } else {
+                    addResult(`✗ AGENTS mapping mismatch: ${agentsResult.mappingCount} vs ${agentsResult.itemCount}`, false);
+                }
+                
+                // Load actual mapping data to verify structure
+                const agentsMapping = await (await fetch('/atlases/agents/mapping.json')).json();
+                const sampleIds = Object.keys(agentsMapping).slice(0, 3);
+                
+                addResult('Sample AGENTS mappings:');
+                sampleIds.forEach(id => {
+                    const entry = agentsMapping[id];
+                    addResult(`  ID ${id}: atlas ${entry.atlas}, pos (${entry.x}, ${entry.y})`);
+                });
+            }
+            
+            addResult('Category switch test complete!');
+        }
+        
+        // Auto-run test
+        setTimeout(() => {
+            testAllCategories();
+        }, 1000);
+    </script>
+</body>
+</html>

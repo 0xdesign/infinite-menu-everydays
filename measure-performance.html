@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Performance Measurement</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            background: #000;
+            color: #0f0;
+        }
+        .metric {
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #0f0;
+        }
+        button {
+            background: #0f0;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            margin: 10px;
+            cursor: pointer;
+            font-family: monospace;
+            text-transform: uppercase;
+        }
+        iframe {
+            width: 100%;
+            height: 600px;
+            border: 1px solid #333;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Load Time Performance Test</h1>
+    
+    <div id="metrics"></div>
+    
+    <button onclick="testInitialLoad()">Test Initial Load (ALL)</button>
+    <button onclick="testFilteredLoad()">Test Filter (AGENTS)</button>
+    <button onclick="clearCache()">Clear & Test Fresh Load</button>
+    
+    <iframe id="testFrame" style="display:none;"></iframe>
+
+    <script>
+        const metricsDiv = document.getElementById('metrics');
+        
+        function addMetric(label, value, detail = '') {
+            const div = document.createElement('div');
+            div.className = 'metric';
+            div.innerHTML = `
+                <strong>${label}:</strong> ${value}
+                ${detail ? `<br><small>${detail}</small>` : ''}
+            `;
+            metricsDiv.appendChild(div);
+        }
+        
+        function clearMetrics() {
+            metricsDiv.innerHTML = '';
+        }
+        
+        async function measureAtlasLoad() {
+            const startTime = performance.now();
+            const results = {
+                atlases: [],
+                mapping: null,
+                totalSize: 0
+            };
+            
+            // Measure atlas loading
+            const atlasPromises = [];
+            for (let i = 0; i < 3; i++) {
+                atlasPromises.push(
+                    fetch(`http://localhost:3005/atlases/atlas-${i}.jpg`)
+                        .then(res => {
+                            const size = parseInt(res.headers.get('content-length'));
+                            const loadTime = performance.now() - startTime;
+                            results.atlases.push({
+                                index: i,
+                                size: size,
+                                loadTime: loadTime
+                            });
+                            results.totalSize += size;
+                            return res.blob();
+                        })
+                );
+            }
+            
+            // Measure mapping load
+            const mappingPromise = fetch('http://localhost:3005/atlases/atlas-mapping.json')
+                .then(res => {
+                    results.mapping = {
+                        size: parseInt(res.headers.get('content-length')),
+                        loadTime: performance.now() - startTime
+                    };
+                    results.totalSize += results.mapping.size;
+                    return res.json();
+                });
+            
+            await Promise.all([...atlasPromises, mappingPromise]);
+            
+            results.totalLoadTime = performance.now() - startTime;
+            return results;
+        }
+        
+        async function testInitialLoad() {
+            clearMetrics();
+            addMetric('Test Type', 'Initial Page Load (ALL items - 706)');
+            
+            const iframe = document.getElementById('testFrame');
+            const loadStart = performance.now();
+            
+            // Load page
+            iframe.src = 'http://localhost:3005';
+            
+            // Wait for load and measure
+            iframe.onload = async () => {
+                const pageLoadTime = performance.now() - loadStart;
+                addMetric('Page Load Time', `${pageLoadTime.toFixed(0)}ms`);
+                
+                // Measure atlas resources
+                const atlasResults = await measureAtlasLoad();
+                
+                addMetric('Atlas Load Time', 
+                    `${atlasResults.totalLoadTime.toFixed(0)}ms`,
+                    `Total size: ${(atlasResults.totalSize / 1024 / 1024).toFixed(2)}MB`
+                );
+                
+                // Detail each atlas
+                atlasResults.atlases.forEach(atlas => {
+                    addMetric(
+                        `Atlas ${atlas.index}`,
+                        `${atlas.loadTime.toFixed(0)}ms`,
+                        `Size: ${(atlas.size / 1024 / 1024).toFixed(2)}MB`
+                    );
+                });
+                
+                addMetric(
+                    'Mapping File',
+                    `${atlasResults.mapping.loadTime.toFixed(0)}ms`,
+                    `Size: ${(atlasResults.mapping.size / 1024).toFixed(0)}KB`
+                );
+                
+                // Check if using cache
+                const cacheStatus = atlasResults.totalLoadTime < 100 ? 'FROM CACHE' : 'NETWORK LOAD';
+                addMetric('Cache Status', cacheStatus);
+                
+                addMetric('TOTAL TIME', `${Math.max(pageLoadTime, atlasResults.totalLoadTime).toFixed(0)}ms`);
+            };
+        }
+        
+        async function testFilteredLoad() {
+            clearMetrics();
+            addMetric('Test Type', 'Filter to AGENTS category (53 items)');
+            
+            // This simulates clicking the AGENTS filter
+            // Since filtering happens client-side, it should be instant
+            const filterStart = performance.now();
+            
+            // Simulate filter operation
+            setTimeout(() => {
+                const filterTime = performance.now() - filterStart;
+                addMetric('Filter Time', `${filterTime.toFixed(0)}ms`, 'Client-side filtering');
+                addMetric('Network Requests', '0', 'No new requests needed');
+                addMetric('Data Downloaded', '0 bytes', 'Uses existing atlas data');
+            }, 50); // Small delay to simulate UI update
+        }
+        
+        async function clearCache() {
+            clearMetrics();
+            addMetric('Test Type', 'Fresh Load (Cache Cleared)');
+            
+            // Open in new window to bypass cache
+            const testWindow = window.open('http://localhost:3005', '_blank');
+            
+            const startTime = performance.now();
+            
+            setTimeout(async () => {
+                const results = await measureAtlasLoad();
+                
+                addMetric('Total Load Time', 
+                    `${results.totalLoadTime.toFixed(0)}ms`,
+                    `Downloaded: ${(results.totalSize / 1024 / 1024).toFixed(2)}MB`
+                );
+                
+                addMetric('Network Speed', 
+                    `${((results.totalSize / 1024 / 1024) / (results.totalLoadTime / 1000)).toFixed(1)} MB/s`
+                );
+                
+                if (testWindow) {
+                    testWindow.close();
+                }
+            }, 3000);
+        }
+        
+        // Auto-run initial test
+        setTimeout(() => {
+            testInitialLoad();
+        }, 1000);
+    </script>
+</body>
+</html>

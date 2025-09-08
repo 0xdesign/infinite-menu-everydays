@@ -147,6 +147,7 @@ export default function GalleryClient({ initialData }: GalleryClientProps) {
                 items={filteredItems} 
                 initialFocusId={activeCategories.length === 0 && !searchQuery ? 755 : undefined}
                 onItemFocus={handleItemFocus}
+                category={activeCategories.length === 1 ? activeCategories[0] : 'all'}
               />
             )}
 
@@ -190,6 +191,7 @@ export default function GalleryClient({ initialData }: GalleryClientProps) {
               items={filteredItems} 
               initialFocusId={activeCategories.length === 0 && !searchQuery ? 755 : undefined}
               onItemFocus={handleItemFocus}
+              category={activeCategories.length === 1 ? activeCategories[0] : 'all'}
             />
           )}
 

@@ -2,7 +2,6 @@
 
 const fs = require('fs');
 const path = require('path');
-const https = require('https');
 const { createCanvas, loadImage } = require('canvas');
 
 const ATLAS_SIZE = 16; // 16x16 grid = 256 images per atlas
@@ -13,6 +12,24 @@ const ATLAS_DIMENSION = ATLAS_SIZE * CELL_SIZE; // 4096x4096 pixels
 const outputDir = path.join(__dirname, '..', 'public', 'atlases');
 if (!fs.existsSync(outputDir)) {
   fs.mkdirSync(outputDir, { recursive: true });
+}
+
+// Get all unique categories
+function getCategories(items) {
+  const categories = new Set();
+  items.forEach(item => {
+    if (item.category && Array.isArray(item.category)) {
+      item.category.forEach(cat => categories.add(cat));
+    }
+  });
+  return Array.from(categories).sort();
+}
+
+// Filter items by category
+function filterByCategory(items, category) {
+  return items.filter(item => 
+    item.category && item.category.includes(category)
+  );
 }
 
 // Download image with retry logic
@@ -26,25 +43,27 @@ async function downloadImage(url, retries = 3) {
         console.error(`Failed to load image after ${retries} attempts:`, url);
         return null;
       }
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1s before retry
+      await new Promise(resolve => setTimeout(resolve, 1000));
     }
   }
 }
 
-async function generateAtlases() {
-  console.log('Loading items data...');
-  const dataPath = path.join(__dirname, '..', 'public', 'data', 'items.json');
-  const data = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
-  const items = data.items;
+// Generate atlas for a specific set of items
+async function generateAtlas(items, categoryName) {
+  console.log(`\n=== Generating atlases for ${categoryName} (${items.length} items) ===`);
   
-  console.log(`Found ${items.length} items to process`);
-  
-  // Create ID to atlas position mapping
-  const idMapping = {};
+  // Create category directory
+  const categoryDir = path.join(outputDir, categoryName);
+  if (!fs.existsSync(categoryDir)) {
+    fs.mkdirSync(categoryDir, { recursive: true });
+  }
   
   // Calculate number of atlases needed
   const numAtlases = Math.ceil(items.length / (ATLAS_SIZE * ATLAS_SIZE));
-  console.log(`Will create ${numAtlases} atlases`);
+  console.log(`Will create ${numAtlases} atlas(es)`);
+  
+  // Create ID to atlas position mapping
+  const idMapping = {};
   
   // Process items in chunks for each atlas
   for (let atlasIndex = 0; atlasIndex < numAtlases; atlasIndex++) {
@@ -52,7 +71,7 @@ async function generateAtlases() {
     const endIdx = Math.min(startIdx + ATLAS_SIZE * ATLAS_SIZE, items.length);
     const atlasItems = items.slice(startIdx, endIdx);
     
-    console.log(`\nGenerating atlas ${atlasIndex} with ${atlasItems.length} items...`);
+    console.log(`Generating atlas ${atlasIndex} with ${atlasItems.length} items...`);
     
     // Create canvas for this atlas
     const canvas = createCanvas(ATLAS_DIMENSION, ATLAS_DIMENSION);
@@ -62,7 +81,7 @@ async function generateAtlases() {
     ctx.fillStyle = '#000000';
     ctx.fillRect(0, 0, ATLAS_DIMENSION, ATLAS_DIMENSION);
     
-    // Process items in batches to avoid overwhelming the network
+    // Process items in batches
     const batchSize = 10;
     for (let i = 0; i < atlasItems.length; i += batchSize) {
       const batch = atlasItems.slice(i, Math.min(i + batchSize, atlasItems.length));
@@ -113,49 +132,90 @@ async function generateAtlases() {
     }
     
     // Save atlas
-    const outputPath = path.join(outputDir, `atlas-${atlasIndex}.jpg`);
+    const outputPath = path.join(categoryDir, `atlas-${atlasIndex}.jpg`);
     const buffer = canvas.toBuffer('image/jpeg', { quality: 0.85 });
     fs.writeFileSync(outputPath, buffer);
     
-    console.log(`\nSaved atlas ${atlasIndex} to ${outputPath} (${(buffer.length / 1024 / 1024).toFixed(2)} MB)`);
+    console.log(`\nSaved to ${outputPath} (${(buffer.length / 1024 / 1024).toFixed(2)} MB)`);
   }
   
-  // Create atlas metadata
+  // Save metadata
   const metadata = {
     version: 1,
+    category: categoryName,
     atlasSize: ATLAS_SIZE,
     cellSize: CELL_SIZE,
     numAtlases: numAtlases,
     totalItems: items.length,
     atlases: Array.from({ length: numAtlases }, (_, i) => ({
       index: i,
-      url: `/atlases/atlas-${i}.jpg`,
+      url: `/atlases/${categoryName}/atlas-${i}.jpg`,
       itemCount: Math.min(ATLAS_SIZE * ATLAS_SIZE, items.length - i * ATLAS_SIZE * ATLAS_SIZE)
     }))
   };
   
-  const metadataPath = path.join(outputDir, 'metadata.json');
+  const metadataPath = path.join(categoryDir, 'metadata.json');
   fs.writeFileSync(metadataPath, JSON.stringify(metadata, null, 2));
-  console.log(`\nSaved metadata to ${metadataPath}`);
   
   // Save ID mapping
-  const mappingPath = path.join(outputDir, 'atlas-mapping.json');
+  const mappingPath = path.join(categoryDir, 'mapping.json');
   fs.writeFileSync(mappingPath, JSON.stringify(idMapping, null, 2));
-  console.log(`Saved ID mapping to ${mappingPath} (${Object.keys(idMapping).length} items)`);
   
-  console.log('\nAtlas generation complete!');
+  console.log(`Saved metadata and mapping for ${categoryName}`);
+  
+  return {
+    category: categoryName,
+    itemCount: items.length,
+    numAtlases: numAtlases,
+    totalSize: numAtlases * 2.5 // Approximate MB per atlas
+  };
+}
+
+async function generateAllAtlases() {
+  console.log('Loading items data...');
+  const dataPath = path.join(__dirname, '..', 'public', 'data', 'items.json');
+  const data = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
+  const items = data.items;
+  
+  console.log(`Found ${items.length} total items`);
+  
+  const stats = [];
+  
+  // Generate atlas for ALL items
+  const allStats = await generateAtlas(items, 'all');
+  stats.push(allStats);
+  
+  // Get categories and generate atlas for each
+  const categories = getCategories(items);
+  console.log(`\nFound ${categories.length} categories:`, categories.join(', '));
+  
+  for (const category of categories) {
+    const categoryItems = filterByCategory(items, category);
+    const categoryStats = await generateAtlas(categoryItems, category);
+    stats.push(categoryStats);
+  }
+  
+  // Print summary
+  console.log('\n' + '='.repeat(60));
+  console.log('ATLAS GENERATION COMPLETE');
+  console.log('='.repeat(60));
+  console.log('\nSummary:');
+  stats.forEach(stat => {
+    console.log(`  ${stat.category}: ${stat.itemCount} items, ${stat.numAtlases} atlas(es), ~${stat.totalSize.toFixed(1)}MB`);
+  });
+  
+  const totalSize = stats.reduce((sum, s) => sum + s.totalSize, 0);
+  console.log(`\nTotal storage: ~${totalSize.toFixed(1)}MB`);
+  console.log('\nAll atlases saved to:', outputDir);
 }
 
 // Check if canvas is installed
 try {
   require('canvas');
 } catch (error) {
-  console.error('Canvas module not found. Installing...');
-  const { execSync } = require('child_process');
-  execSync('npm install canvas', { stdio: 'inherit' });
-  console.log('Canvas installed. Please run the script again.');
-  process.exit(0);
+  console.error('Canvas module not found. Please run: npm install canvas');
+  process.exit(1);
 }
 
 // Run the generator
-generateAtlases().catch(console.error);
+generateAllAtlases().catch(console.error);

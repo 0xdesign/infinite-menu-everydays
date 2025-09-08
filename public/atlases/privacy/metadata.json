@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "category": "privacy",
+  "atlasSize": 16,
+  "cellSize": 256,
+  "numAtlases": 1,
+  "totalItems": 34,
+  "atlases": [
+    {
+      "index": 0,
+      "url": "/atlases/privacy/atlas-0.jpg",
+      "itemCount": 34
+    }
+  ]
+}

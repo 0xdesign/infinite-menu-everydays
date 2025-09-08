@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "category": "trading",
+  "atlasSize": 16,
+  "cellSize": 256,
+  "numAtlases": 1,
+  "totalItems": 89,
+  "atlases": [
+    {
+      "index": 0,
+      "url": "/atlases/trading/atlas-0.jpg",
+      "itemCount": 89
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "category": "invest",
+  "atlasSize": 16,
+  "cellSize": 256,
+  "numAtlases": 1,
+  "totalItems": 26,
+  "atlases": [
+    {
+      "index": 0,
+      "url": "/atlases/invest/atlas-0.jpg",
+      "itemCount": 26
+    }
+  ]
+}

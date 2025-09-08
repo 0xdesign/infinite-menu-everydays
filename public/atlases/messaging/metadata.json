@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "category": "messaging",
+  "atlasSize": 16,
+  "cellSize": 256,
+  "numAtlases": 1,
+  "totalItems": 49,
+  "atlases": [
+    {
+      "index": 0,
+      "url": "/atlases/messaging/atlas-0.jpg",
+      "itemCount": 49
+    }
+  ]
+}
