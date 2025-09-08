@@ -785,6 +785,8 @@ interface MenuItem {
   categories?: string[];
   network?: string | null;
   collectionAddress?: string | null;
+  mediaUrl?: string | null;
+  mimeType?: string | null;
 }
 
 type ActiveItemCallback = (index: number) => void;

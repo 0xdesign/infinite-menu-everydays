@@ -13,6 +13,7 @@ import MobileHeader from '@/components/MobileHeader';
 import BottomSheet from '@/components/BottomSheet';
 import MobileFilterModal from '@/components/MobileFilterModal';
 import MobileSearchModal from '@/components/MobileSearchModal';
+import FocusedMediaPlayer from '@/components/FocusedMediaPlayer';
 
 const InfiniteMenu = dynamic(
   () => import('@/components/InfiniteMenu'),
@@ -37,6 +38,8 @@ interface MenuItem {
   categories?: string[];
   network?: string | null;
   collectionAddress?: string | null;
+  mediaUrl?: string | null;
+  mimeType?: string | null;
 }
 
 interface GalleryClientProps {
@@ -124,6 +127,12 @@ export default function GalleryClient({ initialData }: GalleryClientProps) {
 
   return (
     <main className="relative w-screen h-screen overflow-hidden bg-black">
+      {/* Media Player Overlay */}
+      <FocusedMediaPlayer
+        mediaUrl={focusedItem?.mediaUrl}
+        posterUrl={focusedItem?.image}
+        isActive={!!focusedItem && !!focusedItem.mediaUrl}
+      />
       {/* Desktop Layout */}
       <div className="hidden md:block">
         {/* Top Navigation */}
