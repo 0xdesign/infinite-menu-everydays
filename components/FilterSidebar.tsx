@@ -2,7 +2,7 @@
 
 interface FilterSidebarProps {
   categories: string[];
-  selectedCategories: string[];
+  selectedCategory: string | null;
   onCategoryToggle: (category: string) => void;
 }
 
@@ -24,11 +24,11 @@ const CATEGORY_ORDER = [
 
 export default function FilterSidebar({ 
   categories, 
-  selectedCategories, 
+  selectedCategory, 
   onCategoryToggle 
 }: FilterSidebarProps) {
   
-  const isAllSelected = selectedCategories.length === 0;
+  const isAllSelected = !selectedCategory;
   
   // Sort categories based on predefined order
   const sortedCategories = [...categories].sort((a, b) => {
@@ -42,9 +42,9 @@ export default function FilterSidebar({
   });
 
   const handleAllClick = () => {
-    // Clear all selections to show all items
-    if (!isAllSelected && selectedCategories.length > 0) {
-      selectedCategories.forEach(cat => onCategoryToggle(cat));
+    // Clear selection to show all items
+    if (selectedCategory) {
+      onCategoryToggle(selectedCategory);
     }
   };
 
@@ -75,7 +75,7 @@ export default function FilterSidebar({
 
           {/* Category buttons */}
           {sortedCategories.map((category) => {
-            const isActive = selectedCategories.includes(category);
+            const isActive = selectedCategory === category;
             
             return (
               <button

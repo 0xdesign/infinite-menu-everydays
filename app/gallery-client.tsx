@@ -49,7 +49,7 @@ export default function GalleryClient({ initialData }: GalleryClientProps) {
   );
   const [filteredItems, setFilteredItems] = useState<MenuItem[]>(allItems);
   const [categories] = useState<string[]>(initialData.categories);
-  const [activeCategories, setActiveCategories] = useState<string[]>([]);
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [submittedQuery, setSubmittedQuery] = useState<string>('');
   const [focusedItem, setFocusedItem] = useState<MenuItem | null>(null);
@@ -62,9 +62,9 @@ export default function GalleryClient({ initialData }: GalleryClientProps) {
     let filtered = allItems;
     
     // Apply category filter
-    if (activeCategories.length > 0) {
+    if (activeCategory) {
       filtered = filtered.filter(item => 
-        item.categories?.some(cat => activeCategories.includes(cat))
+        item.categories?.includes(activeCategory)
       );
     }
     
@@ -78,13 +78,14 @@ export default function GalleryClient({ initialData }: GalleryClientProps) {
     }
     
     setFilteredItems(filtered);
-  }, [allItems, activeCategories, searchQuery]);
+  }, [allItems, activeCategory, searchQuery]);
 
   const handleCategoryToggle = useCallback((category: string) => {
-    setActiveCategories((prev) => {
-      const exists = prev.includes(category);
-      if (exists) return prev.filter((c) => c !== category);
-      return [...prev, category];
+    setActiveCategory((prev) => {
+      // If clicking the same category, deselect it (go back to all)
+      if (prev === category) return null;
+      // Otherwise select the new category
+      return category;
     });
   }, []);
 
@@ -136,7 +137,7 @@ export default function GalleryClient({ initialData }: GalleryClientProps) {
           {/* Filter Sidebar */}
           <FilterSidebar
             categories={categories}
-            selectedCategories={activeCategories}
+            selectedCategory={activeCategory}
             onCategoryToggle={handleCategoryToggle}
           />
 
@@ -145,9 +146,9 @@ export default function GalleryClient({ initialData }: GalleryClientProps) {
             {filteredItems.length > 0 && (
               <InfiniteMenu 
                 items={filteredItems} 
-                initialFocusId={activeCategories.length === 0 && !searchQuery ? 755 : undefined}
+                initialFocusId={!activeCategory && !searchQuery ? 755 : undefined}
                 onItemFocus={handleItemFocus}
-                category={activeCategories.length === 1 ? activeCategories[0] : 'all'}
+                category={activeCategory || 'all'}
               />
             )}
 
@@ -180,7 +181,7 @@ export default function GalleryClient({ initialData }: GalleryClientProps) {
         <MobileHeader
           onFilterClick={() => setIsMobileFilterOpen(true)}
           onSearchClick={() => setIsMobileSearchOpen(true)}
-          activeFilterCount={activeCategories.length}
+          activeFilterCount={activeCategory ? 1 : 0}
           hasSearchQuery={!!searchQuery}
         />
 
@@ -189,9 +190,9 @@ export default function GalleryClient({ initialData }: GalleryClientProps) {
           {filteredItems.length > 0 && (
             <InfiniteMenu 
               items={filteredItems} 
-              initialFocusId={activeCategories.length === 0 && !searchQuery ? 755 : undefined}
+              initialFocusId={!activeCategory && !searchQuery ? 755 : undefined}
               onItemFocus={handleItemFocus}
-              category={activeCategories.length === 1 ? activeCategories[0] : 'all'}
+              category={activeCategory || 'all'}
             />
           )}
 
@@ -230,7 +231,7 @@ export default function GalleryClient({ initialData }: GalleryClientProps) {
         <MobileFilterModal
           isOpen={isMobileFilterOpen}
           categories={categories}
-          selectedCategories={activeCategories}
+          selectedCategory={activeCategory}
           onCategoryToggle={handleCategoryToggle}
           onClose={() => setIsMobileFilterOpen(false)}
         />
