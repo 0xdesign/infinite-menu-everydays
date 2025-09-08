@@ -1,0 +1,58 @@
+# Repomix ignore file - only include core app files
+
+# Exclude all scripts and build tools
+scripts/
+data/
+docs/
+
+# Exclude build outputs and dependencies
+.next/
+node_modules/
+dist/
+build/
+out/
+
+# Exclude environment and config files
+.env*
+.git/
+.github/
+.cursor/
+.claude/
+.DS_Store
+
+# Exclude test and development files
+.playwright-mcp/
+*.test.*
+*.spec.*
+__tests__/
+coverage/
+
+# Exclude public assets (generated atlas files and images)
+public/atlas-*
+public/*.webp
+public/*.json
+
+# Exclude documentation (keep CLAUDE.md for context)
+*.md
+!CLAUDE.md
+
+# Exclude lock files and logs
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+*.log
+
+# Exclude IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Include only essential config files
+!package.json
+!tsconfig.json
+!next.config.js
+!tailwind.config.ts
+!postcss.config.js
+!eslint.config.mjs

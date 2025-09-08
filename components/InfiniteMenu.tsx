@@ -69,8 +69,19 @@ flat in int vInstanceId;
 
 void main() {
   int itemIndex = vInstanceId % uItemCount;
-  // With dynamic atlases, array index maps directly to position
-  int atlasPosition = itemIndex;
+  
+  // Look up the actual atlas position from the mapping texture
+  int atlasPosition = itemIndex; // Default fallback
+  
+  if (itemIndex < uMaxItems) {
+    // Read the mapping from the texture (stored in R channel)
+    vec4 mappingValue = texelFetch(uAtlasPositionMap, ivec2(itemIndex, 0), 0);
+    float mappedPos = mappingValue.r * 1024.0;
+    if (mappedPos >= 0.0) {
+      atlasPosition = int(mappedPos);
+    }
+  }
+  
   int itemsPerAtlas = uAtlasSize * uAtlasSize; // Compute based on actual atlas size
   int atlasIndex = atlasPosition / itemsPerAtlas; // Which atlas (0, 1, 2)
   int atlasItemIndex = atlasPosition % itemsPerAtlas; // Position within that atlas
@@ -107,13 +118,14 @@ void main() {
     atlasColor = texture(uTex, st);
   }
   
-  // High-res texture overlay
+  // High-res texture overlay - only apply to the focused item
   float itemIndexFloat = float(itemIndex);
   float useHighRes = step(0.5, 1.0 - abs(itemIndexFloat - uHighId)) * step(0.0, uHighId);
   
   vec2 hiResSt = vec2(vUvs.x, 1.0 - vUvs.y);
   vec4 hiResColor = texture(uHighTex, hiResSt);
   
+  // Mix atlas and hi-res based on whether this is the focused item
   outColor = mix(atlasColor, hiResColor, useHighRes);
   outColor.a *= vAlpha;
 }
@@ -831,8 +843,10 @@ class InfiniteGridMenu {
   private tex: WebGLTexture | null = null;
   private atlases: WebGLTexture[] = [];
   private atlasMapping: AtlasMapping[] = [];
+  private atlasMappingMap: Map<string, AtlasMapping> = new Map(); // O(1) lookup
   private atlasPositionMapTexture: WebGLTexture | null = null; // Texture containing position mappings
   private usingFallbackTexture: boolean = false;
+  private atlasesLoaded: boolean = false;
   private control!: ArcballControl;
   private animationFrameId: number | null = null;
   private currentFocusedIndex: number = -1;
@@ -937,7 +951,8 @@ class InfiniteGridMenu {
     private onActiveItemChange: ActiveItemCallback,
     private onMovementChange: MovementChangeCallback,
     onInit?: InitCallback,
-    private initialFocusId?: number
+    private initialFocusId?: number,
+    private onAtlasLoaded?: () => void
   ) {
     this.dynamicPositions = new DynamicSpherePositions();
     this.init(onInit);
@@ -1113,13 +1128,11 @@ class InfiniteGridMenu {
     this.icoGeo.subdivide(1).spherize(this.SPHERE_RADIUS);
     this.initDiscInstances(this.DISC_INSTANCE_COUNT);
     
-    // Initialize textures after we have WebGL context
+    // Initialize static master atlas
     // Use setTimeout to ensure WebGL context is fully ready
     setTimeout(() => {
       if (this.gl) {
-        // Create initial abort controller
-        this.atlasAbortController = new AbortController();
-        this.initDynamicAtlases(this.atlasAbortController.signal);
+        this.initTexture(); // Load static master atlas
       } else {
         console.error('WebGL context not available after timeout');
         this.initTextureFallback();
@@ -1140,7 +1153,7 @@ class InfiniteGridMenu {
         const nearestIndex = this.findNearestVertexIndex();
         const itemIndex = nearestIndex % this.items.length;
         this.currentFocusedIndex = itemIndex;
-        this.loadHighResTexture(itemIndex, true);
+        this.loadHighResTexture(itemIndex);
       }
     }
 
@@ -1159,71 +1172,76 @@ class InfiniteGridMenu {
 
   private async initTexture(): Promise<void> {
     if (!this.gl) {
-      // console.warn('initTexture called but no WebGL context available');
       return;
     }
-    const gl = this.gl;
     
-    // Check MAX_TEXTURE_SIZE
-    const maxTextureSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
-    
-    if (maxTextureSize < 4096) {
-      // console.warn('GPU does not support 4096x4096 textures, falling back to dynamic generation');
-      this.initTextureFallback();
-      return;
-    }
+    // Load static master atlas instead of generating dynamically
+    await this.loadStaticMasterAtlas();
+  }
+  
+  private async loadStaticMasterAtlas(): Promise<void> {
+    if (!this.gl) return;
     
     try {
-      // First load the atlas mapping
-      // console.log('Loading atlas.json...');
-      const mappingResponse = await fetch('/atlas.json');
-      // console.log('Atlas.json response:', mappingResponse.status, mappingResponse.statusText);
+      // Detect mobile and use appropriate atlas
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || window.innerWidth < 768;
+      const atlasPrefix = isMobile ? 'atlas-master-mobile' : 'atlas-master';
+      
+      // Load the mapping
+      const mappingResponse = await fetch(`/${atlasPrefix}.json`);
       if (!mappingResponse.ok) {
-        throw new Error(`Failed to load atlas mapping: ${mappingResponse.status} ${mappingResponse.statusText}`);
+        throw new Error(`Failed to load atlas mapping: ${mappingResponse.status}`);
       }
       this.atlasMapping = await mappingResponse.json();
-      // console.log('Atlas mapping loaded, entries:', this.atlasMapping.length);
       
-      // Debug: Log first few atlas mappings to understand the structure
-      // console.log('First 5 atlas mappings:', this.atlasMapping.slice(0, 5));
-      // console.log('Atlas mapping uses database IDs, not array indices!');
+      // Build Map for O(1) lookups
+      this.atlasMappingMap.clear();
+      this.atlasMapping.forEach(entry => {
+        this.atlasMappingMap.set(entry.id, entry);
+      });
       
-      // Determine how many atlases we need
-      const atlasCount = Math.ceil(this.items.length / 256);
-      // console.log('Atlas count needed:', atlasCount);
+      // Determine how many atlases exist (based on new tile sizes)
+      const itemsPerAtlas = 256;  // 16x16 = 256 for both desktop and mobile
+      const atlasCount = Math.ceil(this.atlasMapping.length / itemsPerAtlas);
       
       // Load all atlas textures
       const atlasPromises: Promise<void>[] = [];
-      for (let i = 0; i < atlasCount; i++) {
-        // console.log(`Queuing atlas ${i} for loading...`);
-        atlasPromises.push(this.loadAtlas(i));
+      for (let i = 0; i < Math.min(atlasCount, 3); i++) { // Max 3 atlases supported by shader
+        atlasPromises.push(this.loadStaticAtlas(`${atlasPrefix}-${i}.webp`, i));
       }
       
-      // console.log('Loading all atlases...');
       await Promise.all(atlasPromises);
-      // console.log('All atlases loaded successfully');
       
-      // Use the first atlas as the primary texture for now
+      // Use the first atlas as primary
       if (this.atlases.length > 0) {
         this.tex = this.atlases[0];
         this.usingFallbackTexture = false;
-        // console.log('Set this.tex to first atlas texture, cleared fallback flag');
       }
       
-      // Set atlas size to 16x16 (256 tiles per atlas)
-      this.atlasSize = 16;
+      // Set atlas size (tiles per row: 256px tiles on 4096px atlas = 16 for both desktop and mobile)
+      this.atlasSize = 16; // Always 16x16 = 256 tiles per atlas
       
-      // Build the ID-to-position mapping
+      // Build position mapping for current items
       this.buildAtlasPositionMap();
       
-      // console.log(`Loaded ${this.atlases.length} texture atlases`);
+      // Mark atlases as loaded and notify
+      this.atlasesLoaded = true;
+      if (this.onAtlasLoaded) {
+        this.onAtlasLoaded();
+      }
+      
     } catch (error) {
-      console.error('Failed to load pre-built atlases:', error);
+      console.error('Failed to load static master atlas:', error);
       this.initTextureFallback();
+      // Still mark as loaded even with fallback
+      this.atlasesLoaded = true;
+      if (this.onAtlasLoaded) {
+        this.onAtlasLoaded();
+      }
     }
   }
   
-  private loadAtlas(index: number): Promise<void> {
+  private loadStaticAtlas(url: string, index: number): Promise<void> {
     return new Promise((resolve, reject) => {
       if (!this.gl) {
         reject(new Error('No WebGL context'));
@@ -1231,7 +1249,6 @@ class InfiniteGridMenu {
       }
       
       const gl = this.gl;
-      const atlasUrl = `/atlas-${index}.webp`;
       const texture = createAndSetupTexture(
         gl,
         gl.LINEAR,
@@ -1243,8 +1260,6 @@ class InfiniteGridMenu {
       const img = new Image();
       img.crossOrigin = "anonymous";
       img.onload = () => {
-        // console.log(`Atlas ${index} loaded`);
-        
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.texImage2D(
           gl.TEXTURE_2D,
@@ -1260,13 +1275,13 @@ class InfiniteGridMenu {
         resolve();
       };
       img.onerror = (e) => {
-        console.error(`Failed to load atlas ${index} from ${atlasUrl}:`, e);
-        reject(new Error(`Failed to load atlas ${index} from ${atlasUrl}`));
+        console.error(`Failed to load atlas from ${url}:`, e);
+        reject(new Error(`Failed to load atlas from ${url}`));
       };
-      img.src = atlasUrl;
-      // console.log(`Starting load of atlas ${index} from ${atlasUrl}`);
+      img.src = '/' + url;
     });
   }
+  
   
   private initTextureFallback(): void {
     if (!this.gl) return;
@@ -1277,8 +1292,8 @@ class InfiniteGridMenu {
     
     // Simple fallback - create colored squares
     const itemCount = Math.max(1, this.items.length);
-    // For compatibility with pre-built atlases, use 16x16 grid
-    // This means we can only show first 256 items in fallback
+    // For fallback, use 16x16 grid matching our new atlas layout
+    // This means we can show first 256 items in fallback
     this.atlasSize = 16;
     const maxItems = Math.min(itemCount, 256);
     const cellSize = 256;
@@ -1318,181 +1333,6 @@ class InfiniteGridMenu {
   }
   
   // Build per-filter dynamic atlases in array order so atlasPosition == itemIndex
-  private async initDynamicAtlases(signal?: AbortSignal): Promise<void> {
-    if (!this.gl) return;
-    const gl = this.gl;
-    
-    // Check if we should abort early
-    if (signal?.aborted) {
-      // console.log('Atlas creation aborted before start');
-      return;
-    }
-
-    // Cleanup any previous atlases/primary texture
-    if (this.tex) {
-      gl.deleteTexture(this.tex);
-      this.tex = null;
-    }
-    if (this.atlases.length) {
-      this.atlases.forEach(t => t && gl.deleteTexture(t));
-      this.atlases = [];
-    }
-
-    const items = this.items;
-    
-    // Detect mobile and adjust atlas size accordingly
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || window.innerWidth < 768;
-    const maxTextureSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
-    
-    // Use smaller atlases on mobile to prevent crashes
-    const cellSize = isMobile ? 128 : 256; // Smaller cells on mobile
-    const tilesPerRow = isMobile ? 8 : 16; // 8x8 grid (64 items) on mobile, 16x16 (256) on desktop
-    const atlasSize = tilesPerRow * cellSize; // 1024px on mobile, 4096px on desktop
-    
-    // Ensure we don't exceed device limits
-    if (atlasSize > maxTextureSize) {
-      console.error(`Atlas size ${atlasSize} exceeds max texture size ${maxTextureSize}`);
-      this.initTextureFallback();
-      return;
-    }
-    
-    this.atlasSize = tilesPerRow;
-
-    const chunkSize = tilesPerRow * tilesPerRow; // 256
-    const chunks: MenuItem[][] = [];
-    for (let i = 0; i < items.length; i += chunkSize) {
-      chunks.push(items.slice(i, i + chunkSize));
-    }
-
-    // Limit to 3 atlases bound by the shader
-    const maxAtlases = 3;
-    const buildCount = Math.min(chunks.length, maxAtlases);
-
-    const atlasPromises: Promise<WebGLTexture>[] = [];
-    for (let a = 0; a < buildCount; a++) {
-      const chunk = chunks[a];
-      atlasPromises.push(new Promise<WebGLTexture>(async (resolve, reject) => {
-        // Check abort signal at start of each atlas creation
-        if (signal?.aborted) {
-          reject(new Error('Atlas creation aborted'));
-          return;
-        }
-        const canvas = document.createElement('canvas');
-        canvas.width = atlasSize; // Use calculated atlas size
-        canvas.height = atlasSize;
-        const ctx = canvas.getContext('2d')!;
-
-        // Optional background
-        ctx.fillStyle = '#000';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        // Draw thumbnails into the grid in array order
-        // On mobile, load images in smaller batches to prevent memory exhaustion
-        const batchSize = isMobile ? 8 : chunk.length; // Load 8 at a time on mobile
-        for (let i = 0; i < chunk.length; i += batchSize) {
-          // Check abort signal before each batch
-          if (signal?.aborted) {
-            reject(new Error('Atlas creation aborted during image loading'));
-            return;
-          }
-          
-          const batch = chunk.slice(i, Math.min(i + batchSize, chunk.length));
-          await Promise.all(batch.map((item, batchIdx) => new Promise<void>((res) => {
-            const idx = i + batchIdx;
-            const img = new Image();
-            img.crossOrigin = 'anonymous';
-            img.onload = () => {
-              try {
-                const x = (idx % tilesPerRow) * cellSize;
-                const y = Math.floor(idx / tilesPerRow) * cellSize;
-
-                // cover-like draw to preserve aspect ratio
-                const iw = img.naturalWidth, ih = img.naturalHeight;
-                const r = Math.max(cellSize / iw, cellSize / ih);
-                const dw = Math.round(iw * r);
-                const dh = Math.round(ih * r);
-                const dx = x + Math.floor((cellSize - dw) / 2);
-                const dy = y + Math.floor((cellSize - dh) / 2);
-                ctx.drawImage(img, dx, dy, dw, dh);
-              } catch (e) {
-                console.error('Failed to draw image:', e);
-              }
-              res();
-            };
-            img.onerror = () => res(); // draw nothing on error
-            img.src = item.image; // use thumbnail-sized URL
-          })));
-        }
-
-        try {
-          const texture = createAndSetupTexture(
-            gl,
-            gl.LINEAR,
-            gl.LINEAR,
-            gl.CLAMP_TO_EDGE,
-            gl.CLAMP_TO_EDGE
-          );
-          gl.bindTexture(gl.TEXTURE_2D, texture);
-          gl.texImage2D(
-            gl.TEXTURE_2D,
-            0,
-            gl.RGBA,
-            gl.RGBA,
-            gl.UNSIGNED_BYTE,
-            canvas
-          );
-          gl.generateMipmap(gl.TEXTURE_2D);
-          resolve(texture);
-        } catch (e) {
-          console.error('Failed to create texture atlas:', e);
-          // Return a dummy 1x1 texture on failure
-          const fallbackTexture = gl.createTexture();
-          gl.bindTexture(gl.TEXTURE_2D, fallbackTexture);
-          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 0, 255]));
-          resolve(fallbackTexture!);
-        }
-      }));
-    }
-
-    try {
-      const builtAtlases = await Promise.all(atlasPromises);
-      
-      // Check if aborted after async operations complete
-      if (signal?.aborted) {
-        // Clean up created textures since we're aborting
-        builtAtlases.forEach(texture => {
-          if (texture && gl) {
-            gl.deleteTexture(texture);
-          }
-        });
-        // console.log('Atlas creation aborted after completion, cleaning up');
-        return;
-      }
-      
-      this.atlases = builtAtlases;
-      // For compatibility, set tex to first atlas
-      this.tex = this.atlases[0] || null;
-      this.usingFallbackTexture = false;
-    } catch (error) {
-      // Atlas creation was aborted or failed
-      if ((error as Error).message?.includes('aborted')) {
-        // console.log('Atlas creation aborted');
-      } else {
-        console.error('Atlas creation failed:', error);
-        // Fall back to simple colored squares
-        this.initTextureFallback();
-      }
-      return;
-    }
-
-    // Cap draw count to available atlas capacity to avoid invalid sampling
-    const itemsPerAtlas = tilesPerRow * tilesPerRow;
-    const capacity = this.atlases.length * itemsPerAtlas;
-    if (capacity > 0 && this.DISC_INSTANCE_COUNT > capacity) {
-      // console.warn(`Capping item count from ${this.DISC_INSTANCE_COUNT} to ${capacity} due to atlas capacity`);
-      this.DISC_INSTANCE_COUNT = Math.min(this.DISC_INSTANCE_COUNT, capacity);
-    }
-  }
   
   private buildAtlasPositionMap(): void {
     if (!this.gl) return;
@@ -1508,13 +1348,19 @@ class InfiniteGridMenu {
     this.items.forEach((item, index) => {
       if (index >= maxItems) return;
       
-      // Find this item's entry in the atlas mapping
-      const atlasEntry = this.atlasMapping.find(entry => entry.id === item.id?.toString());
+      // Find this item's entry in the atlas mapping (O(1) lookup)
+      const atlasEntry = this.atlasMappingMap.get(item.id?.toString() || '');
       
       if (atlasEntry) {
         // Calculate absolute position across all atlases
-        const positionInAtlas = (atlasEntry.y / 256) * 16 + (atlasEntry.x / 256);
-        const absolutePosition = atlasEntry.atlas * 256 + positionInAtlas;
+        // Atlas entry has x, y coordinates and atlas index
+        const tileSize = atlasEntry.width || 256; // Use the tile size from mapping
+        const tilesPerRow = this.atlasSize; // 16 for desktop, 8 for mobile
+        const cellX = atlasEntry.x / tileSize;
+        const cellY = atlasEntry.y / tileSize;
+        const positionInAtlas = cellY * tilesPerRow + cellX;
+        const itemsPerAtlas = tilesPerRow * tilesPerRow; // 256 for desktop, 64 for mobile
+        const absolutePosition = atlasEntry.atlas * itemsPerAtlas + positionInAtlas;
         
         // Store in texture as normalized value (0-1)
         mappingData[index * 4] = absolutePosition / 1024.0; // R channel
@@ -1523,7 +1369,7 @@ class InfiniteGridMenu {
         mappingData[index * 4 + 3] = 1; // A channel
         
         if (index < 5) {
-          // console.log(`Item ${index} (ID ${item.id}): maps to atlas position ${absolutePosition} (atlas ${atlasEntry.atlas}, pos ${positionInAtlas})`);
+          console.log(`Item ${index} (ID ${item.id}): maps to atlas position ${absolutePosition} (atlas ${atlasEntry.atlas}, pos ${positionInAtlas})`);
         }
       } else {
         // Item not in atlas - will use modulo fallback in shader
@@ -1544,47 +1390,18 @@ class InfiniteGridMenu {
     this.atlasPositionMapTexture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, this.atlasPositionMapTexture);
     
-    // Check if floating point textures are supported
-    const ext = gl.getExtension('EXT_color_buffer_float');
-    if (ext) {
-      gl.texImage2D(
-        gl.TEXTURE_2D,
-        0,
-        gl.RGBA32F, // Use floating point texture
-        maxItems,
-        1, // 1D texture (width x 1)
-        0,
-        gl.RGBA,
-        gl.FLOAT,
-        mappingData
-      );
-    } else {
-      // Fallback: Convert to 8-bit texture
-      const byteData = new Uint8Array(maxItems * 4);
-      for (let i = 0; i < maxItems; i++) {
-        const position = mappingData[i * 4] * 1024.0;
-        if (position >= 0) {
-          byteData[i * 4] = Math.floor(position / 256); // High byte
-          byteData[i * 4 + 1] = position % 256; // Low byte
-        } else {
-          byteData[i * 4] = 255; // Invalid marker
-          byteData[i * 4 + 1] = 255;
-        }
-        byteData[i * 4 + 2] = 0;
-        byteData[i * 4 + 3] = 255;
-      }
-      gl.texImage2D(
-        gl.TEXTURE_2D,
-        0,
-        gl.RGBA,
-        maxItems,
-        1,
-        0,
-        gl.RGBA,
-        gl.UNSIGNED_BYTE,
-        byteData
-      );
-    }
+    // Always use float texture in WebGL2 - we can sample from float textures without extensions
+    gl.texImage2D(
+      gl.TEXTURE_2D,
+      0,
+      gl.RGBA32F, // Use floating point texture
+      maxItems,
+      1, // 1D texture (width x 1)
+      0,
+      gl.RGBA,
+      gl.FLOAT,
+      mappingData
+    );
     
     // Set texture parameters - no filtering needed for data texture
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
@@ -1595,71 +1412,10 @@ class InfiniteGridMenu {
     // console.log(`Atlas position map texture created for ${maxItems} items`);
   }
   
-  private async loadHighResTexture(index: number, immediate: boolean = false): Promise<void> {
-    if (!this.gl || this.hiResIndex === index || this.hiResLoading) return;
-    
-    const item = this.items[index];
-    if (!item?.imageHighRes) return;
-    
-    // Clear any pending timer
-    if (this.hiResLoadTimer) {
-      clearTimeout(this.hiResLoadTimer);
-      this.hiResLoadTimer = null;
-    }
-    
-    // If not immediate, delay loading to ensure item is truly focused
-    if (!immediate) {
-      this.hiResLoadTimer = window.setTimeout(() => {
-        this.loadHighResTexture(index, true);
-      }, 50); // Small delay to ensure item is at rest
-      return;
-    }
-    
-    this.hiResLoading = true;
-    const gl = this.gl;
-    
-    try {
-      // Load the high-res image
-      const img = new Image();
-      img.crossOrigin = "anonymous";
-      
-      await new Promise<void>((resolve, reject) => {
-        img.onload = () => resolve();
-        img.onerror = () => reject(new Error('Failed to load high-res image'));
-        img.src = item.imageHighRes!;
-      });
-      
-      // Clean up old texture if exists
-      if (this.hiResTexture) {
-        gl.deleteTexture(this.hiResTexture);
-      }
-      
-      // Create and setup new texture
-      this.hiResTexture = createAndSetupTexture(
-        gl,
-        gl.LINEAR,
-        gl.LINEAR,
-        gl.CLAMP_TO_EDGE,
-        gl.CLAMP_TO_EDGE
-      );
-      
-      gl.bindTexture(gl.TEXTURE_2D, this.hiResTexture);
-      gl.texImage2D(
-        gl.TEXTURE_2D,
-        0,
-        gl.RGBA,
-        gl.RGBA,
-        gl.UNSIGNED_BYTE,
-        img
-      );
-      
-      this.hiResIndex = index;
-      // Loaded high-res texture for item ${index}
-    } catch (error) {
-      console.error('Failed to load high-res texture:', error);
-    } finally {
-      this.hiResLoading = false;
-    }
+  private async loadHighResTexture(index: number): Promise<void> {
+    // DISABLED: Hi-res overlay system to prevent image swapping
+    // All images now come from the hardcoded atlas only
+    return;
   }
 
   private initDiscInstances(count: number): void {
@@ -2027,7 +1783,7 @@ class InfiniteGridMenu {
     this.onActiveItemChange(itemIndex);
     
     // Load high-res texture immediately for initial focus
-    this.loadHighResTexture(itemIndex, true);
+    this.loadHighResTexture(itemIndex);
     
     // Get the vertex position for this item
     const vertexIndex = itemIndex % this.instancePositions.length;
@@ -2140,33 +1896,14 @@ class InfiniteGridMenu {
     // Reinitialize instance buffer
     this.initDiscInstances(this.DISC_INSTANCE_COUNT);
     
-    // Cancel any in-progress atlas creation
-    if (this.atlasAbortController) {
-      this.atlasAbortController.abort();
-      this.atlasAbortController = null;
+    // Don't regenerate atlases - just update the position mapping
+    // The master atlas contains all items, we just need to map the filtered items to their positions
+    if (this.atlasMapping && this.atlasMapping.length > 0) {
+      console.log(`Updating position map for ${newItems.length} filtered items`);
+      this.buildAtlasPositionMap();
+    } else {
+      console.warn('Atlas mapping not available, items may show incorrect images');
     }
-    
-    // Dispose old textures
-    if (this.gl) {
-      for (const atlas of this.atlases) {
-        this.gl.deleteTexture(atlas);
-      }
-      this.atlases = [];
-      
-      if (this.tex) {
-        this.gl.deleteTexture(this.tex);
-        this.tex = null;
-      }
-    }
-    
-    // Create new abort controller for this update
-    this.atlasAbortController = new AbortController();
-    
-    // Reinitialize with new items using dynamic atlases that match current order
-    this.initDynamicAtlases(this.atlasAbortController.signal);
-    
-    // Rebuild mapping if we already have atlas data
-    // Mapping not needed for dynamic atlases
 
     // Don't eager-load hi-res, let it load only when truly focused
   }
@@ -2192,57 +1929,56 @@ const InfiniteMenu = ({ items = [], initialFocusId, onItemFocus }: InfiniteMenuP
   const menuInstanceRef = useRef<InfiniteGridMenu | null>(null);
   const [, setActiveItem] = useState(items.length > 0 ? items[0] : null);
   const [, setIsMoving] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
+  // Mount WebGL instance once
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas || items.length === 0) {
-      if (menuInstanceRef.current) {
-        menuInstanceRef.current.dispose();
-        menuInstanceRef.current = null;
-      }
-      return;
-    };
+    if (!canvas || menuInstanceRef.current) return;
 
     const handleActiveItem = (index: number) => {
-      const itemIndex = index % items.length;
-      const item = items[itemIndex];
+      const itemIndex = index % (items.length || 1);
+      const item = (items.length ? items : defaultItems)[itemIndex];
       setActiveItem(item);
-      if (onItemFocus) {
-        onItemFocus(item);
-      }
+      onItemFocus?.(item);
     };
-    
-    // Dispose previous instance if it exists
-    if (menuInstanceRef.current) {
-      menuInstanceRef.current.dispose();
-    }
 
-    // Create new instance
-    const menuInstance = new InfiniteGridMenu(
+    // Show loading state
+    setIsLoading(true);
+    
+    // Create instance once with atlas loaded callback
+    const inst = new InfiniteGridMenu(
       canvas,
       items.length ? items : defaultItems,
       handleActiveItem,
       setIsMoving,
       (sk) => sk.run(),
-      initialFocusId
+      initialFocusId,
+      () => {
+        // Hide loading after a short delay to ensure smooth transition
+        setTimeout(() => setIsLoading(false), 100);
+      }
     );
     
-    menuInstanceRef.current = menuInstance;
+    menuInstanceRef.current = inst;
 
-    const handleResize = () => {
-      menuInstance.resize();
-    };
-
-    window.addEventListener("resize", handleResize);
-    handleResize();
+    const onResize = () => inst.resize();
+    window.addEventListener("resize", onResize);
+    onResize();
 
     return () => {
-      window.removeEventListener("resize", handleResize);
-      // Dispose WebGL resources on cleanup
-      menuInstance.dispose();
+      window.removeEventListener("resize", onResize);
+      inst.dispose();
       menuInstanceRef.current = null;
     };
-  }, [items, initialFocusId, onItemFocus]);
+  }, []); // No dependencies - mount once
+
+  // Update items only (no dispose/recreate)
+  useEffect(() => {
+    if (menuInstanceRef.current) {
+      menuInstanceRef.current.updateItems(items.length ? items : defaultItems);
+    }
+  }, [items]);
 
 
   return (
@@ -2250,8 +1986,19 @@ const InfiniteMenu = ({ items = [], initialFocusId, onItemFocus }: InfiniteMenuP
       <canvas
         id="infinite-grid-menu-canvas"
         ref={canvasRef}
-        className="cursor-grab w-full h-full overflow-hidden relative outline-none active:cursor-grabbing"
+        className={`cursor-grab w-full h-full overflow-hidden relative outline-none active:cursor-grabbing transition-opacity duration-300 ${
+          isLoading ? 'opacity-0' : 'opacity-100'
+        }`}
       />
+      
+      {/* Loading indicator */}
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black">
+          <div className="text-white/60 font-mono text-sm uppercase tracking-wider animate-pulse">
+            Loading
+          </div>
+        </div>
+      )}
 
       {/* Item details are now shown in the right panel */}
     </div>

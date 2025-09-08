@@ -38,7 +38,7 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        source: '/atlas.json',
+        source: '/atlas-master.json',
         headers: [
           {
             key: 'Cache-Control',

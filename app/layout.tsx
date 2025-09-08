@@ -30,13 +30,11 @@ export default function RootLayout({
         <link rel="preconnect" href="https://lykbbceawbrmtursljvk.supabase.co" crossOrigin="anonymous" />
         
         {/* Preload critical resources for instant loading */}
-        <link rel="preload" href="/atlas-0.webp" as="image" type="image/webp" />
-        <link rel="preload" href="/atlas.json" as="fetch" crossOrigin="anonymous" />
+        <link rel="preload" href="/atlas-master-0.webp" as="image" type="image/webp" />
+        <link rel="preload" href="/atlas-master-1.webp" as="image" type="image/webp" />
+        <link rel="preload" href="/atlas-master-2.webp" as="image" type="image/webp" />
+        <link rel="preload" href="/atlas-master.json" as="fetch" crossOrigin="anonymous" />
         <link rel="preload" href="/data/items.json" as="fetch" crossOrigin="anonymous" />
-        
-        {/* Prefetch secondary resources */}
-        <link rel="prefetch" href="/atlas-1.webp" as="image" type="image/webp" />
-        <link rel="prefetch" href="/atlas-2.webp" as="image" type="image/webp" />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
