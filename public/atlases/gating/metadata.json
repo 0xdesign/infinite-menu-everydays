@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "category": "gating",
+  "atlasSize": 16,
+  "cellSize": 256,
+  "numAtlases": 1,
+  "totalItems": 69,
+  "atlases": [
+    {
+      "index": 0,
+      "url": "/atlases/gating/atlas-0.jpg",
+      "itemCount": 69
+    }
+  ]
+}

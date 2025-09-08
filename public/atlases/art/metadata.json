@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "category": "art",
+  "atlasSize": 16,
+  "cellSize": 256,
+  "numAtlases": 1,
+  "totalItems": 100,
+  "atlases": [
+    {
+      "index": 0,
+      "url": "/atlases/art/atlas-0.jpg",
+      "itemCount": 100
+    }
+  ]
+}

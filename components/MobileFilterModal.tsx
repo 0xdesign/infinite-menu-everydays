@@ -5,7 +5,7 @@ import { X } from 'lucide-react';
 interface MobileFilterModalProps {
   isOpen: boolean;
   categories: string[];
-  selectedCategories: string[];
+  selectedCategory: string | null;
   onCategoryToggle: (category: string) => void;
   onClose: () => void;
 }
@@ -29,14 +29,14 @@ const CATEGORY_ORDER = [
 export default function MobileFilterModal({ 
   isOpen,
   categories, 
-  selectedCategories, 
+  selectedCategory, 
   onCategoryToggle,
   onClose 
 }: MobileFilterModalProps) {
   
   if (!isOpen) return null;
 
-  const isAllSelected = selectedCategories.length === 0;
+  const isAllSelected = !selectedCategory;
   
   const sortedCategories = [...categories].sort((a, b) => {
     const aIndex = CATEGORY_ORDER.indexOf(a.toUpperCase());
@@ -49,8 +49,9 @@ export default function MobileFilterModal({
   });
 
   const handleAllClick = () => {
-    if (!isAllSelected && selectedCategories.length > 0) {
-      selectedCategories.forEach(cat => onCategoryToggle(cat));
+    // Clear selection to show all items
+    if (selectedCategory) {
+      onCategoryToggle(selectedCategory);
     }
     onClose();
   };
@@ -72,7 +73,7 @@ export default function MobileFilterModal({
       </div>
 
       {/* Filter List */}
-      <div className="p-4 space-y-3 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 64px)' }}>
+      <div className="p-4 space-y-3 overflow-y-auto h-full">
         {/* ALL button */}
         <button
           onClick={handleAllClick}
@@ -96,13 +97,14 @@ export default function MobileFilterModal({
 
         {/* Category buttons */}
         {sortedCategories.map((category) => {
-          const isActive = selectedCategories.includes(category);
+          const isActive = selectedCategory === category;
           
           return (
             <button
               key={category}
               onClick={() => {
                 onCategoryToggle(category);
+                onClose(); // Auto-close on selection for better mobile UX
               }}
               className="relative block w-full text-left"
             >
@@ -123,16 +125,6 @@ export default function MobileFilterModal({
             </button>
           );
         })}
-      </div>
-
-      {/* Apply Button */}
-      <div className="absolute bottom-0 left-0 right-0 p-4 bg-black border-t border-white/10">
-        <button
-          onClick={onClose}
-          className="w-full py-3 bg-white text-black font-mono uppercase text-xs tracking-[0.08em] text-center"
-        >
-          APPLY FILTERS
-        </button>
       </div>
     </div>
   );

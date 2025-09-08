@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "category": "payments",
+  "atlasSize": 16,
+  "cellSize": 256,
+  "numAtlases": 1,
+  "totalItems": 138,
+  "atlases": [
+    {
+      "index": 0,
+      "url": "/atlases/payments/atlas-0.jpg",
+      "itemCount": 138
+    }
+  ]
+}

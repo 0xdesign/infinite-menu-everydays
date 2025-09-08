@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "category": "identity",
+  "atlasSize": 16,
+  "cellSize": 256,
+  "numAtlases": 1,
+  "totalItems": 71,
+  "atlases": [
+    {
+      "index": 0,
+      "url": "/atlases/identity/atlas-0.jpg",
+      "itemCount": 71
+    }
+  ]
+}

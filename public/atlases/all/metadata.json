@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "category": "all",
+  "atlasSize": 16,
+  "cellSize": 256,
+  "numAtlases": 3,
+  "totalItems": 706,
+  "atlases": [
+    {
+      "index": 0,
+      "url": "/atlases/all/atlas-0.jpg",
+      "itemCount": 256
+    },
+    {
+      "index": 1,
+      "url": "/atlases/all/atlas-1.jpg",
+      "itemCount": 256
+    },
+    {
+      "index": 2,
+      "url": "/atlases/all/atlas-2.jpg",
+      "itemCount": 194
+    }
+  ]
+}

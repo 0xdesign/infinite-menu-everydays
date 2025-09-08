@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "category": "social",
+  "atlasSize": 16,
+  "cellSize": 256,
+  "numAtlases": 1,
+  "totalItems": 101,
+  "atlases": [
+    {
+      "index": 0,
+      "url": "/atlases/social/atlas-0.jpg",
+      "itemCount": 101
+    }
+  ]
+}

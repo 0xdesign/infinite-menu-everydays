@@ -12,6 +12,7 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.50.2",
     "@types/gl-matrix": "^2.4.5",
+    "canvas": "^3.2.0",
     "file-type": "^18.7.0",
     "framer-motion": "^12.23.12",
     "gl-matrix": "^3.4.3",

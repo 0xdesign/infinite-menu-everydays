@@ -73,10 +73,21 @@ export async function fetchNFTTokenById(id: number) {
 export function mapNFTToMenuItem(token: NFTToken) {
   const rawImage = token.thumbnail_url || token.image_url || 'https://picsum.photos/300/300?grayscale';
   const highResImage = token.image_url || token.thumbnail_url || 'https://picsum.photos/300/300?grayscale';
+  
+  // Check if original_url is a video/GIF based on mime_type
+  let mediaUrl = null;
+  if (token.original_url && token.mime_type) {
+    if (token.mime_type.startsWith('video/') || token.mime_type === 'image/gif') {
+      mediaUrl = token.original_url;
+    }
+  }
+  
   return {
     id: token.id,
     image: rawImage, // Direct URL from Supabase Storage (thumbnail)
     imageHighRes: highResImage, // High-res version
+    mediaUrl: mediaUrl, // Video/GIF URL for autoplay
+    mimeType: token.mime_type || null,
     link: `/token/${token.id}`,
     title: token.title || token.token_id || `Token #${token.id}`,
     description: token.description || 'No description available',

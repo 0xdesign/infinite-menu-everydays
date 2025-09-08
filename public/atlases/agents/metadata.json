@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "category": "agents",
+  "atlasSize": 16,
+  "cellSize": 256,
+  "numAtlases": 1,
+  "totalItems": 53,
+  "atlases": [
+    {
+      "index": 0,
+      "url": "/atlases/agents/atlas-0.jpg",
+      "itemCount": 53
+    }
+  ]
+}

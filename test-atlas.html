@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atlas Test</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            background: #000;
+            color: #0f0;
+        }
+        .log {
+            margin: 5px 0;
+            padding: 5px;
+            border-left: 3px solid #0f0;
+        }
+        .error {
+            color: #f00;
+            border-color: #f00;
+        }
+        .success {
+            color: #0f0;
+            border-color: #0f0;
+        }
+        iframe {
+            width: 100%;
+            height: 600px;
+            border: 1px solid #333;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Atlas Loading Test</h1>
+    <div id="logs"></div>
+    <iframe id="app" src="http://localhost:3005"></iframe>
+
+    <script>
+        const logs = document.getElementById('logs');
+        
+        function addLog(message, type = 'log') {
+            const div = document.createElement('div');
+            div.className = `log ${type}`;
+            div.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logs.appendChild(div);
+        }
+
+        // Test atlas loading
+        async function testAtlases() {
+            addLog('Testing atlas loading...');
+            
+            // Test atlas images
+            for (let i = 0; i < 3; i++) {
+                try {
+                    const response = await fetch(`http://localhost:3005/atlases/atlas-${i}.jpg`);
+                    if (response.ok) {
+                        const size = response.headers.get('content-length');
+                        addLog(`✓ Atlas ${i} loaded: ${(size/1024/1024).toFixed(2)}MB`, 'success');
+                    } else {
+                        addLog(`✗ Atlas ${i} failed: ${response.status}`, 'error');
+                    }
+                } catch (e) {
+                    addLog(`✗ Atlas ${i} error: ${e.message}`, 'error');
+                }
+            }
+            
+            // Test mapping file
+            try {
+                const response = await fetch('http://localhost:3005/atlases/atlas-mapping.json');
+                if (response.ok) {
+                    const mapping = await response.json();
+                    const itemCount = Object.keys(mapping).length;
+                    addLog(`✓ Mapping loaded: ${itemCount} items`, 'success');
+                    
+                    // Check a few items
+                    const sampleIds = ['4', '100', '500', '700'];
+                    for (const id of sampleIds) {
+                        if (mapping[id]) {
+                            addLog(`  Item ${id}: Atlas ${mapping[id].atlas} at (${mapping[id].x},${mapping[id].y})`);
+                        }
+                    }
+                } else {
+                    addLog(`✗ Mapping failed: ${response.status}`, 'error');
+                }
+            } catch (e) {
+                addLog(`✗ Mapping error: ${e.message}`, 'error');
+            }
+            
+            // Listen for console messages from iframe
+            const iframe = document.getElementById('app');
+            iframe.onload = () => {
+                addLog('App loaded, monitoring console...');
+                
+                // Try to access iframe console (may be blocked by CORS)
+                try {
+                    const iframeWindow = iframe.contentWindow;
+                    if (iframeWindow) {
+                        addLog('Monitoring app console for ATLAS_TEST messages...');
+                    }
+                } catch (e) {
+                    addLog('Cannot access iframe console (CORS)', 'error');
+                }
+            };
+        }
+
+        testAtlases();
+    </script>
+</body>
+</html>

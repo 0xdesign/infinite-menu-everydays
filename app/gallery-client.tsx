@@ -13,6 +13,7 @@ import MobileHeader from '@/components/MobileHeader';
 import BottomSheet from '@/components/BottomSheet';
 import MobileFilterModal from '@/components/MobileFilterModal';
 import MobileSearchModal from '@/components/MobileSearchModal';
+import FocusedMediaPlayer from '@/components/FocusedMediaPlayer';
 
 const InfiniteMenu = dynamic(
   () => import('@/components/InfiniteMenu'),
@@ -37,6 +38,8 @@ interface MenuItem {
   categories?: string[];
   network?: string | null;
   collectionAddress?: string | null;
+  mediaUrl?: string | null;
+  mimeType?: string | null;
 }
 
 interface GalleryClientProps {
@@ -49,28 +52,38 @@ export default function GalleryClient({ initialData }: GalleryClientProps) {
   );
   const [filteredItems, setFilteredItems] = useState<MenuItem[]>(allItems);
   const [categories] = useState<string[]>(initialData.categories);
-  const [activeCategories, setActiveCategories] = useState<string[]>([]);
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState<string>('');
   const [submittedQuery, setSubmittedQuery] = useState<string>('');
   const [focusedItem, setFocusedItem] = useState<MenuItem | null>(null);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
 
-  // Filter items based on categories and search
+  // Debounce search query for performance
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300);
+    
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Filter items based on categories and debounced search
   useEffect(() => {
     let filtered = allItems;
     
     // Apply category filter
-    if (activeCategories.length > 0) {
+    if (activeCategory) {
       filtered = filtered.filter(item => 
-        item.categories?.some(cat => activeCategories.includes(cat))
+        item.categories?.includes(activeCategory)
       );
     }
     
-    // Apply search filter
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
+    // Apply search filter using debounced query
+    if (debouncedSearchQuery.trim()) {
+      const query = debouncedSearchQuery.toLowerCase();
       filtered = filtered.filter(item => 
         item.title?.toLowerCase().includes(query) ||
         item.description?.toLowerCase().includes(query)
@@ -78,13 +91,14 @@ export default function GalleryClient({ initialData }: GalleryClientProps) {
     }
     
     setFilteredItems(filtered);
-  }, [allItems, activeCategories, searchQuery]);
+  }, [allItems, activeCategory, debouncedSearchQuery]);
 
   const handleCategoryToggle = useCallback((category: string) => {
-    setActiveCategories((prev) => {
-      const exists = prev.includes(category);
-      if (exists) return prev.filter((c) => c !== category);
-      return [...prev, category];
+    setActiveCategory((prev) => {
+      // If clicking the same category, deselect it (go back to all)
+      if (prev === category) return null;
+      // Otherwise select the new category
+      return category;
     });
   }, []);
 
@@ -123,6 +137,12 @@ export default function GalleryClient({ initialData }: GalleryClientProps) {
 
   return (
     <main className="relative w-screen h-screen overflow-hidden bg-black">
+      {/* Media Player Overlay */}
+      <FocusedMediaPlayer
+        mediaUrl={focusedItem?.mediaUrl}
+        posterUrl={focusedItem?.image}
+        isActive={!!focusedItem && !!focusedItem.mediaUrl}
+      />
       {/* Desktop Layout */}
       <div className="hidden md:block">
         {/* Top Navigation */}
@@ -136,7 +156,7 @@ export default function GalleryClient({ initialData }: GalleryClientProps) {
           {/* Filter Sidebar */}
           <FilterSidebar
             categories={categories}
-            selectedCategories={activeCategories}
+            selectedCategory={activeCategory}
             onCategoryToggle={handleCategoryToggle}
           />
 
@@ -145,8 +165,9 @@ export default function GalleryClient({ initialData }: GalleryClientProps) {
             {filteredItems.length > 0 && (
               <InfiniteMenu 
                 items={filteredItems} 
-                initialFocusId={activeCategories.length === 0 && !searchQuery ? 755 : undefined}
+                initialFocusId={!activeCategory && !searchQuery ? 755 : undefined}
                 onItemFocus={handleItemFocus}
+                category={activeCategory || 'all'}
               />
             )}
 
@@ -179,7 +200,7 @@ export default function GalleryClient({ initialData }: GalleryClientProps) {
         <MobileHeader
           onFilterClick={() => setIsMobileFilterOpen(true)}
           onSearchClick={() => setIsMobileSearchOpen(true)}
-          activeFilterCount={activeCategories.length}
+          activeFilterCount={activeCategory ? 1 : 0}
           hasSearchQuery={!!searchQuery}
         />
 
@@ -188,8 +209,9 @@ export default function GalleryClient({ initialData }: GalleryClientProps) {
           {filteredItems.length > 0 && (
             <InfiniteMenu 
               items={filteredItems} 
-              initialFocusId={activeCategories.length === 0 && !searchQuery ? 755 : undefined}
+              initialFocusId={!activeCategory && !searchQuery ? 755 : undefined}
               onItemFocus={handleItemFocus}
+              category={activeCategory || 'all'}
             />
           )}
 
@@ -228,7 +250,7 @@ export default function GalleryClient({ initialData }: GalleryClientProps) {
         <MobileFilterModal
           isOpen={isMobileFilterOpen}
           categories={categories}
-          selectedCategories={activeCategories}
+          selectedCategory={activeCategory}
           onCategoryToggle={handleCategoryToggle}
           onClose={() => setIsMobileFilterOpen(false)}
         />

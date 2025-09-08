@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "category": "rewards",
+  "atlasSize": 16,
+  "cellSize": 256,
+  "numAtlases": 1,
+  "totalItems": 30,
+  "atlases": [
+    {
+      "index": 0,
+      "url": "/atlases/rewards/atlas-0.jpg",
+      "itemCount": 30
+    }
+  ]
+}
