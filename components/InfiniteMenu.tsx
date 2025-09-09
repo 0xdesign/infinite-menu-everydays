@@ -1150,9 +1150,9 @@ class InfiniteGridMenu {
       }
     }
 
-    // Set initial camera position at constant distance from sphere surface
-    // Original: sphere radius 2.0, camera at 3.0 (1.0 unit from surface)
-    vec3.set(this.camera.position, 0, 0, this.SPHERE_RADIUS + 1.0);
+    // Set initial camera position at optimal distance from sphere surface
+    // Desktop: 1.0 unit from surface, Mobile: 0.6-0.8 units from surface
+    vec3.set(this.camera.position, 0, 0, this.SPHERE_RADIUS + this.getFocusedCameraDistance());
     
     this.updateCameraMatrix();
     this.updateProjectionMatrix();
@@ -1993,9 +1993,9 @@ class InfiniteGridMenu {
       );
       this.control.snapTargetDirection = snapDirection;
       
-      // When snapped: maintain constant distance from sphere surface
-      // Original: sphere radius 2.0, camera at 3.0 (1.0 unit from surface)
-      cameraTargetZ = this.SPHERE_RADIUS + 1.0;
+      // When snapped: maintain optimal distance from sphere surface
+      // Desktop: 1.0 unit from surface, Mobile: 0.6-0.8 units from surface
+      cameraTargetZ = this.SPHERE_RADIUS + this.getFocusedCameraDistance();
     } else {
       // When dragging: use proportional distance based on sphere radius
       // Original: radius 2.0, camera starts at 6.0 (3x) and goes up to ~86 (43x)
@@ -2010,6 +2010,18 @@ class InfiniteGridMenu {
     this.camera.position[2] +=
       (cameraTargetZ - this.camera.position[2]) / damping;
     this.updateCameraMatrix();
+  }
+
+  private getFocusedCameraDistance(): number {
+    // Detect mobile and orientation
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || 
+                     window.innerWidth < 768;
+    
+    if (!isMobile) return 1.0; // Desktop unchanged
+    
+    // Check orientation
+    const isPortrait = window.innerHeight > window.innerWidth;
+    return isPortrait ? 0.6 : 0.8; // Closer on mobile for better visibility
   }
 
   private findNearestVertexIndex(): number {
@@ -2165,8 +2177,8 @@ class InfiniteGridMenu {
       }
     }
     
-    // Update camera position at constant distance from sphere surface
-    vec3.set(this.camera.position, 0, 0, newRadius + 1.0);
+    // Update camera position at optimal distance from sphere surface
+    vec3.set(this.camera.position, 0, 0, newRadius + this.getFocusedCameraDistance());
     this.updateCameraMatrix();
     
     // Reinitialize instance buffer
