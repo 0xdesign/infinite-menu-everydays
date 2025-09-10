@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Infinite Menu - NFT Explorer",
-  description: "Interactive 3D spherical menu for exploring NFT collections",
+  title: "Design Everydays",
+  description: "A series of daily design concepts that explore ways blockchain can be more useful, usable and delightful.",
 };
 
 export default function RootLayout({
